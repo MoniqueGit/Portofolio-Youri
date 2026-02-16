@@ -1,6 +1,7 @@
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { Shield, Radio, Activity } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -12,22 +13,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   const navItems = [
-    { href: "/", label: "HOME" },
-    { href: "#mission", label: "MISSION" },
-    { href: "#arsenal", label: "ARSENAL" },
-    { href: "#operations", label: "OPERATIONS" },
-    { href: "#comms", label: "COMMS" },
+    { href: "/", label: "OVERVIEW" },
+    { href: "#strategy", label: "STRATEGY" },
+    { href: "#capabilities", label: "CAPABILITIES" },
+    { href: "#deployments", label: "DEPLOYMENTS" },
+    { href: "#contact", label: "CONTACT" },
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
-      {/* Top HUD Bar */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-background/80 backdrop-blur-md h-16 flex items-center justify-between px-6">
-        <div className="flex items-center gap-4">
-          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <span className="font-mono text-xs text-primary tracking-widest">SYSTEM ONLINE</span>
-          <span className="font-mono text-xs text-muted-foreground hidden sm:block">
-            {time.toLocaleTimeString([], { hour12: false })} UTC
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
+      {/* Refined Navigation */}
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl h-14 flex items-center justify-between px-8">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-primary" />
+            <span className="font-display font-bold text-sm tracking-widest">AD.LABS</span>
+          </div>
+          <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
+          <span className="font-mono text-[10px] text-muted-foreground hidden lg:block tracking-widest uppercase">
+            EST. 2026 // GEN-5 SYSTEMS
           </span>
         </div>
 
@@ -37,47 +41,43 @@ export function Layout({ children }: { children: React.ReactNode }) {
               key={item.label}
               href={item.href}
               className={cn(
-                "text-xs font-mono tracking-widest hover:text-primary transition-colors relative group",
-                location === item.href ? "text-primary" : "text-muted-foreground"
+                "nav-link relative group",
+                location === item.href ? "text-primary" : ""
               )}
             >
-              <span className="opacity-0 group-hover:opacity-100 absolute -left-3 text-primary">&gt;</span>
               {item.label}
+              <span className={cn(
+                "absolute -bottom-[21px] left-0 w-full h-[2px] bg-primary transition-transform duration-300 origin-left",
+                location === item.href ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+              )} />
             </a>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 font-mono text-xs text-primary border border-primary/30 px-3 py-1 rounded bg-primary/5">
-          <span>SECURE_CONN</span>
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
+        <div className="flex items-center gap-4">
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {time.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}
+          </span>
+          <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
+            <Shield className="w-3.5 h-3.5 text-primary/80" />
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 pb-20 relative overflow-hidden">
-        {/* Decorative Grid Lines */}
-        <div className="fixed inset-0 pointer-events-none z-0 opacity-20">
-          <div className="absolute top-[20%] left-0 w-full h-[1px] bg-primary/20" />
-          <div className="absolute top-[80%] left-0 w-full h-[1px] bg-primary/20" />
-          <div className="absolute left-[10%] top-0 w-[1px] h-full bg-primary/20" />
-          <div className="absolute right-[10%] top-0 w-[1px] h-full bg-primary/20" />
-        </div>
-        
-        <div className="relative z-10">
-          {children}
-        </div>
+      <main className="pt-14 pb-12 relative overflow-hidden">
+        {children}
       </main>
 
-      {/* Bottom HUD Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-background/90 h-10 flex items-center justify-between px-6 text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-        <div>
-          COORDINATES: 48.8566° N, 2.3522° E
+      {/* Minimal Footer */}
+      <footer className="border-t border-white/5 bg-background h-12 flex items-center justify-between px-8 text-[9px] font-mono text-muted-foreground/60 tracking-[0.2em] uppercase">
+        <div className="flex gap-6">
+          <span>PARIS, FR // NODE_01</span>
+          <span>© 2026 ALL RIGHTS RESERVED</span>
         </div>
-        <div className="flex gap-4">
-          <span>VERSION 2.4.0</span>
-          <span className="text-primary">ALL SYSTEMS NOMINAL</span>
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+          <span>CONNECTED</span>
         </div>
       </footer>
     </div>
