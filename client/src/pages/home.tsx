@@ -79,7 +79,7 @@ export default function Home() {
   return (
     <Layout>
       {/* ─── HERO ─── */}
-      <section className="relative min-h-[90vh] flex items-center px-8 md:px-16 overflow-hidden">
+      <section className="relative min-h-[90vh] flex items-center px-4 md:px-8 lg:px-16 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src={heroBg}
@@ -111,7 +111,7 @@ export default function Home() {
 
           {/* H1 — large staggered entrance */}
           <motion.h1
-            className="text-6xl md:text-9xl font-display font-bold tracking-tighter mb-4 leading-[0.9]"
+            className="text-5xl sm:text-6xl md:text-9xl font-display font-bold tracking-tighter mb-4 leading-[0.9]"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
@@ -151,10 +151,10 @@ export default function Home() {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/80 text-white font-bold tracking-wider rounded-none px-10 h-14 flex items-center gap-3 border border-white/10 group"
+                className="bg-primary hover:bg-primary/80 text-white font-bold tracking-wider rounded-none px-6 md:px-10 h-12 md:h-14 flex items-center gap-3 border border-white/10 group"
                 asChild
               >
-                <a href="/cv-youri-figuie.pdf" download="CV_Youri_Figuie.pdf">
+                <a href={`${b}cv-youri-figuie.pdf`} download="CV_Youri_Figuie.pdf">
                   <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform duration-300" />
                   TÉLÉCHARGER MON CV
                 </a>
@@ -164,7 +164,7 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white/20 text-white hover:bg-white/5 rounded-none px-10 h-14 flex items-center gap-3 group"
+                className="border-white/20 text-white hover:bg-white/5 rounded-none px-6 md:px-10 h-12 md:h-14 flex items-center gap-3 group"
                 asChild
               >
                 <a href="https://linkedin.com/in/youri-fg/" target="_blank" rel="noopener noreferrer">
@@ -176,7 +176,7 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white/20 text-white hover:bg-white/5 rounded-none px-10 h-14 flex items-center gap-3 group"
+                className="border-white/20 text-white hover:bg-white/5 rounded-none px-6 md:px-10 h-12 md:h-14 flex items-center gap-3 group"
                 asChild
               >
                 <a href="#contact">
@@ -206,19 +206,19 @@ export default function Home() {
       </section>
 
       {/* ─── SECTIONS ─── */}
-      <div className="space-y-32 py-32">
+      <div className="space-y-20 md:space-y-32 py-20 md:py-32">
 
         {/* ─── QUI SUIS-JE ─── */}
         <motion.section
           id="about"
-          className="container max-w-5xl mx-auto px-8 scroll-mt-24"
+          className="container max-w-5xl mx-auto px-4 md:px-8 scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={stagger}
         >
-          <div className="grid lg:grid-cols-[1fr_2fr] gap-16 items-start">
-            <motion.div className="sticky top-32" variants={fadeInLeft}>
+          <div className="grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-16 items-start">
+            <motion.div className="lg:sticky lg:top-32" variants={fadeInLeft}>
               <div className="flex items-center gap-4 mb-6">
                 <User className="w-5 h-5 text-primary" />
                 <h2 className="text-2xl font-display font-bold uppercase tracking-widest">Qui suis-je ?</h2>
@@ -300,14 +300,14 @@ export default function Home() {
         {/* ─── ALTERNANCE ─── */}
         <motion.section
           id="alternance"
-          className="container max-w-5xl mx-auto px-8 scroll-mt-24"
+          className="container max-w-5xl mx-auto px-4 md:px-8 scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={stagger}
         >
-          <div className="grid lg:grid-cols-[1fr_2fr] gap-16 items-start">
-            <motion.div className="sticky top-32" variants={fadeInLeft}>
+          <div className="grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-16 items-start">
+            <motion.div className="lg:sticky lg:top-32" variants={fadeInLeft}>
               <div className="flex items-center gap-4 mb-6">
                 <Briefcase className="w-5 h-5 text-primary" />
                 <h2 className="text-2xl font-display font-bold uppercase tracking-widest">Alternance</h2>
@@ -370,14 +370,14 @@ export default function Home() {
         {/* ─── EXPÉRIENCES ─── */}
         <motion.section
           id="exp"
-          className="container max-w-5xl mx-auto px-8 scroll-mt-24"
+          className="container max-w-5xl mx-auto px-4 md:px-8 scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={stagger}
         >
-          <div className="grid lg:grid-cols-[1fr_2fr] gap-16 items-start">
-            <motion.div className="sticky top-32" variants={fadeInLeft}>
+          <div className="grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-16 items-start">
+            <motion.div className="lg:sticky lg:top-32" variants={fadeInLeft}>
               <div className="flex items-center gap-4 mb-6">
                 <Briefcase className="w-5 h-5 text-primary" />
                 <h2 className="text-2xl font-display font-bold uppercase tracking-widest">Expériences</h2>
@@ -472,14 +472,14 @@ export default function Home() {
         {/* ─── FORMATIONS ─── */}
         <motion.section
           id="edu"
-          className="container max-w-5xl mx-auto px-8 scroll-mt-24"
+          className="container max-w-5xl mx-auto px-4 md:px-8 scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={stagger}
         >
-          <div className="grid lg:grid-cols-[1fr_2fr] gap-16 items-start">
-            <motion.div className="sticky top-32" variants={fadeInLeft}>
+          <div className="grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-16 items-start">
+            <motion.div className="lg:sticky lg:top-32" variants={fadeInLeft}>
               <div className="flex items-center gap-4 mb-6">
                 <GraduationCap className="w-5 h-5 text-primary" />
                 <h2 className="text-2xl font-display font-bold uppercase tracking-widest">Formations</h2>
@@ -538,13 +538,13 @@ export default function Home() {
         {/* ─── COMPÉTENCES ─── */}
         <motion.section
           id="skills"
-          className="container max-w-6xl mx-auto px-8 scroll-mt-24"
+          className="container max-w-6xl mx-auto px-4 md:px-8 scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={stagger}
         >
-          <motion.div className="text-center mb-16" variants={fadeInUp}>
+          <motion.div className="text-center mb-10 md:mb-16" variants={fadeInUp}>
             <span className="font-mono text-[10px] text-primary tracking-[0.4em] uppercase mb-4 block">Capabilities Matrix</span>
             <h2 className="text-4xl font-display font-bold uppercase">Compétences</h2>
           </motion.div>
@@ -631,13 +631,13 @@ export default function Home() {
         {/* ─── PROJETS ACADÉMIQUES ─── */}
         <motion.section
           id="projects"
-          className="container max-w-6xl mx-auto px-8 scroll-mt-24"
+          className="container max-w-6xl mx-auto px-4 md:px-8 scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={stagger}
         >
-          <motion.div className="flex items-center justify-between mb-16" variants={fadeInUp}>
+          <motion.div className="flex items-center justify-between mb-10 md:mb-16" variants={fadeInUp}>
             <h2 className="text-4xl font-display font-bold uppercase tracking-tight">Projets Académiques</h2>
             <div className="h-[1px] flex-1 mx-8 bg-white/5" />
           </motion.div>
@@ -697,13 +697,13 @@ export default function Home() {
         {/* ─── PROJETS PERSO ─── */}
         <motion.section
           id="perso"
-          className="container max-w-6xl mx-auto px-8 scroll-mt-24"
+          className="container max-w-6xl mx-auto px-4 md:px-8 scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={stagger}
         >
-          <motion.div className="flex items-center justify-between mb-16" variants={fadeInUp}>
+          <motion.div className="flex items-center justify-between mb-10 md:mb-16" variants={fadeInUp}>
             <h2 className="text-4xl font-display font-bold uppercase tracking-tight">Projets Personnels</h2>
             <div className="h-[1px] flex-1 mx-8 bg-white/5" />
             <span className="font-mono text-[10px] text-primary/60 uppercase tracking-widest shrink-0">Initiative propre</span>
@@ -769,7 +769,7 @@ export default function Home() {
         {/* ─── POURQUOI ME CHOISIR ─── */}
         <motion.section
           id="why"
-          className="container max-w-4xl mx-auto px-8 py-24 bg-primary/5 border-y border-primary/10 scroll-mt-24 text-center"
+          className="container max-w-4xl mx-auto px-4 md:px-8 py-16 md:py-24 bg-primary/5 border-y border-primary/10 scroll-mt-24 text-center"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
@@ -821,7 +821,7 @@ export default function Home() {
         {/* ─── CONTACT ─── */}
         <motion.section
           id="contact"
-          className="container max-w-2xl mx-auto px-8 scroll-mt-24"
+          className="container max-w-2xl mx-auto px-4 md:px-8 scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
