@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { Shield, Radio, Activity, User, Briefcase, GraduationCap, Zap, Lightbulb, CheckCircle2, Download, Send } from "lucide-react";
+import { Activity, User, Briefcase, GraduationCap, Zap, Lightbulb, CheckCircle2, Download, Send, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -37,7 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl h-20 flex items-center justify-between px-6 lg:px-12">
         <div className="flex items-center gap-4">
           <Activity className="w-4 h-4 text-primary" />
-          <span className="font-display font-bold text-sm tracking-widest hidden xl:block uppercase">AD.Systems</span>
+          <span className="font-display font-bold text-sm tracking-widest hidden xl:block uppercase">YOURI FIGUIÉ</span>
         </div>
 
         {/* Anchor Navigation */}
@@ -63,8 +63,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Global Action Buttons */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="hidden sm:flex border-white/10 text-white hover:bg-white/5 rounded-none font-mono text-[9px] tracking-widest h-9 px-4 gap-2">
-            <Download className="w-3 h-3 text-primary" /> CV_PDF
+          <Button variant="outline" size="sm" className="hidden sm:flex border-white/10 text-white hover:bg-white/5 rounded-none font-mono text-[9px] tracking-widest h-9 px-4 gap-2" asChild>
+            <a href="https://linkedin.com/in/youri-fg/" target="_blank" rel="noopener noreferrer">
+              <Linkedin className="w-3 h-3 text-primary" /> LINKEDIN
+            </a>
           </Button>
           <Button size="sm" className="bg-primary hover:bg-primary/80 text-white rounded-none font-mono text-[9px] tracking-widest h-9 px-4 gap-2" asChild>
             <a href="#contact" onClick={(e) => scrollToSection(e, "#contact")}>
@@ -89,11 +91,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Minimal Footer */}
       <footer className="border-t border-white/5 bg-background h-12 flex items-center justify-between px-8 text-[9px] font-mono text-muted-foreground/60 tracking-[0.2em] uppercase">
         <div className="flex gap-6">
-          <span>GEN-5 // TACTICAL_GRID</span>
-          <span>© 2026 ALEXANDRE DURAND</span>
+          <span>BUT GEII // IUT MONTPELLIER</span>
+          <span>© 2026 YOURI FIGUIÉ</span>
         </div>
         <div className="flex items-center gap-2">
-          <span>FR // NODE_01</span>
+          <a href="https://linkedin.com/in/youri-fg/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+            LINKEDIN
+          </a>
+          <span className="opacity-30">·</span>
+          <a href="mailto:youri.figuie@etu.umontpellier.fr" className="hover:text-primary transition-colors">
+            EMAIL
+          </a>
         </div>
       </footer>
     </div>
