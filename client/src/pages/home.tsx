@@ -10,6 +10,13 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import heroBg from "@/assets/hero-bg.png";
+
+// Préfixe automatique pour les assets public/ selon l'environnement (dev vs gh-pages)
+const b = import.meta.env.BASE_URL;
+const PHOTOS = {
+  profil:     `${b}photo-profil.jpg`,
+  reserviste: `${b}photo-reserviste.jpg`,
+};
 import {
   Cpu, Shield, Code, Send, Download, User, Briefcase,
   GraduationCap, ChevronRight, Terminal, Wrench, Globe,
@@ -226,7 +233,7 @@ export default function Home() {
                     <User className="w-10 h-10 text-white/10" />
                   </div>
                   <img
-                    src="/photo-profil.jpg"
+                    src={PHOTOS.profil}
                     alt="Youri Figuié"
                     className="w-full h-full object-cover relative z-10 transition-transform duration-500 group-hover/photo:scale-105"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -384,7 +391,7 @@ export default function Home() {
                   role: "Réserviste Opérationnel",
                   company: "ARMÉE DE TERRE — 3e RPIMa · Carcassonne",
                   date: "2025 — Présent",
-                  photo: "/photo-reserviste.jpg" as string | undefined,
+                  photo: PHOTOS.reserviste as string | undefined,
                   tags: ["Défense", "Discipline", "Engagement"],
                   bullets: [
                     "Engagement opérationnel au sein du 3e RPIMa avec application stricte des procédures et protocoles militaires",
