@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Fond tactical dark green -->
+  <rect width="32" height="32" fill="#0d1a12"/>
+  <!-- Crochets de coin style HUD -->
+  <path d="M4 10V4h6"  stroke="#3d6b50" stroke-width="1.5" fill="none" stroke-linecap="square"/>
+  <path d="M28 10V4h-6" stroke="#3d6b50" stroke-width="1.5" fill="none" stroke-linecap="square"/>
+  <path d="M4 22v6h6"  stroke="#3d6b50" stroke-width="1.5" fill="none" stroke-linecap="square"/>
+  <path d="M28 22v6h-6" stroke="#3d6b50" stroke-width="1.5" fill="none" stroke-linecap="square"/>
+  <!-- Initiales YF -->
+  <text x="16" y="21" text-anchor="middle" fill="#4a7a5a"
+        font-family="monospace" font-size="12" font-weight="700" letter-spacing="1">YF</text>
+</svg>
