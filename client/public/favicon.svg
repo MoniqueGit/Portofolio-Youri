@@ -1,12 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Fond tactical dark green -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Background -->
   <rect width="32" height="32" fill="#0d1a12"/>
-  <!-- Crochets de coin style HUD -->
-  <path d="M4 10V4h6"  stroke="#3d6b50" stroke-width="1.5" fill="none" stroke-linecap="square"/>
-  <path d="M28 10V4h-6" stroke="#3d6b50" stroke-width="1.5" fill="none" stroke-linecap="square"/>
-  <path d="M4 22v6h6"  stroke="#3d6b50" stroke-width="1.5" fill="none" stroke-linecap="square"/>
-  <path d="M28 22v6h-6" stroke="#3d6b50" stroke-width="1.5" fill="none" stroke-linecap="square"/>
-  <!-- Initiales YF -->
-  <text x="16" y="21" text-anchor="middle" fill="#4a7a5a"
-        font-family="monospace" font-size="12" font-weight="700" letter-spacing="1">YF</text>
+
+  <!-- Subtle inner border — profondeur sans bruit -->
+  <rect x="1" y="1" width="30" height="30" fill="none" stroke="#1c3026" stroke-width="1"/>
+
+  <!-- Accent bar — signature verte en haut -->
+  <rect x="4" y="4" width="24" height="1.5" fill="#3d7a55"/>
+
+  <!-- Y — bras gauche, bras droit, tige centrale -->
+  <path d="M4.5 9 L9.5 16.5"
+        fill="none" stroke="#60be80" stroke-width="2.5" stroke-linecap="square"/>
+  <path d="M14.5 9 L9.5 16.5"
+        fill="none" stroke="#60be80" stroke-width="2.5" stroke-linecap="square"/>
+  <line x1="9.5" y1="16.5" x2="9.5" y2="26"
+        stroke="#60be80" stroke-width="2.5" stroke-linecap="square"/>
+
+  <!-- F — verticale + barre haute + barre médiane -->
+  <line x1="18" y1="9" x2="18" y2="26"
+        stroke="#60be80" stroke-width="2.5" stroke-linecap="square"/>
+  <line x1="18" y1="9" x2="27.5" y2="9"
+        stroke="#60be80" stroke-width="2.5" stroke-linecap="square"/>
+  <line x1="18" y1="17" x2="24.5" y2="17"
+        stroke="#60be80" stroke-width="2.5" stroke-linecap="square"/>
 </svg>
