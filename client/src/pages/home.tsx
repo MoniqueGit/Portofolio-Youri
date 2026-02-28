@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,6 +14,9 @@ import heroBg from "@/assets/hero-bg.png";
 
 // Préfixe automatique pour les assets public/ selon l'environnement (dev vs gh-pages)
 const b = import.meta.env.BASE_URL;
+
+// ── Formspree — remplace par ton ID après inscription sur formspree.io ──
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/REMPLACE_MOI";
 const PHOTOS = {
   profil:     `${b}photo-profil.jpg`,
   reserviste: `${b}photo-reserviste.jpg`,
@@ -66,14 +70,38 @@ function AccentLine({ delay = 0 }: { delay?: number }) {
 
 export default function Home() {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
   const form = useForm<z.infer<typeof contactSchema>>({
     resolver: zodResolver(contactSchema),
     defaultValues: { name: "", email: "", message: "" },
   });
 
-  function onSubmit() {
-    toast({ title: "TRANSMISSION RÉUSSIE", description: "Communication établie avec succès." });
-    form.reset();
+  async function onSubmit(values: z.infer<typeof contactSchema>) {
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ name: values.name, email: values.email, message: values.message }),
+      });
+      if (res.ok) {
+        setSubmitted(true);
+        form.reset();
+        toast({ title: "TRANSMISSION RÉUSSIE", description: "Message reçu. Je reviens vers toi sous 48h." });
+      } else {
+        throw new Error();
+      }
+    } catch {
+      toast({
+        title: "ERREUR DE TRANSMISSION",
+        description: "Problème d'envoi. Écris-moi directement à youri.figuie@etu.umontpellier.fr",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -873,57 +901,100 @@ export default function Home() {
             variants={scaleIn}
           >
             <div className="absolute top-0 left-0 w-full h-[1px] bg-primary/50" />
-            <p className="text-xs font-mono text-white/50 mb-6 text-center uppercase tracking-widest">— ou via le formulaire —</p>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <div className="grid md:grid-cols-2 gap-8">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-mono text-white/60 uppercase">Identité</FormLabel>
-                        <FormControl>
-                          <Input placeholder="VOTRE NOM" {...field} className="rounded-none border-white/10 bg-white/5 focus:border-primary h-12 text-white/90 placeholder:text-white/30" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-mono text-white/60 uppercase">Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="VOTRE EMAIL" {...field} className="rounded-none border-white/10 bg-white/5 focus:border-primary h-12 text-white/90 placeholder:text-white/30" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
+            {submitted ? (
+              /* État succès */
+              <motion.div
+                className="flex flex-col items-center justify-center py-12 gap-4 text-center"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="w-12 h-12 border border-primary/40 flex items-center justify-center mb-2">
+                  <Send className="w-5 h-5 text-primary" />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-mono text-white/60 uppercase">Message</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="VOTRE MESSAGE..." {...field} className="rounded-none border-white/10 bg-white/5 focus:border-primary min-h-[150px] resize-none text-white/90 placeholder:text-white/30" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/80 text-white font-bold tracking-widest rounded-none h-14">
-                    TRANSMETTRE
-                  </Button>
-                </motion.div>
-              </form>
-            </Form>
+                <p className="font-mono text-xs text-primary uppercase tracking-widest">Transmission confirmée</p>
+                <p className="text-sm text-white/60 max-w-xs">Message reçu. Je reviens vers toi sous 48h.</p>
+                <button
+                  onClick={() => setSubmitted(false)}
+                  className="mt-4 font-mono text-[10px] text-white/30 hover:text-white/60 uppercase tracking-widest transition-colors"
+                >
+                  Nouveau message
+                </button>
+              </motion.div>
+            ) : (
+              <>
+                <p className="text-xs font-mono text-white/50 mb-6 text-center uppercase tracking-widest">— ou via le formulaire —</p>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    <div className="grid md:grid-cols-2 gap-8">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-mono text-white/60 uppercase">Identité</FormLabel>
+                            <FormControl>
+                              <Input placeholder="VOTRE NOM" {...field} className="rounded-none border-white/10 bg-white/5 focus:border-primary h-12 text-white/90 placeholder:text-white/30" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-mono text-white/60 uppercase">Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="VOTRE EMAIL" {...field} className="rounded-none border-white/10 bg-white/5 focus:border-primary h-12 text-white/90 placeholder:text-white/30" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="message"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[10px] font-mono text-white/60 uppercase">Message</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="VOTRE MESSAGE..." {...field} className="rounded-none border-white/10 bg-white/5 focus:border-primary min-h-[150px] resize-none text-white/90 placeholder:text-white/30" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full bg-primary hover:bg-primary/80 disabled:opacity-50 text-white font-bold tracking-widest rounded-none h-14 flex items-center justify-center gap-3"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <motion.span
+                              className="w-3 h-3 border border-white/60 border-t-white rounded-full"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                            />
+                            TRANSMISSION EN COURS…
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            TRANSMETTRE
+                          </>
+                        )}
+                      </Button>
+                    </motion.div>
+                  </form>
+                </Form>
+              </>
+            )}
           </motion.div>
         </motion.section>
 
