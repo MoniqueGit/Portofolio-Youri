@@ -16,7 +16,7 @@ import heroBg from "@/assets/hero-bg.png";
 const b = import.meta.env.BASE_URL;
 
 // ── Formspree — remplace par ton ID après inscription sur formspree.io ──
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/REMPLACE_MOI";
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/meelwjkk";
 const PHOTOS = {
   profil:     `${b}photo-profil.jpg`,
   reserviste: `${b}photo-reserviste.jpg`,
