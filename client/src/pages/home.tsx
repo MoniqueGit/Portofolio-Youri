@@ -19,7 +19,6 @@ const b = import.meta.env.BASE_URL;
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/meelwjkk";
 const PHOTOS = {
   profil:     `${b}photo-profil.jpg`,
-  reserviste: `${b}photo-reserviste.jpg`,
 };
 import {
   Cpu, Shield, Code, Send, Download, User, Briefcase,
@@ -419,7 +418,7 @@ export default function Home() {
                   role: "Réserviste Opérationnel",
                   company: "ARMÉE DE TERRE — 3e RPIMa · Carcassonne",
                   date: "2025 — Présent",
-                  photo: PHOTOS.reserviste as string | undefined,
+                  photo: undefined,
                   tags: ["Défense", "Discipline", "Engagement"],
                   bullets: [
                     "Engagement opérationnel au sein du 3e RPIMa avec application stricte des procédures et protocoles militaires",
