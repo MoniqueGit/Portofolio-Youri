@@ -137,6 +137,14 @@ textarea{resize:vertical;line-height:1.55}
 .blk textarea{font-family:var(--mono);font-size:12px;background:var(--paper)}
 .blk img{max-height:120px;align-self:flex-start;border:1px solid var(--line);border-radius:5px;background:#fff}
 
+.det{border:1px solid var(--line);border-radius:7px;background:var(--panel);padding:8px 10px}
+.det summary{cursor:pointer;font-size:12px;color:var(--ink2);font-weight:500;list-style:none}
+.det summary::-webkit-details-marker{display:none}
+.det summary::before{content:"▸ ";color:var(--ink3)}
+.det[open] summary::before{content:"▾ "}
+.det .ex{white-space:pre-wrap;font-size:12.5px;color:var(--ink2);margin-top:8px;line-height:1.55;
+  max-height:230px;overflow:auto;border-left:2px solid var(--accent-soft);padding-left:9px}
+
 /* ---------- démarrage guidé ---------- */
 .chk{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:8px;
   border:1px solid var(--line);background:var(--paper);cursor:pointer;text-align:left;
@@ -302,6 +310,8 @@ const ANTI_IA = [
 const initial = () => ({
   step: 0,
   brief: { raw: "", sources: [] },
+  brouillon: { raw: "", sources: [] },
+  repartition: {},          // id de section -> indices de paragraphes du brouillon
   want: { sujet: "", planImpose: "", pages: 12, niveau: "BUT 2", langue: "Français", ton: "Retour d’expérience" },
   da: { preset: "apple", accent: PRESETS.apple.accent, font: PRESETS.apple.font, size: PRESETS.apple.size,
         lh: PRESETS.apple.lh, gap: PRESETS.apple.gap, align: PRESETS.apple.align,
@@ -345,6 +355,8 @@ function reducer(s, a) {
     case "load": return a.state;
     case "step": return { ...s, step: a.v };
     case "brief": return { ...s, brief: { ...s.brief, ...a.v } };
+    case "brouillon": return { ...s, brouillon: { ...s.brouillon, ...a.v }, repartition: {} };
+    case "repartition": return { ...s, repartition: a.v };
     case "want": return { ...s, want: { ...s.want, ...a.v } };
     case "meta": return { ...s, meta: { ...s.meta, ...a.v } };
     case "echantillon": return { ...s, echantillon: a.v };
@@ -361,7 +373,12 @@ function reducer(s, a) {
     case "plan": {
       const next = { ...s.sections };
       a.v.forEach((p) => { if (!next[p.id]) next[p.id] = blankSection(); });
-      return { ...s, plan: a.v, sections: next };
+      // une section supprimée ne doit plus retenir ses paragraphes de brouillon,
+      // sinon ils comptent comme rattachés sans être visibles nulle part
+      const vivants = new Set(a.v.map((p) => p.id));
+      const rep = {};
+      Object.keys(s.repartition || {}).forEach((k) => { if (vivants.has(k)) rep[k] = s.repartition[k]; });
+      return { ...s, plan: a.v, sections: next, repartition: rep };
     }
     case "sec": return { ...s, sections: { ...s.sections, [a.id]: { ...s.sections[a.id], ...a.v } } };
     default: return s;
@@ -462,6 +479,11 @@ function contexteGlobal(s) {
     ["Année", m.annee], ["Titre du dossier", m.titre], ["Sous-titre", m.sousTitre],
   ].filter(([, v]) => (v || "").trim());
   L.push(meta.length ? meta.map(([k, v]) => k + " : " + v).join("\n") : "(non renseigné)");
+  if ((s.brouillon.raw || "").trim()) {
+    L.push("");
+    L.push("=== NOTE DE TRAVAIL ===");
+    L.push("L’équipe a déjà écrit un brouillon. Le dossier n’est pas à inventer : il est à mettre au propre.");
+  }
   const eq = (s.membres || []).filter((x) => (x.nom || "").trim());
   if (eq.length) {
     L.push("");
@@ -490,6 +512,20 @@ function numeroter(plan) {
     if (p.level === 1) { a++; b = 0; return String(a) + "."; }
     b++; return String(a) + "." + String(b);
   });
+}
+
+/* ============================ brouillon de l’équipe ============================ */
+const parasBrouillon = (t) => (t || "").split(/\n{2,}/).map((x) => x.trim()).filter(Boolean);
+function extraitPour(state, secId) {
+  const paras = parasBrouillon(state.brouillon.raw);
+  const idx = (state.repartition || {})[secId] || [];
+  return idx.map((i) => paras[i]).filter(Boolean).join("\n\n");
+}
+function nonRattaches(state) {
+  const paras = parasBrouillon(state.brouillon.raw);
+  const pris = new Set();
+  Object.keys(state.repartition || {}).forEach((k) => (state.repartition[k] || []).forEach((i) => pris.add(i)));
+  return paras.map((t, i) => ({ i, t })).filter((x) => !pris.has(x.i));
 }
 
 /* ============================ icônes (inline, zéro dépendance) ============================ */
@@ -845,7 +881,8 @@ function usePagination(state) {
 }
 
 /* ============================ écran 1 — configuration ============================ */
-function ImportFichiers({ dispatch, brief }) {
+function ImportFichiers({ dispatch, brief, cible }) {
+  const T_ACTION = cible || "brief";
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const lire = async (files) => {
@@ -855,13 +892,13 @@ function ImportFichiers({ dispatch, brief }) {
         if (/\.(txt|md|markdown)$/i.test(f.name)) {
           setBusy(f.name);
           const t = await f.text();
-          dispatch({ t: "brief", v: {
+          dispatch({ t: T_ACTION, v: {
             raw: (brief.raw ? brief.raw + "\n\n" : "") + "--- " + f.name + " ---\n" + t,
             sources: [...brief.sources, { name: f.name, chars: t.length }] } });
         } else if (/\.pdf$/i.test(f.name)) {
           setBusy(f.name + " (extraction PDF…)");
           const t = await extrairePdf(f);
-          dispatch({ t: "brief", v: {
+          dispatch({ t: T_ACTION, v: {
             raw: (brief.raw ? brief.raw + "\n\n" : "") + "--- " + f.name + " ---\n" + t,
             sources: [...brief.sources, { name: f.name, chars: t.length }] } });
         } else {
@@ -1023,6 +1060,9 @@ function Demarrage({ state, dispatch }) {
     { id: "c-echantillon", opt: true, ok: words(state.echantillon) >= 120,
       t: "Coller 200 mots de votre écriture",
       w: "Le seul réglage qui change vraiment le rendu du texte." },
+    { id: "c-brouillon", opt: true, ok: state.brouillon.raw.trim().length > 80,
+      t: "Verser le brouillon de l’équipe",
+      w: "Bascule l’outil en mise au propre : plus rien n’est inventé." },
     { id: "@plan", ok: plan.length > 0, t: "Construire le plan",
       w: "Étape 2 : proposé par Claude, puis entièrement modifiable." },
   ];
@@ -1062,6 +1102,24 @@ function EcranConfig({ state, dispatch }) {
                 min={150} placeholder="Coller ici l’énoncé, la grille d’évaluation, les attendus…" />
         </F>
         <ImportFichiers dispatch={dispatch} brief={state.brief} />
+      </Card>
+
+      <Card title="Brouillon de l’équipe" kicker="facultatif" id="c-brouillon"
+            right={<span className="tag">{words(state.brouillon.raw)} mots</span>}>
+        <p className="muted" style={{ margin: 0 }}>
+          Ce que vous avez déjà écrit, même en vrac : notes de réunion, paragraphes bruts,
+          relevés de manip. Claude ne rédigera plus à partir de rien — il mettra ça au propre,
+          en gardant vos chiffres et vos références telles quelles, et posera un marqueur
+          « à compléter » partout où votre brouillon reste muet.
+        </p>
+        <Auto value={state.brouillon.raw} min={130}
+              onChange={(v) => dispatch({ t: "brouillon", v: { raw: v } })}
+              placeholder="Coller le brouillon — séparez les idées par une ligne vide, la répartition sera plus fine." />
+        <ImportFichiers dispatch={dispatch} brief={state.brouillon} cible="brouillon" />
+        {state.brouillon.raw.trim() ? (
+          <p className="muted" style={{ margin: 0 }}>
+            {parasBrouillon(state.brouillon.raw).length} paragraphes détectés · à répartir dans le plan à l’étape 2.
+          </p>) : null}
       </Card>
 
       <Card title="Ce que je veux" id="c-voulu">
@@ -1210,6 +1268,11 @@ function EcranPlan({ state, dispatch, claude }) {
         "À partir des consignes ci-dessous, propose un plan de dossier réaliste et directement exploitable.",
         "",
         contexteGlobal(state),
+        state.brouillon.raw.trim()
+          ? "\n=== BROUILLON DÉJÀ ÉCRIT PAR L’ÉQUIPE ===\n" + cut(state.brouillon.raw, 7000) +
+            "\n\nLe plan doit couvrir ce que ce brouillon contient déjà. Là où il ne dit rien d’un" +
+            "\nattendu des consignes, prévois quand même la section : elle sera à compléter."
+          : "",
         consigne.trim() ? "\n=== CONSIGNE SUPPLÉMENTAIRE ===\n" + consigne.trim() : "",
         "",
         "Contraintes :",
@@ -1234,6 +1297,49 @@ function EcranPlan({ state, dispatch, claude }) {
     } catch (e) {
       setErr(msgErreur(e));
     } finally { setBusy(false); }
+  };
+
+  const [busyRep, setBusyRep] = useState(false);
+  const aBrouillon = state.brouillon.raw.trim().length > 0;
+  const orphelins = nonRattaches(state);
+
+  /* Tri, pas rédaction : le modèle ne renvoie que des numéros de paragraphes,
+     le texte est réassemblé ici, mot pour mot. */
+  const repartir = async () => {
+    setBusyRep(true); setErr("");
+    try {
+      const paras = parasBrouillon(state.brouillon.raw);
+      const n2 = numeroter(state.plan);
+      const prompt = [
+        "Tu ranges un brouillon dans un plan. Tu ne rédiges rien, tu ne reformules rien,",
+        "tu ne renvoies que des numéros.",
+        "",
+        "=== PLAN ===",
+        state.plan.map((q, i) => "[" + i + "] " + n2[i] + " " + q.title +
+          (q.intent ? " — " + q.intent : "")).join("\n"),
+        "",
+        "=== BROUILLON, UN PARAGRAPHE PAR LIGNE NUMÉROTÉE ===",
+        paras.map((t, i) => "[" + i + "] " + t.replace(/\s+/g, " ")).join("\n"),
+        "",
+        "Range chaque paragraphe sous la section à laquelle il appartient vraiment.",
+        "Un paragraphe qui ne relève d’aucune section reste de côté : ne le force nulle part.",
+        "Un paragraphe ne va jamais à deux endroits.",
+        "",
+        'Réponds STRICTEMENT en JSON, sans texte autour : {"map":[{"s":0,"p":[0,3,4]}]}',
+      ].join("\n");
+      const r = await claude.askJson(prompt, { modelTier: "default" });
+      const rep = {}, vus = new Set();
+      ((r && r.map) || []).forEach((e) => {
+        const sec = state.plan[Number(e.s)];
+        if (!sec) return;
+        const list = (Array.isArray(e.p) ? e.p : []).map(Number)
+          .filter((i) => i >= 0 && i < paras.length && !vus.has(i));
+        list.forEach((i) => vus.add(i));
+        if (list.length) rep[sec.id] = (rep[sec.id] || []).concat(list).sort((a, b) => a - b);
+      });
+      dispatch({ t: "repartition", v: rep });
+    } catch (e) { setErr(msgErreur(e)); }
+    finally { setBusyRep(false); }
   };
 
   const maj = (i, v) => dispatch({ t: "plan", v: state.plan.map((p, j) => j === i ? { ...p, ...v } : p) });
@@ -1263,7 +1369,28 @@ function EcranPlan({ state, dispatch, claude }) {
           {busy ? "Génération…" : state.plan.length ? "Régénérer le plan" : "Proposer un plan"}
         </button>
       </div>
+      {aBrouillon && state.plan.length ? (
+        <div className="row">
+          <button className="btn" disabled={busyRep} onClick={repartir}>
+            <Ic n={busyRep ? "refresh" : "list"} s={14} />
+            {busyRep ? "Répartition…" : "Répartir le brouillon dans le plan"}
+          </button>
+          <span className="muted">
+            {parasBrouillon(state.brouillon.raw).length} paragraphes ·
+            {" " + (parasBrouillon(state.brouillon.raw).length - orphelins.length)} rattachés
+          </span>
+        </div>) : null}
       <Erreur e={err} onRetry={generer} />
+      {aBrouillon && orphelins.length && Object.keys(state.repartition || {}).length ? (
+        <details className="det">
+          <summary>{orphelins.length} paragraphe{orphelins.length > 1 ? "s" : ""} du brouillon
+            rattaché{orphelins.length > 1 ? "s" : ""} à aucune section</summary>
+          <div className="ex">{orphelins.map((o) => o.t).join("\n\n")}</div>
+          <p className="muted" style={{ margin: "8px 0 0" }}>
+            Soit ils sont hors sujet, soit il manque une section pour les accueillir.
+            Ajoutez-la puis relancez la répartition.
+          </p>
+        </details>) : null}
       {Math.abs(totalMots - cible) > cible * 0.25 && state.plan.length ? (
         <div className="note">
           Total visé : {totalMots} mots pour une cible d’environ {cible} mots ({state.want.pages} pages).
@@ -1279,6 +1406,10 @@ function EcranPlan({ state, dispatch, claude }) {
                  placeholder="Ce que cette section doit démontrer" />
             </div>
             <div className="row" style={{ gap: 4, alignItems: "flex-start" }}>
+              {((state.repartition || {})[p.id] || []).length ? (
+                <span className="tag ok" title="paragraphes du brouillon rattachés">
+                  {(state.repartition[p.id] || []).length} ¶
+                </span>) : null}
               <input type="number" className="mono" value={p.words} min={50} step={50} style={{ width: 74 }}
                      onChange={(e) => maj(i, { words: clamp(Number(e.target.value), 40, 4000) })} />
               <button className="btn sm ghost" title="Niveau"
@@ -1365,6 +1496,7 @@ function BlocEditeur({ b, onChange, onDelete }) {
 function SectionCard({ state, dispatch, index, claude, running, onGenerate }) {
   const p = state.plan[index];
   const sec = state.sections[p.id] || blankSection();
+  const extrait = extraitPour(state, p.id);
   const nums = numeroter(state.plan);
   const [consigne, setConsigne] = useState("");
   const [err, setErr] = useState("");
@@ -1384,6 +1516,8 @@ function SectionCard({ state, dispatch, index, claude, running, onGenerate }) {
         <span className="num">{nums[index]}</span>
         <span className="t">{p.title}</span>
         <span className={"tag " + cls}>{lbl}</span>
+        {extrait ? <span className="tag ok" title="mise au propre du brouillon">
+          brouillon · {words(extrait)} mots</span> : null}
         <span className="tag mono">{w} / {p.words} mots</span>
         <button className="btn sm ghost" title={sec.locked ? "Déverrouiller" : "Verrouiller"}
                 onClick={() => dispatch({ t: "sec", id: p.id, v: { locked: !sec.locked } })}>
@@ -1392,13 +1526,27 @@ function SectionCard({ state, dispatch, index, claude, running, onGenerate }) {
       </header>
       <div className="body">
         {p.intent ? <p className="muted" style={{ margin: 0 }}>{p.intent}</p> : null}
+        {extrait ? (
+          <details className="det">
+            <summary>Brouillon rattaché à cette section — {words(extrait)} mots, repris tels quels</summary>
+            <div className="ex">{extrait}</div>
+            <button className="btn sm ghost" style={{ marginTop: 8 }}
+                    onClick={() => {
+                      const r = { ...(state.repartition || {}) };
+                      delete r[p.id];
+                      dispatch({ t: "repartition", v: r });
+                    }}>
+              <Ic n="x" s={12} />Détacher — rédiger sans le brouillon
+            </button>
+          </details>) : null}
         <Auto value={sec.text} min={100}
               onChange={(v) => dispatch({ t: "sec", id: p.id, v: { text: v, status: v ? "edit" : "vide" } })}
               placeholder="Rien pour l’instant. Générez, ou écrivez directement." />
         <Erreur e={err} onRetry={() => lancer(consigne)} />
         <div className="tools">
           <button className="btn sm pri" disabled={running || sec.locked} onClick={() => lancer("")}>
-            <Ic n="spark" s={13} />{sec.text ? "Régénérer" : "Rédiger"}
+            <Ic n="spark" s={13} />
+            {sec.text ? "Régénérer" : extrait ? "Mettre au propre" : "Rédiger"}
           </button>
           <T value={consigne} onChange={setConsigne} style={{ flex: 1, minWidth: 170 }}
              placeholder="Consigne — « plus technique », « raccourcis de moitié », « ajoute un exemple STM32 »" />
@@ -1456,6 +1604,7 @@ function App() {
         return t ? nums[j] + " " + q.title + " : " + resume(t) : null;
       }).filter(Boolean);
     const actuel = (state.sections[id] || {}).text;
+    const extrait = extraitPour(state, id);
 
     const prompt = [
       ANTI_IA,
@@ -1468,6 +1617,16 @@ function App() {
       precedentes.length ? "=== CE QUI EST DÉJÀ ÉCRIT (résumés) ===\n" + precedentes.join("\n") : "",
       state.echantillon.trim()
         ? "\n=== ÉCHANTILLON DE L’ÉCRITURE DE L’AUTEUR — IMITE CE STYLE ===\n" + cut(state.echantillon, 3000)
+        : "",
+      extrait
+        ? "\n=== BROUILLON DE L’ÉQUIPE POUR CETTE SECTION — MATIÈRE PREMIÈRE ===\n" + cut(extrait, 7000) +
+          "\n\nMODE MISE AU PROPRE. Ce brouillon est la seule source de vérité factuelle." +
+          "\nReformule-le pour qu’il réponde aux consignes du professeur et tienne la longueur visée." +
+          "\nGarde ses chiffres, ses références de composants et ses détails concrets à l’identique :" +
+          "\nne les arrondis pas, ne les « améliore » pas. N’ajoute aucun fait qui n’y figure pas." +
+          "\nSi le brouillon ne dit rien d’un point attendu par les consignes, pose un marqueur" +
+          "\n[[À COMPLÉTER : …]] à l’endroit exact plutôt que de combler toi-même." +
+          "\nSi une phrase du brouillon relève d’une autre section, ignore-la sans la recaser ici."
         : "",
       "",
       "=== SECTION À RÉDIGER MAINTENANT — ET ELLE SEULE ===",
