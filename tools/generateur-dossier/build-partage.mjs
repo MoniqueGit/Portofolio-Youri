@@ -1,6 +1,6 @@
 // Produit l'edition d'equipe a partir de la source unique index.html :
-// meme application, sans connecteur Google Drive, donc partageable sans
-// donner acces au Drive de qui que ce soit.
+// meme application, sans connecteur ni appel a Claude : aucune capacite a
+// declarer, donc l'artifact reste partageable librement.
 // Usage : node build-partage.mjs
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -9,6 +9,7 @@ const src = readFileSync(new URL("./index.html", import.meta.url), "utf8");
 const swaps = [
   ["<title>Atelier Dossier</title>", "<title>Atelier Dossier Équipe</title>"],
   ["const AVEC_DRIVE = true;", "const AVEC_DRIVE = false;"],
+  ["const AVEC_IA = true;", "const AVEC_IA = false;"],
   ['const NOM_APP = "Atelier Dossier";', 'const NOM_APP = "Atelier Dossier Équipe";'],
 ];
 

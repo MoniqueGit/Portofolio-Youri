@@ -269,6 +269,7 @@ const {useState,useReducer,useRef,useEffect,useMemo,useCallback,useLayoutEffect}
 /* Deux editions depuis une seule source — build-partage.mjs bascule ces deux
    lignes pour produire la version d'equipe. Ne pas les reformater. */
 const AVEC_DRIVE = false;
+const AVEC_IA = false;
 const NOM_APP = "Atelier Dossier Équipe";
 
 /* ============================ constantes ============================ */
@@ -494,8 +495,9 @@ async function appelHttpJson(input, opts) {
 }
 
 function useClaude() {
-  const [mode, setMode] = useState(null); // null = en cours de résolution
+  const [mode, setMode] = useState(AVEC_IA ? null : "off");
   useEffect(() => {
+    if (!AVEC_IA) return;
     let alive = true;
     getSample().then((s) => { if (alive) setMode(s ? "sample" : "http"); });
     return () => { alive = false; };
@@ -1274,15 +1276,18 @@ function Demarrage({ state, dispatch }) {
       w: "Une phrase suffit : elle cadre le plan et chaque section." },
     { id: "c-meta", ok: !!(meta.nom.trim() && meta.titre.trim()), t: "Nom et titre du dossier",
       w: "Ils remplissent la page de garde, l’en-tête et le pied de page." },
+  ].concat(AVEC_IA ? [
     { id: "c-echantillon", opt: true, ok: words(state.echantillon) >= 120,
       t: "Coller 200 mots de votre écriture",
       w: "Le seul réglage qui change vraiment le rendu du texte." },
     { id: "c-brouillon", opt: true, ok: state.brouillon.raw.trim().length > 80,
       t: "Verser le brouillon de l’équipe",
       w: "Bascule l’outil en mise au propre : plus rien n’est inventé." },
+  ] : []).concat([
     { id: "@plan", ok: plan.length > 0, t: "Construire le plan",
-      w: "Étape 2 : proposé par Claude, puis entièrement modifiable." },
-  ];
+      w: AVEC_IA ? "Étape 2 : proposé par Claude, puis entièrement modifiable."
+                 : "Étape 2 : vos parties, à la main ou reprises d’un projet chargé." },
+  ]);
   const faits = items.filter((x) => x.ok).length;
   const aller = (id) => {
     if (id === "@plan") { dispatch({ t: "step", v: 1 }); return; }
@@ -1386,6 +1391,7 @@ function EcranConfig({ state, dispatch, claude }) {
         <GoogleDocs onImport={(titre, txt) => ajouterTexte("brief", titre, txt)} />
       </Card>
 
+      {AVEC_IA ? (
       <Card title="Brouillon de l’équipe" kicker="facultatif" id="c-brouillon"
             right={<span className="tag">{words(state.brouillon.raw)} mots</span>}>
         <p className="muted" style={{ margin: 0 }}>
@@ -1403,7 +1409,7 @@ function EcranConfig({ state, dispatch, claude }) {
           <p className="muted" style={{ margin: 0 }}>
             {parasBrouillon(state.brouillon.raw).length} paragraphes détectés · à répartir dans le plan à l’étape 2.
           </p>) : null}
-      </Card>
+      </Card>) : null}
 
       <Card title="Ce que je veux" id="c-voulu">
         <F label="Sujet précis">
@@ -1495,6 +1501,7 @@ function EcranConfig({ state, dispatch, claude }) {
           <span>Insérer un sommaire numéroté</span>
         </label>
 
+        {AVEC_IA ? (<>
         <F label="Charte graphique imposée" hint="facultatif — celle de l’IUT ou de l’entreprise">
           <Auto value={state.charte.raw} min={70}
                 onChange={(v) => dispatch({ t: "charte", v: { raw: v } })}
@@ -1512,6 +1519,7 @@ function EcranConfig({ state, dispatch, claude }) {
         </div>
         {state.charte.note ? <p className="muted" style={{ margin: 0 }}>Retenu : {state.charte.note}</p> : null}
         <Erreur e={errDa} onRetry={deduireDa} />
+        </>) : null}
       </Card>
 
       <Card title="Photo de couverture" kicker="facultatif" id="c-photo">
@@ -1545,6 +1553,7 @@ function EcranConfig({ state, dispatch, claude }) {
         </F>
       </Card>
 
+      {AVEC_IA ? (
       <Card title="Échantillon de votre écriture" kicker="fortement conseillé" id="c-echantillon"
             right={<span className="tag">{words(state.echantillon)} mots</span>}>
         <p className="muted" style={{ margin: 0 }}>
@@ -1554,7 +1563,7 @@ function EcranConfig({ state, dispatch, claude }) {
         </p>
         <Auto value={state.echantillon} onChange={(v) => dispatch({ t: "echantillon", v })} min={120}
               placeholder="Collez ici un texte de votre main…" />
-      </Card>
+      </Card>) : null}
     </>
   );
 }
@@ -1674,6 +1683,12 @@ function EcranPlan({ state, dispatch, claude }) {
           <button className="btn sm" onClick={() => ajouter(1)}><Ic n="plus" s={13} />Partie</button>
           <button className="btn sm" onClick={() => ajouter(2)}><Ic n="plus" s={13} />Sous-partie</button>
         </div>}>
+      {!AVEC_IA ? (
+        <p className="muted" style={{ margin: 0 }}>
+          Ajoutez vos parties avec les boutons ci-dessus, ou chargez un projet <code>.json</code>
+          préparé ailleurs : le plan, les textes et la mise en page reviennent tels quels.
+        </p>) : null}
+      {AVEC_IA ? (
       <div className="row">
         <T value={consigne} onChange={setConsigne}
            placeholder="Consigne libre pour le plan — ex. « plus de place à la partie mesures »" />
@@ -1681,8 +1696,8 @@ function EcranPlan({ state, dispatch, claude }) {
           {busy ? <Ic n="refresh" s={14} /> : <Ic n="spark" s={14} />}
           {busy ? "Génération…" : state.plan.length ? "Régénérer le plan" : "Proposer un plan"}
         </button>
-      </div>
-      {aBrouillon && state.plan.length ? (
+      </div>) : null}
+      {AVEC_IA && aBrouillon && state.plan.length ? (
         <div className="row">
           <button className="btn" disabled={busyRep} onClick={repartir}>
             <Ic n={busyRep ? "refresh" : "list"} s={14} />
@@ -1694,7 +1709,7 @@ function EcranPlan({ state, dispatch, claude }) {
           </span>
         </div>) : null}
       <Erreur e={err} onRetry={generer} />
-      {aBrouillon && orphelins.length && Object.keys(state.repartition || {}).length ? (
+      {AVEC_IA && aBrouillon && orphelins.length && Object.keys(state.repartition || {}).length ? (
         <details className="det">
           <summary>{orphelins.length} paragraphe{orphelins.length > 1 ? "s" : ""} du brouillon
             rattaché{orphelins.length > 1 ? "s" : ""} à aucune section</summary>
@@ -1894,6 +1909,7 @@ function SectionCard({ state, dispatch, index, claude, running, onGenerate }) {
               onChange={(v) => dispatch({ t: "sec", id: p.id, v: { text: v, status: v ? "edit" : "vide" } })}
               placeholder="Rien pour l’instant. Générez, ou écrivez directement." />
         <Erreur e={err} onRetry={() => lancer(consigne)} />
+        {AVEC_IA ? (
         <div className="tools">
           <button className="btn sm pri" disabled={running || sec.locked} onClick={() => lancer("")}>
             <Ic n="spark" s={13} />
@@ -1905,7 +1921,7 @@ function SectionCard({ state, dispatch, index, claude, running, onGenerate }) {
                   onClick={() => lancer(consigne)}>
             <Ic n="refresh" s={13} />Appliquer
           </button>
-        </div>
+        </div>) : null}
         <div className="tools">
           <span className="eyebrow">Blocs non générés</span>
           {TYPES_BLOC.map((b) => (
@@ -1937,6 +1953,19 @@ function App() {
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0, label: "" });
   const [globalErr, setGlobalErr] = useState("");
+  const [copie, setCopie] = useState("");
+  /* Dans un artifact, un téléchargement n’aboutit que si la capacité « downloads »
+     a été accordée ; ailleurs (site autonome) le lien de téléchargement suffit.
+     Sans elle, on ne laisse pas un bouton qui ne fait rien : on copie. */
+  const dansArtifact = typeof window !== "undefined" && !!window.claude && typeof window.claude.use === "function";
+  const [dlCap, setDlCap] = useState(false);
+  useEffect(() => {
+    if (!dansArtifact) return;
+    let a = true;
+    window.claude.use("downloads").then((d) => { if (a) setDlCap(!!d); }).catch(() => {});
+    return () => { a = false; };
+  }, [dansArtifact]);
+  const telechargeable = !dansArtifact || dlCap;
   const abortRef = useRef(null);
   const stopRef = useRef(false);
   const stateRef = useRef(state);
@@ -2047,7 +2076,7 @@ function App() {
     const a = document.createElement("a"); a.href = url; a.download = nom; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   };
-  const exportMarkdown = () => {
+  const markdown = () => {
     const nums = numeroter(state.plan);
     const L = ["# " + (state.meta.titre || "Dossier")];
     if (state.meta.sousTitre) L.push("_" + state.meta.sousTitre + "_");
@@ -2064,7 +2093,21 @@ function App() {
         else L.push("<!-- saut de page -->", "");
       });
     });
-    enregistrer(fichier("md"), L.join("\n"), "text/markdown");
+    return L.join("\n");
+  };
+  const exportMarkdown = () => enregistrer(fichier("md"), markdown(), "text/markdown");
+
+  /* Le presse-papier reste ouvert même là où le téléchargement est bloqué :
+     c’est la porte de secours pour récupérer un projet. */
+  const copier = async (txt, quoi) => {
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("presse-papier indisponible");
+      await navigator.clipboard.writeText(txt);
+      setCopie(quoi);
+      window.setTimeout(() => setCopie(""), 2500);
+    } catch (e) {
+      setGlobalErr("Copie impossible : " + ((e && e.message) || "le navigateur a refusé l’accès au presse-papier."));
+    }
   };
   const fichier = (ext) => (state.meta.titre || "dossier").toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")
@@ -2139,7 +2182,11 @@ function App() {
                       onClick={() => dispatch({ t: "load", state: exemple() })}>
                 <Ic n="eye" s={13} />Exemple
               </button>
-              <button className="btn sm" onClick={sauver}><Ic n="save" s={13} />Sauvegarder</button>
+              <button className="btn sm"
+                      title={telechargeable ? "Télécharger le projet" : "Copier le projet dans le presse-papier"}
+                      onClick={() => telechargeable ? sauver() : copier(JSON.stringify(state, null, 2), "Projet")}>
+                <Ic n="save" s={13} />{telechargeable ? "Sauvegarder" : "Copier"}
+              </button>
               <label className="btn sm" style={{ cursor: "pointer" }}>
                 <Ic n="folder" s={13} />Charger
                 <input type="file" accept=".json" style={{ display: "none" }}
@@ -2153,7 +2200,7 @@ function App() {
         <div className={"shell" + (state.step === 1 ? " wide" : "")}>
           <div className="pane">
             {globalErr ? <Erreur e={globalErr} /> : null}
-            {claude.mode === "http" ? (
+            {AVEC_IA && claude.mode === "http" ? (
               <div className="note">
                 Déploiement autonome : la génération passe par la fonction <code>/api/claude</code>.
                 Si les boutons restent muets, c’est que la variable d’environnement
@@ -2169,7 +2216,7 @@ function App() {
                 <Card title="Rédaction" kicker={faits + " / " + state.plan.length + " sections · " + motsTotal + " mots"}
                   right={
                     <div className="row">
-                      {running
+                      {!AVEC_IA ? null : running
                         ? <button className="btn sm danger" onClick={stopper}><Ic n="stop" s={12} />Stopper</button>
                         : <button className="btn sm pri" disabled={!state.plan.length} onClick={toutGenerer}>
                             <Ic n="play" s={12} />Tout générer</button>}
@@ -2182,8 +2229,9 @@ function App() {
                       </span>
                     </>) : (
                     <p className="muted" style={{ margin: 0 }}>
-                      Une section = un appel. Le contexte transmis contient les consignes, vos métadonnées,
-                      le plan entier et un résumé des sections déjà écrites. Les sections verrouillées sont ignorées.
+                      {AVEC_IA
+                        ? "Une section = un appel. Le contexte transmis contient les consignes, vos métadonnées, le plan entier et un résumé des sections déjà écrites. Les sections verrouillées sont ignorées."
+                        : "Écrivez directement dans chaque section, ou chargez un projet .json déjà rédigé. L’aperçu A4 se repagine à chaque frappe."}
                     </p>)}
                 </Card>
 
@@ -2218,9 +2266,27 @@ function App() {
                 </p>
                 <div className="row">
                   <button className="btn pri" onClick={() => window.print()}><Ic n="print" s={14} />Imprimer / PDF</button>
-                  <button className="btn" onClick={exportMarkdown}><Ic n="dl" s={14} />Export Markdown</button>
-                  <button className="btn" onClick={sauver}><Ic n="save" s={14} />Sauvegarder le projet (.json)</button>
+                  {telechargeable ? (
+                    <>
+                      <button className="btn" onClick={exportMarkdown}><Ic n="dl" s={14} />Export Markdown</button>
+                      <button className="btn" onClick={sauver}><Ic n="save" s={14} />Sauvegarder le projet (.json)</button>
+                    </>) : (
+                    <>
+                      <button className="btn" onClick={() => copier(markdown(), "Markdown")}>
+                        <Ic n="dl" s={14} />Copier le Markdown
+                      </button>
+                      <button className="btn" onClick={() => copier(JSON.stringify(state, null, 2), "Projet")}>
+                        <Ic n="save" s={14} />Copier le projet (.json)
+                      </button>
+                    </>)}
+                  {copie ? <span className="tag ok"><Ic n="check" s={11} />{copie} copié</span> : null}
                 </div>
+                {!telechargeable ? (
+                  <p className="muted" style={{ margin: 0 }}>
+                    Cette édition ne peut pas déclencher de téléchargement : elle copie dans le
+                    presse-papier. Collez le projet dans un fichier <code>.json</code> pour le
+                    conserver ou le repasser à quelqu’un — il se recharge avec « Charger ».
+                  </p>) : null}
                 <div className="grid3" style={{ marginTop: 4 }}>
                   {[["Pages", 1 + pagination.tocPages + pagination.pages.length],
                     ["Mots rédigés", motsTotal],

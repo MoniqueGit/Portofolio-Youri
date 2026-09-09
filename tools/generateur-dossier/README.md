@@ -24,10 +24,22 @@ renvoient une erreur explicite.
 `index.html` est la source. `build-partage.mjs` en tire `partage.html` en
 basculant deux lignes (`AVEC_DRIVE`, `NOM_APP`) et le `<title>` :
 
-| Édition | Fichier | Connecteurs | Usage |
+| Édition | Fichier | Capacités déclarées | Usage |
 |---|---|---|---|
-| Personnelle | `index.html` | Google Drive | privée, import direct depuis Google Docs |
-| Équipe | `partage.html` | aucun | partageable, aucun accès à des données tierces |
+| Personnelle | `index.html` | `sample`, `downloads`, `mcp` (Google Drive) | privée : génération, import Google Docs |
+| Équipe | `partage.html` | aucune | partageable : édition, mise en page, PDF |
+
+Un artifact qui appelle Claude (capacité `sample`) ne peut pas être partagé
+librement. L'édition d'équipe coupe donc `AVEC_IA` en plus de `AVEC_DRIVE` :
+tout ce qui dépend d'un appel disparaît de l'interface — proposition de plan,
+répartition du brouillon, rédaction, déduction de charte — et il ne reste
+aucune capacité à déclarer. Reste l'atelier : plan réordonnable, sections
+éditables, blocs, sommaire, pagination A4 et impression PDF.
+
+Sans la capacité `downloads`, un artifact ne peut pas déclencher de
+téléchargement. L'application le détecte au démarrage et bascule ses exports
+sur le presse-papier plutôt que d'afficher des boutons sans effet. Hors
+artifact (déploiement autonome) le téléchargement classique reprend.
 
 Toute modification se fait dans `index.html`, puis `node build-partage.mjs`
 régénère l'édition d'équipe. Les deux artifacts se republient séparément.
