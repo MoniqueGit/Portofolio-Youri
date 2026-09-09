@@ -1,0 +1,1640 @@
+<title>Atelier Dossier</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400..700&display=swap">
+
+<style>
+:root{
+  --ink:#16181c; --ink2:#5b6168; --ink3:#8d939b;
+  --paper:#ffffff; --ground:#f1f2f3; --panel:#fafbfb;
+  --line:#e2e5e8; --line2:#cfd4d9;
+  --accent:#12655c; --accent-d:#0d4d46; --accent-soft:#e6f0ee;
+  --warn:#8a5a0b; --warn-soft:#fdf4dd; --warn-line:#e7cf95;
+  --danger:#a52720; --danger-soft:#fbeceb;
+  --r:10px;
+  --ui:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ui);
+     font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.015em;text-wrap:balance}
+
+/* ---------- chrome ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.86);
+  backdrop-filter:saturate(1.6) blur(12px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1560px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px;font-weight:600;letter-spacing:-.02em;font-size:15px;white-space:nowrap}
+.brand .dot{width:9px;height:9px;border-radius:2px;background:var(--accent)}
+.steps{display:flex;align-items:center;gap:2px;flex:1;min-width:280px}
+.step{display:flex;align-items:center;gap:8px;padding:6px 11px;border-radius:8px;border:0;background:none;
+  cursor:pointer;color:var(--ink3);white-space:nowrap}
+.step:hover{background:#0000000a;color:var(--ink2)}
+.step .n{font-family:var(--mono);font-size:11px;width:19px;height:19px;border-radius:5px;
+  display:grid;place-items:center;background:var(--line);color:var(--ink2);font-variant-numeric:tabular-nums}
+.step[data-on="1"]{color:var(--ink);font-weight:600}
+.step[data-on="1"] .n{background:var(--accent);color:#fff}
+.step[data-done="1"] .n{background:var(--accent-soft);color:var(--accent-d)}
+.step-sep{width:14px;height:1px;background:var(--line2);flex:none}
+.topacts{display:flex;gap:8px;align-items:center}
+
+.shell{max-width:1560px;margin:0 auto;padding:20px;display:grid;gap:20px;
+  grid-template-columns:minmax(0,440px) minmax(0,1fr);align-items:start}
+.shell.wide{grid-template-columns:minmax(0,1fr)}
+@media (max-width:1080px){.shell{grid-template-columns:minmax(0,1fr)}}
+.pane{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sticky{position:sticky;top:72px}
+
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.card>header{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+.card>header h2{font-size:13px;letter-spacing:.01em}
+.card .body{padding:14px;display:flex;flex-direction:column;gap:13px}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+
+label.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+label.f>span{font-size:12px;font-weight:500;color:var(--ink2)}
+label.f>span em{font-style:normal;color:var(--ink3);font-weight:400}
+input[type=text],input[type=number],select,textarea{
+  width:100%;background:var(--paper);border:1px solid var(--line2);border-radius:7px;
+  padding:8px 10px;outline:none;transition:border-color .12s,box-shadow .12s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea{resize:vertical;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.muted{color:var(--ink3);font-size:12px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line2);background:var(--paper);
+  border-radius:7px;padding:7px 12px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap;
+  transition:background .12s,border-color .12s,color .12s}
+.btn:hover:not(:disabled){background:#f6f7f8;border-color:var(--ink3)}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover:not(:disabled){background:var(--accent-d);border-color:var(--accent-d)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--ink2)}
+.btn.ghost:hover:not(:disabled){background:#0000000d;border-color:transparent}
+.btn.sm{padding:4px 8px;font-size:12px;gap:5px;border-radius:6px}
+.btn.danger:hover:not(:disabled){background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.btn:focus-visible,.step:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line2);background:var(--paper);border-radius:999px;padding:5px 11px;
+  font-size:12.5px;cursor:pointer}
+.chip[data-on="1"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-d);font-weight:600}
+
+.tag{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:5px;
+  background:var(--line);color:var(--ink2)}
+.tag.ok{background:var(--accent-soft);color:var(--accent-d)}
+.tag.run{background:#e8eef7;color:#2c4b7c}
+.tag.edit{background:#efeaf7;color:#5b437f}
+.tag.lock{background:#efe3d6;color:#7a5327}
+
+.err{background:var(--danger-soft);border:1px solid #f0c9c6;color:var(--danger);
+  border-radius:8px;padding:10px 12px;font-size:12.5px;display:flex;gap:10px;align-items:flex-start}
+.note{background:var(--warn-soft);border:1px solid var(--warn-line);color:var(--warn);
+  border-radius:8px;padding:10px 12px;font-size:12.5px}
+
+.bar{height:4px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+
+.drop{border:1.5px dashed var(--line2);border-radius:9px;padding:16px;text-align:center;
+  color:var(--ink3);font-size:12.5px;cursor:pointer;background:var(--panel)}
+.drop[data-over="1"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-d)}
+.logo-row{display:flex;gap:10px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:8px}
+.logo-row img{width:44px;height:36px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:5px}
+
+/* ---------- plan ---------- */
+.plan-item{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);
+  border-radius:8px;background:var(--paper)}
+.plan-item[data-lvl="2"]{margin-left:26px;border-left:2px solid var(--accent-soft)}
+.plan-item .grip{font-family:var(--mono);font-size:11px;color:var(--ink3);padding-top:8px;min-width:26px;
+  font-variant-numeric:tabular-nums}
+.plan-item .fields{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.plan-item input[type=text]{border-color:transparent;background:transparent;padding:4px 6px;font-weight:600}
+.plan-item input.intent{font-weight:400;font-size:12.5px;color:var(--ink2)}
+.plan-item input:hover{border-color:var(--line)}
+.vstack{display:flex;flex-direction:column;gap:9px}
+
+/* ---------- section cards ---------- */
+.sec{border:1px solid var(--line);border-radius:var(--r);background:var(--paper);overflow:hidden}
+.sec[data-lock="1"]{background:#fcfbf9}
+.sec>header{display:flex;gap:10px;align-items:center;padding:10px 13px;border-bottom:1px solid var(--line);
+  background:var(--panel);flex-wrap:wrap}
+.sec>header .num{font-family:var(--mono);font-size:12px;color:var(--accent-d);font-weight:500}
+.sec>header .t{font-weight:600;flex:1;min-width:120px}
+.sec .body{padding:12px 13px;display:flex;flex-direction:column;gap:10px}
+.sec textarea{border-color:var(--line);font-size:13.5px;line-height:1.62;min-height:90px}
+.sec .tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+.blocks{display:flex;flex-direction:column;gap:8px}
+.blk{border:1px solid var(--line);border-left:3px solid var(--line2);border-radius:7px;padding:9px 10px;
+  display:flex;flex-direction:column;gap:7px;background:var(--panel)}
+.blk .hd{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.blk textarea{font-family:var(--mono);font-size:12px;background:var(--paper)}
+.blk img{max-height:120px;align-self:flex-start;border:1px solid var(--line);border-radius:5px;background:#fff}
+
+.holes{display:flex;flex-direction:column;gap:7px;max-height:280px;overflow:auto}
+.hole{background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:7px;padding:7px 9px;font-size:12.5px}
+.hole b{display:block;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--warn);font-weight:500;margin-bottom:2px}
+
+/* ---------- document ---------- */
+.docwrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.page{width:210mm;background:#fff;position:relative;flex:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.07),0 10px 30px rgba(0,0,0,.09)}
+.page.a4{height:297mm;overflow:hidden}
+.pg-head,.pg-foot{position:absolute;left:var(--ml);right:var(--mr);display:flex;align-items:center;
+  gap:10px;font-size:8.5pt;color:#6b6f76}
+.pg-head{top:calc(var(--mt) - 10mm);height:9mm;border-bottom:.4pt solid #dcdee1;justify-content:space-between}
+.pg-foot{bottom:calc(var(--mb) - 9mm);height:8mm;border-top:.4pt solid #dcdee1;justify-content:space-between}
+.pg-head img,.pg-foot img{object-fit:contain}
+.pg-body{position:absolute;left:var(--ml);right:var(--mr);top:var(--mt);bottom:var(--mb);overflow:hidden}
+.doc{font-family:var(--dfont);font-size:var(--dsize);line-height:var(--dlh);color:#141618}
+.doc .mi{display:flow-root}
+.doc h1{font-size:calc(var(--dsize) * 1.62);font-weight:700;margin:0 0 3.2mm;letter-spacing:-.01em;line-height:1.2}
+.doc h2{font-size:calc(var(--dsize) * 1.16);font-weight:600;margin:0 0 2.4mm;line-height:1.25}
+.doc h1 .k,.doc h2 .k{color:var(--dacc);font-variant-numeric:tabular-nums;margin-right:.45em}
+.doc p{margin:0 0 var(--dgap);text-align:var(--dalign);hyphens:auto}
+.doc mark{background:#fbeec2;color:#6b4a06;padding:0 2px;border-radius:2px;box-decoration-break:clone}
+.doc .fig{margin:0 0 var(--dgap);text-align:center}
+.doc .fig img{max-width:100%;max-height:105mm;object-fit:contain}
+.doc .cap{font-size:calc(var(--dsize) * .82);color:#5f646b;margin-top:1.6mm}
+.doc table{width:100%;border-collapse:collapse;margin:0 0 var(--dgap);font-size:calc(var(--dsize) * .9)}
+.doc th,.doc td{border-bottom:.5pt solid #d8dbde;padding:1.6mm 2mm;text-align:left;vertical-align:top}
+.doc th{font-weight:600;border-bottom:.9pt solid #9aa0a6}
+.doc pre{font-family:var(--mono);font-size:calc(var(--dsize) * .82);line-height:1.45;background:#f6f7f8;
+  border:.5pt solid #e2e5e8;border-radius:2mm;padding:3mm;margin:0 0 var(--dgap);white-space:pre-wrap;
+  word-break:break-word}
+.doc .callout{border-left:2.5pt solid var(--dacc);background:#f7f9f9;padding:3mm 4mm;margin:0 0 var(--dgap);
+  font-size:calc(var(--dsize) * .94)}
+.doc .toc-row{display:flex;align-items:baseline;gap:2mm;margin-bottom:2.1mm}
+.doc .toc-row .lbl{font-variant-numeric:tabular-nums;color:var(--dacc);min-width:11mm}
+.doc .toc-row .dots{flex:1;border-bottom:.5pt dotted #b9bec4;transform:translateY(-.9mm)}
+.doc .toc-row .pg{font-variant-numeric:tabular-nums;color:#5f646b}
+.doc .toc-row[data-l="2"]{margin-left:7mm;font-size:calc(var(--dsize) * .94)}
+
+.cover{position:absolute;inset:0;padding:var(--mt) var(--mr) var(--mb) var(--ml);
+  display:flex;flex-direction:column;font-family:var(--dfont);color:#141618}
+.cover .logos{display:flex;gap:9mm;align-items:flex-start;flex-wrap:wrap}
+.cover .mid{margin-top:auto;margin-bottom:auto}
+.cover .rule{height:2.2pt;width:22mm;background:var(--dacc);margin-bottom:7mm}
+.cover .ttl{font-size:calc(var(--dsize) * 2.5);font-weight:700;line-height:1.12;letter-spacing:-.02em;margin:0}
+.cover .sub{font-size:calc(var(--dsize) * 1.2);color:#5f646b;margin-top:4mm;font-weight:400}
+.cover .meta{display:grid;grid-template-columns:auto 1fr;gap:1.8mm 6mm;font-size:calc(var(--dsize) * .88)}
+.cover .meta dt{color:#7b8087}
+.cover .meta dd{margin:0}
+
+.measure{position:absolute;left:-10000px;top:0;visibility:hidden;pointer-events:none}
+.zoombar{display:flex;gap:8px;align-items:center}
+.docscroll{overflow:auto;padding:16px;background:#e7e9ea;border-radius:var(--r);border:1px solid var(--line);
+  max-height:calc(100vh - 118px)}
+.mini{transform-origin:top left}
+
+.print-root{display:none}
+@media print{
+  .app-chrome{display:none !important}
+  .print-root{display:block !important}
+  body{background:#fff}
+  @page{size:A4;margin:0}
+  .page{box-shadow:none;break-after:page;page-break-after:always}
+  .page:last-child{break-after:auto;page-break-after:auto}
+  .doc .fig,.doc table,.doc pre,.doc .callout{break-inside:avoid;page-break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+.boot{max-width:640px;margin:80px auto;padding:24px;background:#fff;border:1px solid var(--line);
+  border-radius:var(--r);font-family:var(--ui)}
+</style>
+
+<div id="root"><div class="boot">Chargement de l’atelier…</div></div>
+
+<script type="text/plain" id="app-src">
+const {useState,useReducer,useRef,useEffect,useMemo,useCallback,useLayoutEffect} = React;
+
+/* ============================ constantes ============================ */
+const MM = 96 / 25.4;                       // px par mm à 96 dpi
+const uid = () => Math.random().toString(36).slice(2, 9);
+const words = (t) => (t || "").trim() ? (t.trim().match(/[\S]+/g) || []).length : 0;
+const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+const PRESETS = {
+  apple: {
+    label: "Apple", note: "Blanc, sans-serif, hiérarchie par la taille, un seul accent.",
+    font: '-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Instrument Sans",Arial,sans-serif',
+    size: 11, lh: 1.55, gap: 3.4, accent: "#1d1d1f", align: "left",
+    margins: { t: 25, r: 22, b: 22, l: 22 },
+  },
+  technique: {
+    label: "Technique", note: "Compact, tableaux serrés, monospace pour le code.",
+    font: '"Instrument Sans",Arial,Helvetica,sans-serif',
+    size: 10, lh: 1.42, gap: 2.6, accent: "#12655c", align: "justify",
+    margins: { t: 20, r: 18, b: 18, l: 22 },
+  },
+  academique: {
+    label: "Académique", note: "Serif, interligne large, texte justifié.",
+    font: '"Source Serif 4",Georgia,"Times New Roman",serif',
+    size: 11.5, lh: 1.72, gap: 4, accent: "#3a3a3c", align: "justify",
+    margins: { t: 25, r: 25, b: 25, l: 30 },
+  },
+};
+const FONTS = [
+  { v: '-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif', l: "Système / SF Pro" },
+  { v: '"Instrument Sans",Arial,sans-serif', l: "Instrument Sans" },
+  { v: 'Helvetica,Arial,sans-serif', l: "Helvetica / Arial" },
+  { v: '"Source Serif 4",Georgia,serif', l: "Source Serif" },
+  { v: 'Georgia,"Times New Roman",serif', l: "Georgia" },
+  { v: '"Times New Roman",Times,serif', l: "Times New Roman" },
+  { v: 'Verdana,Geneva,sans-serif', l: "Verdana" },
+  { v: '"Trebuchet MS",sans-serif', l: "Trebuchet MS" },
+  { v: '"IBM Plex Mono",Courier,monospace', l: "IBM Plex Mono" },
+];
+const NIVEAUX = ["BUT 1", "BUT 2", "BUT 3", "École d’ingénieur", "Vulgarisé"];
+const TONS = ["Neutre professionnel", "Retour d’expérience", "Technique factuel", "Pédagogique"];
+
+/* Le garde-fou anti-« texte d’IA », préfixé à chaque appel de rédaction. */
+const ANTI_IA = [
+  "Tu rédiges à la place d’un étudiant. Le texte doit passer pour écrit par un humain de 20 ans, pas par un modèle.",
+  "",
+  "Règles de style, non négociables :",
+  "- Première personne (« j’ai », « nous avons ») dès qu’il s’agit d’un retour d’expérience. Pas d’emphase artificielle.",
+  "- Bannis : « il est important de noter », « en effet » répété, « force est de constater », « dans un monde où »,",
+  "  « à l’ère de », les tirets cadratins en incise, les tournures « non pas X, mais Y », les conclusions grandiloquentes.",
+  "- Pas de listes à puces quand un paragraphe suffit. Une liste seulement pour une vraie énumération.",
+  "- Varie la longueur des phrases. Alterne phrases courtes et phrases développées. Évite le rythme régulier.",
+  "- Du concret et du vérifiable plutôt que des généralités : références de composants, valeurs, outils, versions,",
+  "  difficultés réellement rencontrées, ce qui a coincé et pourquoi.",
+  "- Assume les limites : dis ce qui n’a pas marché, ce qui reste à faire, ce qui n’a pas été mesuré.",
+  "- Vocabulaire d’étudiant en génie électrique. Zéro jargon marketing, zéro superlatif.",
+  "- N’invente JAMAIS un chiffre, une mesure, une référence, une date ou une source.",
+  "  Si une donnée te manque, écris exactement un marqueur de la forme [[À COMPLÉTER : ce qui manque]]",
+  "  et poursuis la phrase autour. Exemple : [[À COMPLÉTER : valeur de la résistance de pull-up]].",
+  "",
+  "Format de sortie : uniquement le corps du texte de la section demandée.",
+  "Paragraphes séparés par une ligne vide. Pas de titre, pas de numérotation, pas de préambule,",
+  "pas de commentaire sur ta propre production, pas de balises Markdown autres que des listes « - » si nécessaire.",
+].join("\n");
+
+/* ============================ état ============================ */
+const initial = () => ({
+  step: 0,
+  brief: { raw: "", sources: [] },
+  want: { sujet: "", planImpose: "", pages: 12, niveau: "BUT 2", langue: "Français", ton: "Retour d’expérience" },
+  da: { preset: "apple", accent: PRESETS.apple.accent, font: PRESETS.apple.font, size: PRESETS.apple.size,
+        lh: PRESETS.apple.lh, gap: PRESETS.apple.gap, align: PRESETS.apple.align,
+        margins: { ...PRESETS.apple.margins }, toc: true, headerText: "", footerText: "" },
+  logos: [],
+  meta: { nom: "", formation: "", etablissement: "", entreprise: "", tuteurEcole: "", tuteurEntreprise: "",
+          annee: "", dateRendu: "", titre: "", sousTitre: "" },
+  echantillon: "",
+  plan: [],
+  sections: {},
+});
+
+/* Squelette d’exemple : structure et cadrage seulement, aucun texte rédigé —
+   rien n’est prérempli qui pourrait finir dans un rendu sans avoir été écrit. */
+function exemple() {
+  const base = initial();
+  const p = (title, level, intent, w) => ({ id: uid(), title, level, intent, words: w });
+  const plan = [
+    p("Contexte et cahier des charges", 1, "Poser le besoin, les contraintes imposées et les critères d’évaluation.", 420),
+    p("Choix de l’architecture", 1, "Justifier la solution retenue face aux alternatives écartées.", 380),
+    p("Schéma et dimensionnement", 2, "Détailler le calcul des composants et les valeurs retenues.", 460),
+    p("Réalisation et câblage", 1, "Décrire le montage, la soudure et les points de contrôle.", 400),
+    p("Tests, mesures et corrections", 1, "Confronter le comportement réel aux attentes, expliquer les écarts.", 520),
+    p("Bilan et suites", 1, "Ce qui fonctionne, ce qui reste à reprendre, ce que j’en retire.", 320),
+  ];
+  const sections = {};
+  plan.forEach((x) => { sections[x.id] = blankSection(); });
+  return {
+    ...base,
+    step: 1,
+    want: { ...base.want, sujet: "Conception et mise au point d’un dé électronique", pages: 8 },
+    meta: { ...base.meta, formation: "BUT GEII — parcours ESE", etablissement: "IUT de Montpellier",
+            annee: "2025 – 2026", titre: "Dé électronique", sousTitre: "Rapport de projet — semestre 3" },
+    plan, sections,
+  };
+}
+
+function reducer(s, a) {
+  switch (a.t) {
+    case "load": return a.state;
+    case "step": return { ...s, step: a.v };
+    case "brief": return { ...s, brief: { ...s.brief, ...a.v } };
+    case "want": return { ...s, want: { ...s.want, ...a.v } };
+    case "meta": return { ...s, meta: { ...s.meta, ...a.v } };
+    case "echantillon": return { ...s, echantillon: a.v };
+    case "da": return { ...s, da: { ...s.da, ...a.v } };
+    case "marges": return { ...s, da: { ...s.da, margins: { ...s.da.margins, ...a.v } } };
+    case "preset": {
+      const p = PRESETS[a.v];
+      if (!p) return { ...s, da: { ...s.da, preset: "custom" } };
+      return { ...s, da: { ...s.da, preset: a.v, accent: p.accent, font: p.font, size: p.size,
+                           lh: p.lh, gap: p.gap, align: p.align, margins: { ...p.margins } } };
+    }
+    case "logos": return { ...s, logos: a.v };
+    case "plan": {
+      const next = { ...s.sections };
+      a.v.forEach((p) => { if (!next[p.id]) next[p.id] = blankSection(); });
+      return { ...s, plan: a.v, sections: next };
+    }
+    case "sec": return { ...s, sections: { ...s.sections, [a.id]: { ...s.sections[a.id], ...a.v } } };
+    default: return s;
+  }
+}
+const blankSection = () => ({ text: "", status: "vide", locked: false, blocks: [] });
+
+/* ============================ appels Claude ============================ */
+function useClaude() {
+  const ref = useRef(null);
+  const [ready, setReady] = useState(null); // null = en cours, true/false = résolu
+  useEffect(() => {
+    let alive = true;
+    const c = typeof window !== "undefined" ? window.claude : null;
+    if (!c || typeof c.use !== "function") { setReady(false); return; }
+    c.use("sample").then((s) => { if (!alive) return; ref.current = s; setReady(!!s); })
+                   .catch(() => alive && setReady(false));
+    return () => { alive = false; };
+  }, []);
+  const ask = useCallback(async (input, opts) => {
+    if (!ref.current) {
+      const e = new Error("Claude n’est pas disponible dans cette vue.");
+      e.code = "unavailable"; throw e;
+    }
+    return ref.current(input, opts);
+  }, []);
+  const askJson = useCallback(async (input, opts) => {
+    if (!ref.current) {
+      const e = new Error("Claude n’est pas disponible dans cette vue.");
+      e.code = "unavailable"; throw e;
+    }
+    return ref.current.json(input, opts);
+  }, []);
+  return { ask, askJson, ready };
+}
+
+const cut = (t, n) => (!t ? "" : t.length <= n ? t : t.slice(0, n) + "\n[…texte tronqué…]");
+const resume = (t, n = 320) => {
+  const clean = (t || "").replace(/\s+/g, " ").trim();
+  return clean.length <= n ? clean : clean.slice(0, n) + "…";
+};
+
+function contexteGlobal(s) {
+  const m = s.meta, w = s.want;
+  const L = [];
+  L.push("=== CONSIGNES DU PROFESSEUR (verbatim) ===");
+  L.push(cut(s.brief.raw, 9000) || "(aucune consigne fournie)");
+  if (s.brief.sources.length)
+    L.push("Sources importées : " + s.brief.sources.map((x) => x.name).join(", "));
+  L.push("");
+  L.push("=== CADRAGE ===");
+  L.push("Sujet : " + (w.sujet || "(non précisé)"));
+  L.push("Longueur cible : environ " + w.pages + " pages A4 rédigées.");
+  L.push("Niveau technique : " + w.niveau + " · Langue : " + w.langue + " · Ton : " + w.ton);
+  if (w.planImpose.trim()) L.push("Plan imposé par le professeur :\n" + w.planImpose.trim());
+  L.push("");
+  L.push("=== AUTEUR ===");
+  const meta = [
+    ["Nom", m.nom], ["Formation", m.formation], ["Établissement", m.etablissement],
+    ["Entreprise", m.entreprise], ["Tuteur école", m.tuteurEcole], ["Tuteur entreprise", m.tuteurEntreprise],
+    ["Année", m.annee], ["Titre du dossier", m.titre], ["Sous-titre", m.sousTitre],
+  ].filter(([, v]) => (v || "").trim());
+  L.push(meta.length ? meta.map(([k, v]) => k + " : " + v).join("\n") : "(non renseigné)");
+  return L.join("\n");
+}
+
+function blocPlan(s) {
+  if (!s.plan.length) return "(plan vide)";
+  return s.plan.map((p, i) => {
+    const n = numeroter(s.plan)[i];
+    return (p.level === 2 ? "  " : "") + n + " " + p.title +
+      " — " + (p.intent || "sans intention précisée") + " (~" + p.words + " mots)";
+  }).join("\n");
+}
+
+function numeroter(plan) {
+  let a = 0, b = 0;
+  return plan.map((p) => {
+    if (p.level === 1) { a++; b = 0; return String(a) + "."; }
+    b++; return String(a) + "." + String(b);
+  });
+}
+
+/* ============================ icônes (inline, zéro dépendance) ============================ */
+const P = {
+  file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5",
+  sliders: "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
+  list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
+  pen: "M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z",
+  print: "M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z",
+  up: "M12 19V5M5 12l7-7 7 7",
+  down: "M12 5v14M19 12l-7 7-7-7",
+  plus: "M12 5v14M5 12h14",
+  trash: "M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6",
+  lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
+  unlock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 7.5-2",
+  refresh: "M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5",
+  play: "M6 3l14 9-14 9z",
+  stop: "M6 6h12v12H6z",
+  save: "M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8",
+  folder: "M4 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2z",
+  dl: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
+  alert: "M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01",
+  check: "M20 6 9 17l-5-5",
+  x: "M18 6 6 18M6 6l12 12",
+  img: "M3 3h18v18H3zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21",
+  table: "M3 3h18v18H3zM3 9h18M3 15h18M9 3v18",
+  code: "M16 18l6-6-6-6M8 6l-6 6 6 6",
+  quote: "M6 17h4l2-4V7H5v6h3zM16 17h4l2-4V7h-7v6h3z",
+  cut: "M4 20h16M4 4h16M8 12h8",
+  left: "M19 12H5M12 19l-7-7 7-7",
+  right: "M5 12h14M12 5l7 7-7 7",
+  spark: "M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z",
+  eye: "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+};
+function Ic({ n, s = 15 }) {
+  return React.createElement("svg", {
+    width: s, height: s, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+    strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true",
+    style: { flex: "none" },
+  }, React.createElement("path", { d: P[n] || "" }));
+}
+
+/* ============================ primitives UI ============================ */
+const F = ({ label, hint, children }) => (
+  <label className="f"><span>{label}{hint ? <em> · {hint}</em> : null}</span>{children}</label>
+);
+const T = ({ value, onChange, ...r }) => (
+  <input type="text" value={value} onChange={(e) => onChange(e.target.value)} {...r} />
+);
+const N = ({ value, onChange, ...r }) => (
+  <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} {...r} />
+);
+const S = ({ value, onChange, options, ...r }) => (
+  <select value={value} onChange={(e) => onChange(e.target.value)} {...r}>
+    {options.map((o) => <option key={o} value={o}>{o}</option>)}
+  </select>
+);
+const Card = ({ title, right, children, kicker }) => (
+  <section className="card">
+    <header><h2>{title}{kicker ? <span className="eyebrow" style={{ marginLeft: 8 }}>{kicker}</span> : null}</h2>{right}</header>
+    <div className="body">{children}</div>
+  </section>
+);
+function Auto({ value, onChange, min = 90, ...rest }) {
+  const r = useRef(null);
+  useLayoutEffect(() => {
+    const el = r.current; if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.max(min, el.scrollHeight + 2) + "px";
+  }, [value, min]);
+  return <textarea ref={r} value={value} onChange={(e) => onChange(e.target.value)} {...rest} />;
+}
+function Erreur({ e, onRetry }) {
+  if (!e) return null;
+  return (
+    <div className="err">
+      <Ic n="alert" />
+      <div style={{ flex: 1 }}>
+        <div>{e}</div>
+        {onRetry ? <button className="btn sm" style={{ marginTop: 7 }} onClick={onRetry}><Ic n="refresh" s={13} />Réessayer</button> : null}
+      </div>
+    </div>
+  );
+}
+
+/* ============================ trous à combler ============================ */
+const RE_HOLE = /\[\[À COMPLÉTER\s*:?\s*([^\]]*)\]\]/g;
+function trous(state) {
+  const out = [];
+  state.plan.forEach((p, i) => {
+    const sec = state.sections[p.id]; if (!sec) return;
+    const num = numeroter(state.plan)[i];
+    let m; RE_HOLE.lastIndex = 0;
+    while ((m = RE_HOLE.exec(sec.text || "")) !== null)
+      out.push({ id: p.id, où: num + " " + p.title, quoi: (m[1] || "").trim() || "donnée manquante" });
+  });
+  return out;
+}
+function texteAvecMarques(t, key) {
+  const parts = []; let last = 0, m, i = 0;
+  RE_HOLE.lastIndex = 0;
+  while ((m = RE_HOLE.exec(t)) !== null) {
+    if (m.index > last) parts.push(t.slice(last, m.index));
+    parts.push(<mark key={key + "-" + (i++)}>{"[À compléter : " + ((m[1] || "").trim() || "?") + "]"}</mark>);
+    last = m.index + m[0].length;
+  }
+  if (last < t.length) parts.push(t.slice(last));
+  return parts;
+}
+
+/* ============================ flux du document ============================ */
+function construireFlux(state) {
+  const nums = numeroter(state.plan);
+  const items = [];
+  let fig = 0, tab = 0;
+  state.plan.forEach((p, i) => {
+    const sec = state.sections[p.id] || blankSection();
+    items.push({ key: p.id + "-h", kind: p.level === 1 ? "h1" : "h2", heading: true,
+                 node: p.level === 1
+                   ? <h1><span className="k">{nums[i]}</span>{p.title}</h1>
+                   : <h2><span className="k">{nums[i]}</span>{p.title}</h2> });
+    const paras = (sec.text || "").split(/\n{2,}/).map((x) => x.trim()).filter(Boolean);
+    paras.forEach((para, j) => {
+      items.push({ key: p.id + "-p" + j, kind: "p",
+                   node: <p>{texteAvecMarques(para, p.id + "-p" + j)}</p> });
+    });
+    (sec.blocks || []).forEach((b) => {
+      if (b.type === "saut") { items.push({ key: b.id, kind: "saut", node: null }); return; }
+      if (b.type === "figure") {
+        fig++;
+        items.push({ key: b.id, kind: "figure", node: (
+          <div className="fig">
+            {b.src ? <img src={b.src} alt={b.caption || ""} /> : null}
+            <div className="cap">{"Figure " + fig + " — " + (b.caption || "")}</div>
+          </div>) });
+        return;
+      }
+      if (b.type === "tableau") {
+        tab++;
+        const rows = (b.content || "").split("\n").map((l) => l.split("|").map((c) => c.trim()));
+        const [head, ...rest] = rows;
+        items.push({ key: b.id, kind: "tableau", node: (
+          <div>
+            <table>
+              <thead><tr>{(head || []).map((c, k) => <th key={k}>{c}</th>)}</tr></thead>
+              <tbody>{rest.map((r, k) => <tr key={k}>{r.map((c, l) => <td key={l}>{c}</td>)}</tr>)}</tbody>
+            </table>
+            {b.caption ? <div className="cap" style={{ marginTop: "-1mm" }}>{"Tableau " + tab + " — " + b.caption}</div> : null}
+          </div>) });
+        return;
+      }
+      if (b.type === "code") {
+        items.push({ key: b.id, kind: "code", node: (
+          <div><pre>{b.content || ""}</pre>
+            {b.caption ? <div className="cap" style={{ marginTop: "-1mm" }}>{b.caption}</div> : null}</div>) });
+        return;
+      }
+      items.push({ key: b.id, kind: "encadre", node: (
+        <div className="callout">{b.caption ? <strong>{b.caption} — </strong> : null}{b.content || ""}</div>) });
+    });
+  });
+  return items;
+}
+
+/* pagination : mesure réelle, puis remplissage glouton, titres jamais orphelins */
+function paginer(hauteurs, items, hPage) {
+  const pages = []; let cur = [], h = 0;
+  const pousse = () => { if (cur.length) { pages.push(cur); cur = []; h = 0; } };
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    if (it.kind === "saut") { pousse(); continue; }
+    const ih = hauteurs[i] || 0;
+    if (it.heading) {
+      const suiv = hauteurs[i + 1] || 0;
+      const besoin = ih + Math.min(suiv, hPage * 0.28);
+      if (h > 0 && h + besoin > hPage) pousse();
+    } else if (h > 0 && h + ih > hPage) {
+      pousse();
+    }
+    cur.push(i); h += ih;
+    if (h > hPage && cur.length === 1) { pousse(); }   // élément plus haut qu'une page
+  }
+  pousse();
+  return pages.length ? pages : [[]];
+}
+
+/* ============================ aperçu du document ============================ */
+function styleVars(da) {
+  return {
+    "--ml": da.margins.l + "mm", "--mr": da.margins.r + "mm",
+    "--mt": da.margins.t + "mm", "--mb": da.margins.b + "mm",
+    "--dfont": da.font, "--dsize": da.size + "pt", "--dlh": String(da.lh),
+    "--dgap": da.gap + "mm", "--dacc": da.accent, "--dalign": da.align,
+  };
+}
+
+function Couverture({ state }) {
+  const { meta, da, logos } = state;
+  const cov = logos.filter((l) => l.placement === "garde");
+  const lignes = [
+    ["Auteur", meta.nom], ["Formation", meta.formation], ["Établissement", meta.etablissement],
+    ["Entreprise", meta.entreprise], ["Tuteur école", meta.tuteurEcole],
+    ["Tuteur entreprise", meta.tuteurEntreprise], ["Année", meta.annee], ["Remise", meta.dateRendu],
+  ].filter(([, v]) => (v || "").trim());
+  return (
+    <div className="cover">
+      <div className="logos">
+        {cov.map((l) => <img key={l.id} src={l.src} alt={l.name} style={{ height: l.h + "mm" }} />)}
+      </div>
+      <div className="mid">
+        <div className="rule" />
+        <h1 className="ttl">{meta.titre || "Titre du dossier"}</h1>
+        {meta.sousTitre ? <div className="sub">{meta.sousTitre}</div> : null}
+      </div>
+      <dl className="meta">
+        {lignes.map(([k, v]) => [
+          <dt key={k + "d"}>{k}</dt>,
+          <dd key={k + "v"}>{v}</dd>,
+        ])}
+      </dl>
+    </div>
+  );
+}
+
+function EnTete({ state, num, total }) {
+  const { da, logos, meta } = state;
+  const h = logos.filter((l) => l.placement === "entete");
+  const f = logos.filter((l) => l.placement === "pied");
+  return (
+    <>
+      {(h.length || da.headerText || meta.titre) ? (
+        <div className="pg-head">
+          <span>{da.headerText || meta.titre || ""}</span>
+          <span style={{ display: "flex", gap: "4mm", alignItems: "center" }}>
+            {h.map((l) => <img key={l.id} src={l.src} alt="" style={{ height: l.h + "mm" }} />)}
+          </span>
+        </div>) : null}
+      <div className="pg-foot">
+        <span style={{ display: "flex", gap: "4mm", alignItems: "center" }}>
+          {f.map((l) => <img key={l.id} src={l.src} alt="" style={{ height: l.h + "mm" }} />)}
+          <span>{da.footerText || state.meta.nom || ""}</span>
+        </span>
+        <span className="mono">{num + " / " + total}</span>
+      </div>
+    </>
+  );
+}
+
+function Sommaire({ state, entrees }) {
+  const nums = numeroter(state.plan);
+  return (
+    <div className="doc">
+      <h1 style={{ marginBottom: "6mm" }}>Sommaire</h1>
+      {state.plan.map((p, i) => (
+        <div className="toc-row" data-l={p.level} key={p.id}>
+          <span className="lbl">{nums[i]}</span>
+          <span>{p.title}</span>
+          <span className="dots" />
+          <span className="pg">{entrees[p.id] || "—"}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DocPreview({ state, pagination }) {
+  const { pages, items, tocPages, mapPages } = pagination;
+  const vars = styleVars(state.da);
+  const total = 1 + tocPages + pages.length;
+  let n = 1;
+  const out = [];
+  out.push(
+    <div className="page a4" style={vars} key="cover"><Couverture state={state} /></div>
+  );
+  n++;
+  for (let i = 0; i < tocPages; i++) {
+    const num = n++;
+    out.push(
+      <div className="page a4" style={vars} key={"toc" + i}>
+        <EnTete state={state} num={num} total={total} />
+        <div className="pg-body">{i === 0 ? <Sommaire state={state} entrees={mapPages} /> : null}</div>
+      </div>
+    );
+  }
+  pages.forEach((idxs, pi) => {
+    const num = n++;
+    out.push(
+      <div className="page a4" style={vars} key={"p" + pi}>
+        <EnTete state={state} num={num} total={total} />
+        <div className="pg-body">
+          <div className="doc">
+            {idxs.map((i) => items[i]).filter(Boolean)
+                 .map((it) => <div className="mi" key={it.key}>{it.node}</div>)}
+          </div>
+        </div>
+      </div>
+    );
+  });
+  return <>{out}</>;
+}
+
+/* calcule la pagination en mesurant réellement le rendu */
+function usePagination(state) {
+  const items = useMemo(() => construireFlux(state), [state.plan, state.sections]);
+  const hostRef = useRef(null);
+  const [res, setRes] = useState({ pages: [[]], items: [], tocPages: 0, mapPages: {} });
+  const sig = JSON.stringify([
+    state.plan.map((p) => [p.id, p.title, p.level]),
+    state.plan.map((p) => [(state.sections[p.id] || {}).text, (state.sections[p.id] || {}).blocks]),
+    state.da, state.logos.map((l) => [l.placement, l.h]), state.meta.titre, state.meta.nom,
+  ]);
+  useLayoutEffect(() => {
+    const id = window.setTimeout(() => {
+      const host = hostRef.current; if (!host) return;
+      const kids = host.querySelectorAll(":scope > .mi");
+      const hs = [];
+      kids.forEach((k) => hs.push(k.getBoundingClientRect().height));
+      const da = state.da;
+      // en-tête et pied vivent dans les marges : le corps vaut 297 - marges, moins 2 mm de sécurité
+      const dispo = 297 - da.margins.t - da.margins.b - 2;
+      const hPage = dispo * MM;
+      const pages = paginer(hs, items, Math.max(60, hPage));
+      const tocPages = da.toc && state.plan.length
+        ? Math.max(1, Math.ceil((16 + state.plan.length * 6.2) / dispo)) : 0;
+      const mapPages = {};
+      pages.forEach((idxs, pi) => {
+        idxs.forEach((i) => {
+          const it = items[i];
+          if (!it.heading) return;
+          const pid = it.key.replace(/-h$/, "");
+          if (!mapPages[pid]) mapPages[pid] = 1 + tocPages + pi + 1;
+        });
+      });
+      setRes({ pages, items, tocPages, mapPages });
+    }, 220);
+    return () => window.clearTimeout(id);
+  }, [sig]);
+  const vars = styleVars(state.da);
+  const largeur = (210 - state.da.margins.l - state.da.margins.r) + "mm";
+  const host = (
+    <div className="measure" style={vars} aria-hidden="true">
+      <div className="doc" ref={hostRef} style={{ width: largeur }}>
+        {items.map((it) => <div className="mi" key={it.key}>{it.node}</div>)}
+      </div>
+    </div>
+  );
+  return { ...res, host };
+}
+
+/* ============================ écran 1 — configuration ============================ */
+function ImportFichiers({ dispatch, brief }) {
+  const [busy, setBusy] = useState("");
+  const [err, setErr] = useState("");
+  const lire = async (files) => {
+    setErr("");
+    for (const f of Array.from(files)) {
+      try {
+        if (/\.(txt|md|markdown)$/i.test(f.name)) {
+          setBusy(f.name);
+          const t = await f.text();
+          dispatch({ t: "brief", v: {
+            raw: (brief.raw ? brief.raw + "\n\n" : "") + "--- " + f.name + " ---\n" + t,
+            sources: [...brief.sources, { name: f.name, chars: t.length }] } });
+        } else if (/\.pdf$/i.test(f.name)) {
+          setBusy(f.name + " (extraction PDF…)");
+          const t = await extrairePdf(f);
+          dispatch({ t: "brief", v: {
+            raw: (brief.raw ? brief.raw + "\n\n" : "") + "--- " + f.name + " ---\n" + t,
+            sources: [...brief.sources, { name: f.name, chars: t.length }] } });
+        } else {
+          setErr("Format non géré : " + f.name + " (attendu .txt, .md ou .pdf)");
+        }
+      } catch (e) {
+        setErr("Lecture impossible de " + f.name + " — " + (e && e.message ? e.message : "erreur inconnue") +
+               ". Copiez-collez le texte à la main dans le champ ci-dessus.");
+      }
+    }
+    setBusy("");
+  };
+  return (
+    <div className="vstack">
+      <div className="row">
+        <label className="btn sm" style={{ cursor: "pointer" }}>
+          <Ic n="up" s={13} />Importer .txt / .md / .pdf
+          <input type="file" multiple accept=".txt,.md,.markdown,.pdf" style={{ display: "none" }}
+                 onChange={(e) => { lire(e.target.files); e.target.value = ""; }} />
+        </label>
+        {busy ? <span className="muted">{busy}</span> : null}
+      </div>
+      {brief.sources.length ? (
+        <div className="chips">
+          {brief.sources.map((s, i) => (
+            <span className="tag" key={i}>{s.name} · {Math.round(s.chars / 1000)} k</span>
+          ))}
+        </div>) : null}
+      {err ? <div className="note">{err}</div> : null}
+    </div>
+  );
+}
+
+/* pdf.js chargé à la demande ; repli explicite si le CDN ou le worker est bloqué */
+let pdfLoad = null;
+function chargerPdfJs() {
+  if (pdfLoad) return pdfLoad;
+  pdfLoad = new Promise((ok, ko) => {
+    const base = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/";
+    const add = (src) => new Promise((r, j) => {
+      const s = document.createElement("script");
+      s.src = src; s.onload = r; s.onerror = () => j(new Error("CDN inaccessible"));
+      document.head.appendChild(s);
+    });
+    add(base + "pdf.min.js")
+      .then(() => add(base + "pdf.worker.min.js").catch(() => {}))
+      .then(() => {
+        const lib = window.pdfjsLib;
+        if (!lib) return ko(new Error("pdf.js indisponible"));
+        try { lib.GlobalWorkerOptions.workerSrc = base + "pdf.worker.min.js"; } catch (e) {}
+        ok(lib);
+      })
+      .catch(ko);
+  });
+  return pdfLoad;
+}
+async function extrairePdf(file) {
+  const lib = await chargerPdfJs();
+  const buf = await file.arrayBuffer();
+  const doc = await lib.getDocument({ data: buf }).promise;
+  const out = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const c = await page.getTextContent();
+    out.push(c.items.map((it) => it.str).join(" "));
+  }
+  return out.join("\n\n").replace(/[ \t]{2,}/g, " ");
+}
+
+function Logos({ state, dispatch }) {
+  const [over, setOver] = useState(false);
+  const ajouter = (files) => {
+    Array.from(files).filter((f) => /^image\//.test(f.type)).forEach((f) => {
+      const r = new FileReader();
+      r.onload = () => dispatch({ t: "logos", v: [...state.logos,
+        { id: uid(), name: f.name.replace(/\.[^.]+$/, ""), src: r.result, placement: "garde", h: 16 }] });
+      r.readAsDataURL(f);
+    });
+  };
+  const maj = (id, v) => dispatch({ t: "logos", v: state.logos.map((l) => l.id === id ? { ...l, ...v } : l) });
+  return (
+    <div className="vstack">
+      <label className="drop" data-over={over ? 1 : 0}
+        onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(e) => { e.preventDefault(); setOver(false); ajouter(e.dataTransfer.files); }}>
+        Glissez vos logos ici — ou cliquez pour choisir (PNG, JPG, SVG)
+        <input type="file" multiple accept="image/*" style={{ display: "none" }}
+               onChange={(e) => { ajouter(e.target.files); e.target.value = ""; }} />
+      </label>
+      {state.logos.map((l) => (
+        <div className="logo-row" key={l.id}>
+          <img src={l.src} alt={l.name} />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+            <T value={l.name} onChange={(v) => maj(l.id, { name: v })} />
+            <div className="row">
+              <select value={l.placement} onChange={(e) => maj(l.id, { placement: e.target.value })}
+                      style={{ width: "auto", flex: 1 }}>
+                <option value="garde">Page de garde</option>
+                <option value="entete">En-tête de page</option>
+                <option value="pied">Pied de page</option>
+              </select>
+              <div className="row" style={{ gap: 4 }}>
+                <input type="number" min="4" max="60" value={l.h} style={{ width: 62 }}
+                       onChange={(e) => maj(l.id, { h: clamp(Number(e.target.value), 3, 80) })} />
+                <span className="muted">mm</span>
+              </div>
+            </div>
+          </div>
+          <button className="btn sm danger ghost" title="Supprimer"
+                  onClick={() => dispatch({ t: "logos", v: state.logos.filter((x) => x.id !== l.id) })}>
+            <Ic n="trash" s={13} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EcranConfig({ state, dispatch }) {
+  const d = state.da, m = state.meta, w = state.want;
+  const setPreset = (k) => dispatch({ t: "preset", v: k });
+  return (
+    <>
+      <Card title="Consignes du professeur" kicker="entrée brute">
+        <F label="Collez le sujet tel quel" hint="tout est repris verbatim dans les appels">
+          <Auto value={state.brief.raw} onChange={(v) => dispatch({ t: "brief", v: { raw: v } })}
+                min={150} placeholder="Coller ici l’énoncé, la grille d’évaluation, les attendus…" />
+        </F>
+        <ImportFichiers dispatch={dispatch} brief={state.brief} />
+      </Card>
+
+      <Card title="Ce que je veux">
+        <F label="Sujet précis">
+          <T value={w.sujet} onChange={(v) => dispatch({ t: "want", v: { sujet: v } })}
+             placeholder="Ex. : mise au point du robot suiveur de ligne analogique" />
+        </F>
+        <F label="Plan imposé" hint="optionnel — une ligne par partie">
+          <Auto value={w.planImpose} onChange={(v) => dispatch({ t: "want", v: { planImpose: v } })} min={64} />
+        </F>
+        <div className="grid2">
+          <F label="Longueur cible" hint="pages A4">
+            <N value={w.pages} min={2} max={80}
+               onChange={(v) => dispatch({ t: "want", v: { pages: clamp(v || 1, 1, 120) } })} />
+          </F>
+          <F label="Niveau technique">
+            <S value={w.niveau} options={NIVEAUX} onChange={(v) => dispatch({ t: "want", v: { niveau: v } })} />
+          </F>
+          <F label="Langue">
+            <S value={w.langue} options={["Français", "Anglais"]}
+               onChange={(v) => dispatch({ t: "want", v: { langue: v } })} />
+          </F>
+          <F label="Ton">
+            <S value={w.ton} options={TONS} onChange={(v) => dispatch({ t: "want", v: { ton: v } })} />
+          </F>
+        </div>
+      </Card>
+
+      <Card title="Direction artistique">
+        <div className="chips">
+          {Object.keys(PRESETS).map((k) => (
+            <button className="chip" key={k} data-on={d.preset === k ? 1 : 0} onClick={() => setPreset(k)}>
+              {PRESETS[k].label}
+            </button>
+          ))}
+          <button className="chip" data-on={d.preset === "custom" ? 1 : 0}
+                  onClick={() => dispatch({ t: "da", v: { preset: "custom" } })}>Custom</button>
+        </div>
+        <p className="muted" style={{ margin: 0 }}>
+          {PRESETS[d.preset] ? PRESETS[d.preset].note : "Réglages libres — police, accent, taille, marges."}
+        </p>
+        {d.preset === "custom" ? (
+          <>
+            <div className="grid2">
+              <F label="Police du document">
+                <select value={d.font} onChange={(e) => dispatch({ t: "da", v: { font: e.target.value } })}>
+                  {FONTS.map((f) => <option key={f.l} value={f.v}>{f.l}</option>)}
+                </select>
+              </F>
+              <F label="Couleur d’accent">
+                <div className="row">
+                  <input type="color" value={d.accent} style={{ width: 44, height: 34, padding: 2 }}
+                         onChange={(e) => dispatch({ t: "da", v: { accent: e.target.value } })} />
+                  <T value={d.accent} onChange={(v) => dispatch({ t: "da", v: { accent: v } })} />
+                </div>
+              </F>
+              <F label="Taille de base" hint="pt">
+                <N value={d.size} min={8} max={16} step="0.5"
+                   onChange={(v) => dispatch({ t: "da", v: { size: clamp(v || 11, 7, 18) } })} />
+              </F>
+              <F label="Interligne">
+                <N value={d.lh} min={1.1} max={2.2} step="0.05"
+                   onChange={(v) => dispatch({ t: "da", v: { lh: clamp(v || 1.5, 1, 2.5) } })} />
+              </F>
+            </div>
+            <F label="Alignement du texte">
+              <S value={d.align} options={["left", "justify"]}
+                 onChange={(v) => dispatch({ t: "da", v: { align: v } })} />
+            </F>
+          </>) : null}
+        <F label="Marges" hint="mm — haut / droite / bas / gauche">
+          <div className="grid2" style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr" }}>
+            {["t", "r", "b", "l"].map((k) => (
+              <input key={k} type="number" min="8" max="45" value={d.margins[k]}
+                     onChange={(e) => dispatch({ t: "marges", v: { [k]: clamp(Number(e.target.value), 6, 50) } })} />
+            ))}
+          </div>
+        </F>
+        <div className="grid2">
+          <F label="Texte d’en-tête" hint="vide = titre du dossier">
+            <T value={d.headerText} onChange={(v) => dispatch({ t: "da", v: { headerText: v } })} />
+          </F>
+          <F label="Texte de pied de page" hint="vide = votre nom">
+            <T value={d.footerText} onChange={(v) => dispatch({ t: "da", v: { footerText: v } })} />
+          </F>
+        </div>
+        <label className="row" style={{ cursor: "pointer" }}>
+          <input type="checkbox" checked={d.toc} style={{ width: "auto" }}
+                 onChange={(e) => dispatch({ t: "da", v: { toc: e.target.checked } })} />
+          <span>Insérer un sommaire numéroté</span>
+        </label>
+      </Card>
+
+      <Card title="Logos"><Logos state={state} dispatch={dispatch} /></Card>
+
+      <Card title="Métadonnées">
+        <div className="grid2">
+          {[["nom", "Nom et prénom"], ["formation", "Formation"], ["etablissement", "Établissement"],
+            ["entreprise", "Entreprise"], ["tuteurEcole", "Tuteur école"], ["tuteurEntreprise", "Tuteur entreprise"],
+            ["annee", "Année scolaire"], ["dateRendu", "Date de rendu"]].map(([k, l]) => (
+            <F key={k} label={l}><T value={m[k]} onChange={(v) => dispatch({ t: "meta", v: { [k]: v } })} /></F>
+          ))}
+        </div>
+        <F label="Titre du dossier">
+          <T value={m.titre} onChange={(v) => dispatch({ t: "meta", v: { titre: v } })} />
+        </F>
+        <F label="Sous-titre">
+          <T value={m.sousTitre} onChange={(v) => dispatch({ t: "meta", v: { sousTitre: v } })} />
+        </F>
+      </Card>
+
+      <Card title="Échantillon de votre écriture" kicker="fortement conseillé"
+            right={<span className="tag">{words(state.echantillon)} mots</span>}>
+        <p className="muted" style={{ margin: 0 }}>
+          200 à 300 mots que vous avez écrits vous-même (un vieux compte rendu fait l’affaire).
+          Ils sont injectés dans chaque appel comme référence de style à imiter — c’est le levier
+          le plus efficace contre le texte qui « sent l’IA ».
+        </p>
+        <Auto value={state.echantillon} onChange={(v) => dispatch({ t: "echantillon", v })} min={120}
+              placeholder="Collez ici un texte de votre main…" />
+      </Card>
+    </>
+  );
+}
+
+/* ============================ écran 2 — plan ============================ */
+function EcranPlan({ state, dispatch, claude }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [consigne, setConsigne] = useState("");
+  const nums = numeroter(state.plan);
+  const totalMots = state.plan.reduce((a, p) => a + (p.words || 0), 0);
+  const cible = Math.round(state.want.pages * 380);
+
+  const generer = async () => {
+    setBusy(true); setErr("");
+    try {
+      const prompt = [
+        "Tu es un enseignant de BUT GEII qui structure un dossier avant rédaction.",
+        "À partir des consignes ci-dessous, propose un plan de dossier réaliste et directement exploitable.",
+        "",
+        contexteGlobal(state),
+        consigne.trim() ? "\n=== CONSIGNE SUPPLÉMENTAIRE ===\n" + consigne.trim() : "",
+        "",
+        "Contraintes :",
+        "- Entre 8 et 20 entrées au total, parties (level 1) et sous-parties (level 2) mélangées dans l’ordre de lecture.",
+        "- Le total des mots doit avoisiner " + cible + " (≈ " + state.want.pages + " pages).",
+        "- Pas d’introduction ni de conclusion bidon : si tu en mets, dis dans « intent » ce qu’elles doivent contenir.",
+        "- « intent » = une seule phrase, ce que la section doit démontrer, pas un résumé creux.",
+        "",
+        "Réponds STRICTEMENT en JSON, sans texte autour :",
+        '{"sections":[{"title":"...","level":1,"intent":"...","words":450}]}',
+      ].join("\n");
+      const r = await claude.askJson(prompt, { modelTier: "complex" });
+      const list = (r && r.sections ? r.sections : []).map((x) => ({
+        id: uid(),
+        title: String(x.title || "Sans titre").slice(0, 160),
+        level: x.level === 2 ? 2 : 1,
+        intent: String(x.intent || "").slice(0, 300),
+        words: clamp(Number(x.words) || 400, 60, 3000),
+      }));
+      if (!list.length) throw new Error("Le plan renvoyé est vide.");
+      dispatch({ t: "plan", v: list });
+    } catch (e) {
+      setErr(msgErreur(e));
+    } finally { setBusy(false); }
+  };
+
+  const maj = (i, v) => dispatch({ t: "plan", v: state.plan.map((p, j) => j === i ? { ...p, ...v } : p) });
+  const bouger = (i, dir) => {
+    const n = [...state.plan], j = i + dir;
+    if (j < 0 || j >= n.length) return;
+    [n[i], n[j]] = [n[j], n[i]];
+    dispatch({ t: "plan", v: n });
+  };
+  const supprimer = (i) => dispatch({ t: "plan", v: state.plan.filter((_, j) => j !== i) });
+  const ajouter = (level) => dispatch({ t: "plan", v: [...state.plan,
+    { id: uid(), title: "Nouvelle " + (level === 1 ? "partie" : "sous-partie"), level, intent: "", words: 350 }] });
+
+  return (
+    <Card title="Plan du dossier"
+      kicker={state.plan.length ? state.plan.length + " sections · " + totalMots + " mots visés" : "vide"}
+      right={
+        <div className="row">
+          <button className="btn sm" onClick={() => ajouter(1)}><Ic n="plus" s={13} />Partie</button>
+          <button className="btn sm" onClick={() => ajouter(2)}><Ic n="plus" s={13} />Sous-partie</button>
+        </div>}>
+      <div className="row">
+        <T value={consigne} onChange={setConsigne}
+           placeholder="Consigne libre pour le plan — ex. « plus de place à la partie mesures »" />
+        <button className="btn pri" disabled={busy} onClick={generer}>
+          {busy ? <Ic n="refresh" s={14} /> : <Ic n="spark" s={14} />}
+          {busy ? "Génération…" : state.plan.length ? "Régénérer le plan" : "Proposer un plan"}
+        </button>
+      </div>
+      <Erreur e={err} onRetry={generer} />
+      {Math.abs(totalMots - cible) > cible * 0.25 && state.plan.length ? (
+        <div className="note">
+          Total visé : {totalMots} mots pour une cible d’environ {cible} mots ({state.want.pages} pages).
+          Ajustez les compteurs section par section.
+        </div>) : null}
+      <div className="vstack">
+        {state.plan.map((p, i) => (
+          <div className="plan-item" data-lvl={p.level} key={p.id}>
+            <span className="grip">{nums[i]}</span>
+            <div className="fields">
+              <T value={p.title} onChange={(v) => maj(i, { title: v })} placeholder="Titre de la section" />
+              <T className="intent" value={p.intent} onChange={(v) => maj(i, { intent: v })}
+                 placeholder="Ce que cette section doit démontrer" />
+            </div>
+            <div className="row" style={{ gap: 4, alignItems: "flex-start" }}>
+              <input type="number" className="mono" value={p.words} min={50} step={50} style={{ width: 74 }}
+                     onChange={(e) => maj(i, { words: clamp(Number(e.target.value), 40, 4000) })} />
+              <button className="btn sm ghost" title="Niveau"
+                      onClick={() => maj(i, { level: p.level === 1 ? 2 : 1 })}>
+                {p.level === 1 ? "H1" : "H2"}
+              </button>
+              <button className="btn sm ghost" title="Monter" onClick={() => bouger(i, -1)}><Ic n="up" s={13} /></button>
+              <button className="btn sm ghost" title="Descendre" onClick={() => bouger(i, 1)}><Ic n="down" s={13} /></button>
+              <button className="btn sm ghost danger" title="Supprimer" onClick={() => supprimer(i)}><Ic n="trash" s={13} /></button>
+            </div>
+          </div>
+        ))}
+        {!state.plan.length ? (
+          <p className="muted" style={{ margin: 0 }}>
+            Aucune section. Lancez une proposition, ou ajoutez les parties à la main.
+          </p>) : null}
+      </div>
+    </Card>
+  );
+}
+
+function msgErreur(e) {
+  const code = e && e.code;
+  if (code === "not_granted") return "L’accès à Claude n’a pas été autorisé pour cette page.";
+  if (code === "rate_limited") return "Trop d’appels d’affilée. Attendez une minute avant de relancer.";
+  if (code === "cancelled") return "Génération interrompue.";
+  if (code === "unavailable") return "Claude n’est pas joignable depuis cette vue (ouvrez la page publiée sur claude.ai).";
+  return (e && e.message) ? e.message : "Erreur inconnue pendant l’appel.";
+}
+
+/* ============================ écran 3 — rédaction ============================ */
+const TYPES_BLOC = [
+  { t: "tableau", l: "Tableau", i: "table" },
+  { t: "code", l: "Code", i: "code" },
+  { t: "figure", l: "Figure", i: "img" },
+  { t: "encadre", l: "Encadré", i: "quote" },
+  { t: "saut", l: "Saut de page", i: "cut" },
+];
+
+function BlocEditeur({ b, onChange, onDelete }) {
+  const meta = TYPES_BLOC.find((x) => x.t === b.type) || TYPES_BLOC[0];
+  return (
+    <div className="blk">
+      <div className="hd">
+        <span className="tag"><Ic n={meta.i} s={12} />{meta.l}</span>
+        <button className="btn sm ghost danger" onClick={onDelete}><Ic n="trash" s={12} /></button>
+      </div>
+      {b.type === "saut" ? <span className="muted">La page suivante démarre ici.</span> : null}
+      {b.type === "figure" ? (
+        <>
+          {b.src ? <img src={b.src} alt="" /> : null}
+          <label className="btn sm" style={{ alignSelf: "flex-start", cursor: "pointer" }}>
+            <Ic n="up" s={12} />{b.src ? "Remplacer l’image" : "Choisir une image"}
+            <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => {
+              const f = e.target.files[0]; if (!f) return;
+              const r = new FileReader(); r.onload = () => onChange({ src: r.result }); r.readAsDataURL(f);
+              e.target.value = "";
+            }} />
+          </label>
+          <T value={b.caption || ""} onChange={(v) => onChange({ caption: v })}
+             placeholder="Légende — numérotée automatiquement" />
+        </>) : null}
+      {b.type === "tableau" ? (
+        <>
+          <Auto value={b.content || ""} onChange={(v) => onChange({ content: v })} min={70}
+                placeholder={"Une ligne par rangée, colonnes séparées par |\nBroche | Signal | Niveau\nPA5 | SCK | 3,3 V"} />
+          <T value={b.caption || ""} onChange={(v) => onChange({ caption: v })} placeholder="Légende (optionnelle)" />
+        </>) : null}
+      {b.type === "code" ? (
+        <>
+          <Auto value={b.content || ""} onChange={(v) => onChange({ content: v })} min={80}
+                placeholder="Collez votre code…" />
+          <T value={b.caption || ""} onChange={(v) => onChange({ caption: v })} placeholder="Légende (optionnelle)" />
+        </>) : null}
+      {b.type === "encadre" ? (
+        <>
+          <T value={b.caption || ""} onChange={(v) => onChange({ caption: v })} placeholder="Intitulé de l’encadré" />
+          <Auto value={b.content || ""} onChange={(v) => onChange({ content: v })} min={64} />
+        </>) : null}
+    </div>
+  );
+}
+
+function SectionCard({ state, dispatch, index, claude, running, onGenerate }) {
+  const p = state.plan[index];
+  const sec = state.sections[p.id] || blankSection();
+  const nums = numeroter(state.plan);
+  const [consigne, setConsigne] = useState("");
+  const [err, setErr] = useState("");
+  const w = words(sec.text);
+  const tags = { vide: ["", "vide"], run: ["run", "en cours"], ok: ["ok", "généré"], edit: ["edit", "édité à la main"] };
+  const [cls, lbl] = sec.locked ? ["lock", "verrouillé"] : (tags[sec.status] || tags.vide);
+
+  const lancer = async (extra) => {
+    setErr("");
+    try { await onGenerate(p.id, extra); } catch (e) { setErr(msgErreur(e)); }
+  };
+  const setBlocs = (blocks) => dispatch({ t: "sec", id: p.id, v: { blocks } });
+
+  return (
+    <div className="sec" data-lock={sec.locked ? 1 : 0}>
+      <header>
+        <span className="num">{nums[index]}</span>
+        <span className="t">{p.title}</span>
+        <span className={"tag " + cls}>{lbl}</span>
+        <span className="tag mono">{w} / {p.words} mots</span>
+        <button className="btn sm ghost" title={sec.locked ? "Déverrouiller" : "Verrouiller"}
+                onClick={() => dispatch({ t: "sec", id: p.id, v: { locked: !sec.locked } })}>
+          <Ic n={sec.locked ? "lock" : "unlock"} s={13} />
+        </button>
+      </header>
+      <div className="body">
+        {p.intent ? <p className="muted" style={{ margin: 0 }}>{p.intent}</p> : null}
+        <Auto value={sec.text} min={100}
+              onChange={(v) => dispatch({ t: "sec", id: p.id, v: { text: v, status: v ? "edit" : "vide" } })}
+              placeholder="Rien pour l’instant. Générez, ou écrivez directement." />
+        <Erreur e={err} onRetry={() => lancer(consigne)} />
+        <div className="tools">
+          <button className="btn sm pri" disabled={running || sec.locked} onClick={() => lancer("")}>
+            <Ic n="spark" s={13} />{sec.text ? "Régénérer" : "Rédiger"}
+          </button>
+          <T value={consigne} onChange={setConsigne} style={{ flex: 1, minWidth: 170 }}
+             placeholder="Consigne — « plus technique », « raccourcis de moitié », « ajoute un exemple STM32 »" />
+          <button className="btn sm" disabled={running || sec.locked || !consigne.trim()}
+                  onClick={() => lancer(consigne)}>
+            <Ic n="refresh" s={13} />Appliquer
+          </button>
+        </div>
+        <div className="tools">
+          <span className="eyebrow">Blocs non générés</span>
+          {TYPES_BLOC.map((b) => (
+            <button className="btn sm ghost" key={b.t}
+                    onClick={() => setBlocs([...(sec.blocks || []), { id: uid(), type: b.t, content: "", caption: "" }])}>
+              <Ic n={b.i} s={12} />{b.l}
+            </button>
+          ))}
+        </div>
+        {(sec.blocks || []).length ? (
+          <div className="blocks">
+            {sec.blocks.map((b) => (
+              <BlocEditeur key={b.id} b={b}
+                onChange={(v) => setBlocs(sec.blocks.map((x) => x.id === b.id ? { ...x, ...v } : x))}
+                onDelete={() => setBlocs(sec.blocks.filter((x) => x.id !== b.id))} />
+            ))}
+          </div>) : null}
+      </div>
+    </div>
+  );
+}
+
+/* ============================ application ============================ */
+function App() {
+  const [state, dispatch] = useReducer(reducer, undefined, initial);
+  const claude = useClaude();
+  const pagination = usePagination(state);
+  const [zoom, setZoom] = useState(0.55);
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0, label: "" });
+  const [globalErr, setGlobalErr] = useState("");
+  const abortRef = useRef(null);
+  const stopRef = useRef(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  /* --- un appel = une section --- */
+  const genererSection = useCallback(async (id, extra) => {
+    const state = stateRef.current;               // toujours l’état le plus frais
+    const idx = state.plan.findIndex((p) => p.id === id);
+    if (idx < 0) return;
+    const p = state.plan[idx];
+    const nums = numeroter(state.plan);
+    const precedentes = state.plan.slice(0, idx)
+      .map((q, j) => {
+        const t = (state.sections[q.id] || {}).text;
+        return t ? nums[j] + " " + q.title + " : " + resume(t) : null;
+      }).filter(Boolean);
+    const actuel = (state.sections[id] || {}).text;
+
+    const prompt = [
+      ANTI_IA,
+      "",
+      contexteGlobal(state),
+      "",
+      "=== PLAN COMPLET DU DOSSIER ===",
+      blocPlan(state),
+      "",
+      precedentes.length ? "=== CE QUI EST DÉJÀ ÉCRIT (résumés) ===\n" + precedentes.join("\n") : "",
+      state.echantillon.trim()
+        ? "\n=== ÉCHANTILLON DE L’ÉCRITURE DE L’AUTEUR — IMITE CE STYLE ===\n" + cut(state.echantillon, 3000)
+        : "",
+      "",
+      "=== SECTION À RÉDIGER MAINTENANT — ET ELLE SEULE ===",
+      nums[idx] + " " + p.title,
+      "Intention : " + (p.intent || "non précisée"),
+      "Longueur : environ " + p.words + " mots.",
+      actuel && extra ? "\nVersion actuelle à retravailler :\n" + cut(actuel, 4000) : "",
+      extra ? "\nConsigne de réécriture : " + extra : "",
+      "",
+      "Ne rédige que cette section. N’anticipe pas sur les suivantes, ne répète pas les précédentes.",
+    ].filter((x) => x !== "").join("\n");
+
+    dispatch({ t: "sec", id, v: { status: "run" } });
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    let dernier = 0;
+    try {
+      const r = await claude.ask(prompt, {
+        modelTier: "complex",
+        signal: ctrl.signal,
+        onText: (u) => {
+          const now = Date.now();
+          if (now - dernier < 220) return;        // le flux entier repaginerait à chaque delta
+          dernier = now;
+          dispatch({ t: "sec", id, v: { text: u.text, status: "run" } });
+        },
+      });
+      dispatch({ t: "sec", id, v: { text: (r.text || "").trim(), status: "ok" } });
+      if (r.truncated)
+        setGlobalErr("La section « " + p.title + " » a été coupée par la limite de longueur. Réduisez sa cible en mots ou découpez-la en deux.");
+    } catch (e) {
+      const t = (stateRef.current.sections[id] || {}).text;
+      dispatch({ t: "sec", id, v: { status: t ? "edit" : "vide" } });
+      throw e;
+    } finally { abortRef.current = null; }
+  }, [claude]);
+
+  /* --- enchaînement séquentiel --- */
+  const toutGenerer = async () => {
+    const cibles = stateRef.current.plan.filter((p) => !(stateRef.current.sections[p.id] || {}).locked);
+    setRunning(true); stopRef.current = false; setGlobalErr("");
+    setProgress({ done: 0, total: cibles.length, label: "" });
+    for (let i = 0; i < cibles.length; i++) {
+      if (stopRef.current) break;
+      setProgress({ done: i, total: cibles.length, label: cibles[i].title });
+      try { await genererSection(cibles[i].id, ""); }
+      catch (e) {
+        if (e && e.code === "cancelled") break;
+        setGlobalErr("Arrêt sur « " + cibles[i].title + " » — " + msgErreur(e));
+        break;
+      }
+    }
+    setProgress((p) => ({ ...p, done: p.total, label: "" }));
+    setRunning(false);
+  };
+  const stopper = () => {
+    stopRef.current = true;
+    if (abortRef.current) abortRef.current.abort();
+    setRunning(false);
+  };
+
+  /* --- export / sauvegarde --- */
+  const enregistrer = async (nom, data, mime) => {
+    const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+    if (dl) { try { await dl.save({ filename: nom, data }); return; } catch (e) { /* refus ou indisponible */ } }
+    const url = URL.createObjectURL(new Blob([data], { type: mime }));
+    const a = document.createElement("a"); a.href = url; a.download = nom; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  };
+  const exportMarkdown = () => {
+    const nums = numeroter(state.plan);
+    const L = ["# " + (state.meta.titre || "Dossier")];
+    if (state.meta.sousTitre) L.push("_" + state.meta.sousTitre + "_");
+    L.push("");
+    state.plan.forEach((p, i) => {
+      L.push((p.level === 1 ? "## " : "### ") + nums[i] + " " + p.title, "");
+      const sec = state.sections[p.id] || blankSection();
+      if (sec.text) L.push(sec.text, "");
+      (sec.blocks || []).forEach((b) => {
+        if (b.type === "code") L.push("```", b.content || "", "```", "");
+        else if (b.type === "tableau") L.push((b.content || "").split("\n").map((r) => "| " + r + " |").join("\n"), "");
+        else if (b.type === "figure") L.push("![" + (b.caption || "") + "](figure)", "");
+        else if (b.type === "encadre") L.push("> " + (b.caption ? "**" + b.caption + "** — " : "") + (b.content || ""), "");
+        else L.push("<!-- saut de page -->", "");
+      });
+    });
+    enregistrer(fichier("md"), L.join("\n"), "text/markdown");
+  };
+  const fichier = (ext) => (state.meta.titre || "dossier").toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "").slice(0, 50) + "." + ext;
+  const sauver = () => enregistrer(fichier("json"), JSON.stringify(state, null, 2), "application/json");
+  const charger = (file) => {
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const j = JSON.parse(r.result);
+        if (!j || !Array.isArray(j.plan)) throw new Error("structure inattendue");
+        dispatch({ t: "load", state: { ...initial(), ...j, sections: j.sections || {} } });
+        setGlobalErr("");
+      } catch (e) {
+        setGlobalErr("Ce fichier n’est pas un projet valide (" + e.message + ").");
+      }
+    };
+    r.readAsText(file);
+  };
+
+  const listeTrous = useMemo(() => trous(state), [state.plan, state.sections]);
+  const motsTotal = state.plan.reduce((a, p) => a + words((state.sections[p.id] || {}).text), 0);
+  const faits = state.plan.filter((p) => (state.sections[p.id] || {}).text).length;
+
+  const ETAPES = ["Configuration", "Plan", "Rédaction", "Export"];
+  const peutAvancer = [true, state.plan.length > 0, faits > 0, true];
+
+  const apercu = (
+    <div className="card" style={{ padding: 0 }}>
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+                       padding: "9px 12px", borderBottom: "1px solid var(--line)", background: "var(--panel)" }}>
+        <span className="eyebrow">Aperçu A4 · {1 + pagination.tocPages + pagination.pages.length} pages</span>
+        <div className="zoombar">
+          <button className="btn sm ghost" onClick={() => setZoom((z) => clamp(z - 0.1, 0.25, 1.2))}>−</button>
+          <span className="mono muted">{Math.round(zoom * 100)} %</span>
+          <button className="btn sm ghost" onClick={() => setZoom((z) => clamp(z + 0.1, 0.25, 1.2))}>+</button>
+        </div>
+      </header>
+      <div className="docscroll">
+        <div className="docwrap" style={{ zoom: zoom }}>
+          <DocPreview state={state} pagination={pagination} />
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="app">
+      <div className="app-chrome">
+        <div className="topbar">
+          <div className="topbar-in">
+            <div className="brand"><span className="dot" />Atelier Dossier</div>
+            <nav className="steps">
+              {ETAPES.map((e, i) => (
+                <React.Fragment key={e}>
+                  {i ? <span className="step-sep" /> : null}
+                  <button className="step" data-on={state.step === i ? 1 : 0}
+                          data-done={state.step > i ? 1 : 0}
+                          onClick={() => dispatch({ t: "step", v: i })}>
+                    <span className="n">{i + 1}</span>{e}
+                  </button>
+                </React.Fragment>
+              ))}
+            </nav>
+            <div className="topacts">
+              {claude.ready === false ? <span className="tag">hors ligne</span> : null}
+              <button className="btn sm ghost" title="Charger un squelette de rapport de projet"
+                      onClick={() => dispatch({ t: "load", state: exemple() })}>
+                <Ic n="eye" s={13} />Exemple
+              </button>
+              <button className="btn sm" onClick={sauver}><Ic n="save" s={13} />Sauvegarder</button>
+              <label className="btn sm" style={{ cursor: "pointer" }}>
+                <Ic n="folder" s={13} />Charger
+                <input type="file" accept=".json" style={{ display: "none" }}
+                       onChange={(e) => { const f = e.target.files[0]; if (f) charger(f); e.target.value = ""; }} />
+              </label>
+              <button className="btn sm pri" onClick={() => window.print()}><Ic n="print" s={13} />Imprimer / PDF</button>
+            </div>
+          </div>
+        </div>
+
+        <div className={"shell" + (state.step === 1 ? " wide" : "")}>
+          <div className="pane">
+            {globalErr ? <Erreur e={globalErr} /> : null}
+            {claude.ready === false ? (
+              <div className="note">
+                Claude n’est pas joignable depuis cette vue : les boutons de génération resteront muets.
+                L’édition, la mise en page et l’export PDF fonctionnent normalement.
+              </div>) : null}
+
+            {state.step === 0 ? <EcranConfig state={state} dispatch={dispatch} /> : null}
+            {state.step === 1 ? <EcranPlan state={state} dispatch={dispatch} claude={claude} /> : null}
+
+            {state.step === 2 ? (
+              <>
+                <Card title="Rédaction" kicker={faits + " / " + state.plan.length + " sections · " + motsTotal + " mots"}
+                  right={
+                    <div className="row">
+                      {running
+                        ? <button className="btn sm danger" onClick={stopper}><Ic n="stop" s={12} />Stopper</button>
+                        : <button className="btn sm pri" disabled={!state.plan.length} onClick={toutGenerer}>
+                            <Ic n="play" s={12} />Tout générer</button>}
+                    </div>}>
+                  {running ? (
+                    <>
+                      <div className="bar"><i style={{ width: (progress.total ? (progress.done / progress.total) * 100 : 0) + "%" }} /></div>
+                      <span className="muted">
+                        {progress.done} / {progress.total}{progress.label ? " — " + progress.label : ""}
+                      </span>
+                    </>) : (
+                    <p className="muted" style={{ margin: 0 }}>
+                      Une section = un appel. Le contexte transmis contient les consignes, vos métadonnées,
+                      le plan entier et un résumé des sections déjà écrites. Les sections verrouillées sont ignorées.
+                    </p>)}
+                </Card>
+
+                {listeTrous.length ? (
+                  <Card title="Trous à combler" kicker={listeTrous.length + " marqueurs"}>
+                    <div className="holes">
+                      {listeTrous.map((h, i) => (
+                        <div className="hole" key={i}><b>{h.où}</b>{h.quoi}</div>
+                      ))}
+                    </div>
+                  </Card>) : null}
+
+                <div className="vstack">
+                  {state.plan.map((p, i) => (
+                    <SectionCard key={p.id} state={state} dispatch={dispatch} index={i} claude={claude}
+                                 running={running} onGenerate={genererSection} />
+                  ))}
+                </div>
+                {!state.plan.length ? (
+                  <Card title="Rien à rédiger">
+                    <p className="muted" style={{ margin: 0 }}>Construisez d’abord le plan à l’étape 2.</p>
+                  </Card>) : null}
+              </>) : null}
+
+            {state.step === 3 ? (
+              <Card title="Export">
+                <p className="muted" style={{ margin: 0 }}>
+                  L’impression utilise la mise en page exacte de l’aperçu : A4, marges réglées,
+                  en-tête et pied répétés, numérotation, figures et tableaux jamais coupés.
+                  Dans la boîte d’impression, choisissez <strong>Enregistrer au format PDF</strong>,
+                  décochez les en-têtes du navigateur et laissez les marges sur « aucune ».
+                </p>
+                <div className="row">
+                  <button className="btn pri" onClick={() => window.print()}><Ic n="print" s={14} />Imprimer / PDF</button>
+                  <button className="btn" onClick={exportMarkdown}><Ic n="dl" s={14} />Export Markdown</button>
+                  <button className="btn" onClick={sauver}><Ic n="save" s={14} />Sauvegarder le projet (.json)</button>
+                </div>
+                <div className="grid3" style={{ marginTop: 4 }}>
+                  {[["Pages", 1 + pagination.tocPages + pagination.pages.length],
+                    ["Mots rédigés", motsTotal],
+                    ["Trous restants", listeTrous.length]].map(([l, v]) => (
+                    <div key={l} style={{ border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px" }}>
+                      <div className="eyebrow">{l}</div>
+                      <div className="mono" style={{ fontSize: 22, fontWeight: 600 }}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                {listeTrous.length ? (
+                  <div className="note">
+                    {listeTrous.length} marqueur{listeTrous.length > 1 ? "s" : ""} « à compléter » subsiste
+                    {listeTrous.length > 1 ? "nt" : ""} dans le texte. Ils apparaissent surlignés en jaune
+                    dans l’aperçu et seront imprimés tels quels.
+                  </div>) : null}
+              </Card>) : null}
+
+            <div className="row" style={{ justifyContent: "space-between", marginTop: 2 }}>
+              <button className="btn" disabled={state.step === 0}
+                      onClick={() => dispatch({ t: "step", v: state.step - 1 })}>
+                <Ic n="left" s={14} />Retour
+              </button>
+              <button className="btn pri" disabled={state.step === 3 || !peutAvancer[state.step + 1]}
+                      onClick={() => dispatch({ t: "step", v: state.step + 1 })}>
+                Suivant<Ic n="right" s={14} />
+              </button>
+            </div>
+          </div>
+
+          {state.step !== 1 ? <div className="pane sticky">{apercu}</div> : null}
+        </div>
+        {pagination.host}
+      </div>
+
+      <div className="print-root">
+        <DocPreview state={state} pagination={pagination} />
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+
+<script>
+(function () {
+  var root = document.getElementById("root");
+  function fail(msg) {
+    root.innerHTML = '<div class="boot"><strong>Impossible de démarrer l’atelier.</strong><p>' + msg +
+      '</p><p style="color:#5b6168">Rechargez la page. Si le problème persiste, un CDN est bloqué par votre réseau.</p></div>';
+  }
+  function load(urls, done) {
+    var i = 0;
+    (function next() {
+      if (i >= urls.length) return done(new Error("aucune source disponible"));
+      var s = document.createElement("script");
+      s.src = urls[i++];
+      s.onload = function () { done(null); };
+      s.onerror = next;
+      document.head.appendChild(s);
+    })();
+  }
+  var CDNJS = "https://cdnjs.cloudflare.com/ajax/libs/";
+  var JSD = "https://cdn.jsdelivr.net/npm/";
+  load([CDNJS + "react/18.3.1/umd/react.production.min.js", JSD + "react@18.3.1/umd/react.production.min.js"], function (e) {
+    if (e) return fail("React n’a pas pu être chargé.");
+    load([CDNJS + "react-dom/18.3.1/umd/react-dom.production.min.js", JSD + "react-dom@18.3.1/umd/react-dom.production.min.js"], function (e2) {
+      if (e2) return fail("React DOM n’a pas pu être chargé.");
+      load([JSD + "@babel/standalone@7.26.4/babel.min.js", JSD + "@babel/standalone@7/babel.min.js",
+            CDNJS + "babel-standalone/7.26.4/babel.min.js"], function (e3) {
+        if (e3 || !window.Babel) return fail("Le compilateur JSX n’a pas pu être chargé.");
+        try {
+          var src = document.getElementById("app-src").textContent;
+          var out = window.Babel.transform(src, { presets: [["react", { runtime: "classic" }]] }).code;
+          new Function(out)();
+        } catch (err) {
+          fail("Erreur à la compilation : " + (err && err.message ? err.message : err));
+        }
+      });
+    });
+  });
+})();
+</script>
