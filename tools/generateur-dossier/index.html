@@ -109,7 +109,17 @@ textarea{resize:vertical;line-height:1.55}
 
 /* ---------- plan ---------- */
 .plan-item{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);
-  border-radius:8px;background:var(--paper)}
+  border-radius:8px;background:var(--paper);position:relative}
+.plan-item[data-drag="1"]{opacity:.35}
+.plan-item[data-over="1"]::before{content:"";position:absolute;left:0;right:0;top:-6px;height:2px;
+  background:var(--accent);border-radius:2px}
+.plan-item .grip{cursor:grab;user-select:none}
+.plan-item .grip:active{cursor:grabbing}
+.plan-item .grip:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.dropend{height:8px;border-radius:2px}
+.dropend[data-over="1"]{background:var(--accent)}
+.swatch{width:26px;height:26px;padding:0;border:1px solid var(--line2);border-radius:6px;
+  background:none;cursor:pointer;flex:none}
 .plan-item[data-lvl="2"]{margin-left:26px;border-left:2px solid var(--accent-soft)}
 .plan-item .grip{font-family:var(--mono);font-size:11px;color:var(--ink3);padding-top:8px;min-width:26px;
   font-variant-numeric:tabular-nums}
@@ -165,6 +175,11 @@ textarea{resize:vertical;line-height:1.55}
 .mbr{display:flex;gap:8px;align-items:center}
 .mbr input:first-child{flex:2}
 .mbr input:nth-child(2){flex:1.4}
+.gdoc{display:flex;flex-direction:column;gap:7px;border:1px solid var(--line);border-radius:8px;
+  padding:9px 10px;background:var(--panel)}
+.gdoc .hit{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 8px;
+  border:1px solid var(--line);border-radius:6px;background:var(--paper);font-size:12.5px}
+.gdoc .hit b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .holes{display:flex;flex-direction:column;gap:7px;max-height:280px;overflow:auto}
 .hole{background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:7px;padding:7px 9px;font-size:12.5px}
@@ -208,6 +223,14 @@ textarea{resize:vertical;line-height:1.55}
 
 .cover{position:absolute;inset:0;padding:var(--mt) var(--mr) var(--mb) var(--ml);
   display:flex;flex-direction:column;font-family:var(--dfont);color:#141618}
+.cover>*{position:relative;z-index:1}
+.cover .cov-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;margin:0}
+.cover .cov-scrim{position:absolute;inset:0;z-index:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.20) 0%,rgba(0,0,0,.30) 45%,rgba(0,0,0,.74) 100%)}
+.cover.pleine{color:#fff}
+.cover.pleine .sub,.cover.pleine .meta dt{color:rgba(255,255,255,.72)}
+.cover.pleine .rule{background:#fff}
+.cover .bandeau{width:100%;object-fit:cover;border-radius:1.5mm;margin-bottom:8mm}
 .cover .logos{display:flex;gap:9mm;align-items:flex-start;flex-wrap:wrap}
 .cover .mid{margin-top:auto;margin-bottom:auto}
 .cover .rule{height:2.2pt;width:22mm;background:var(--dacc);margin-bottom:7mm}
@@ -280,6 +303,28 @@ const FONTS = [
   { v: '"Trebuchet MS",sans-serif', l: "Trebuchet MS" },
   { v: '"IBM Plex Mono",Courier,monospace', l: "IBM Plex Mono" },
 ];
+/* Le type choisi préremplit longueur et ton, et rappelle au modèle les attendus
+   du genre — ce qu’un correcteur cherche dans ce format précis. */
+const TYPES_DOSSIER = {
+  projet: { l: "Rapport de projet", pages: 12, ton: "Retour d’expérience",
+    d: "SAÉ, projet tutoré, mini-projet",
+    a: "Contexte et cahier des charges, solution retenue face aux alternatives, dimensionnement, " +
+       "réalisation, tests et mesures, bilan critique de ce qui marche et de ce qui reste à faire." },
+  alternance: { l: "Rapport d’alternance", pages: 25, ton: "Retour d’expérience", entreprise: true,
+    d: "période en entreprise, mémoire de stage",
+    a: "Présentation de l’entreprise et du service, missions confiées, méthodes de travail, " +
+       "compétences mobilisées et acquises, analyse critique de la période, apport au projet professionnel." },
+  tp: { l: "Compte rendu de TP", pages: 6, ton: "Technique factuel",
+    d: "manipulation, séance encadrée",
+    a: "Objectif de la manipulation, matériel et protocole, schémas, mesures brutes, exploitation, " +
+       "sources d’erreur identifiées, conclusion sur ce que la manip démontre." },
+  technique: { l: "Dossier technique", pages: 15, ton: "Technique factuel",
+    d: "documentation, livrable client",
+    a: "Spécifications, architecture, dimensionnement justifié, schémas et nomenclature, " +
+       "procédure de validation, limites connues et évolutions prévues." },
+  autre: { l: "Autre", pages: 10, ton: "Neutre professionnel", d: "format libre", a: "" },
+};
+
 const NIVEAUX = ["BUT 1", "BUT 2", "BUT 3", "École d’ingénieur", "Vulgarisé"];
 const TONS = ["Neutre professionnel", "Retour d’expérience", "Technique factuel", "Pédagogique"];
 
@@ -311,8 +356,11 @@ const initial = () => ({
   step: 0,
   brief: { raw: "", sources: [] },
   brouillon: { raw: "", sources: [] },
+  charte: { raw: "", sources: [], note: "" },
+  cover: { src: "", mode: "bandeau", h: 62 },
   repartition: {},          // id de section -> indices de paragraphes du brouillon
-  want: { sujet: "", planImpose: "", pages: 12, niveau: "BUT 2", langue: "Français", ton: "Retour d’expérience" },
+  want: { type: "projet", sujet: "", planImpose: "", pages: 12, niveau: "BUT 2",
+          langue: "Français", ton: "Retour d’expérience" },
   da: { preset: "apple", accent: PRESETS.apple.accent, font: PRESETS.apple.font, size: PRESETS.apple.size,
         lh: PRESETS.apple.lh, gap: PRESETS.apple.gap, align: PRESETS.apple.align,
         margins: { ...PRESETS.apple.margins }, toc: true, headerText: "", footerText: "" },
@@ -356,6 +404,12 @@ function reducer(s, a) {
     case "step": return { ...s, step: a.v };
     case "brief": return { ...s, brief: { ...s.brief, ...a.v } };
     case "brouillon": return { ...s, brouillon: { ...s.brouillon, ...a.v }, repartition: {} };
+    case "charte": return { ...s, charte: { ...s.charte, ...a.v } };
+    case "cover": return { ...s, cover: { ...s.cover, ...a.v } };
+    case "type": {
+      const t = TYPES_DOSSIER[a.v] || TYPES_DOSSIER.autre;
+      return { ...s, want: { ...s.want, type: a.v, pages: t.pages, ton: t.ton } };
+    }
     case "repartition": return { ...s, repartition: a.v };
     case "want": return { ...s, want: { ...s.want, ...a.v } };
     case "meta": return { ...s, meta: { ...s.meta, ...a.v } };
@@ -467,6 +521,9 @@ function contexteGlobal(s) {
     L.push("Sources importées : " + s.brief.sources.map((x) => x.name).join(", "));
   L.push("");
   L.push("=== CADRAGE ===");
+  const td = TYPES_DOSSIER[w.type] || TYPES_DOSSIER.autre;
+  L.push("Type de dossier : " + td.l + ".");
+  if (td.a) L.push("Attendus habituels de ce format : " + td.a);
   L.push("Sujet : " + (w.sujet || "(non précisé)"));
   L.push("Longueur cible : environ " + w.pages + " pages A4 rédigées.");
   L.push("Niveau technique : " + w.niveau + " · Langue : " + w.langue + " · Ton : " + w.ton);
@@ -643,10 +700,11 @@ function construireFlux(state) {
   let fig = 0, tab = 0;
   state.plan.forEach((p, i) => {
     const sec = state.sections[p.id] || blankSection();
+    const cs = p.couleur ? { color: p.couleur } : null;
     items.push({ key: p.id + "-h", kind: p.level === 1 ? "h1" : "h2", heading: true,
                  node: p.level === 1
-                   ? <h1><span className="k">{nums[i]}</span>{p.title}</h1>
-                   : <h2><span className="k">{nums[i]}</span>{p.title}</h2> });
+                   ? <h1 style={cs}><span className="k" style={cs}>{nums[i]}</span>{p.title}</h1>
+                   : <h2 style={cs}><span className="k" style={cs}>{nums[i]}</span>{p.title}</h2> });
     const paras = (sec.text || "").split(/\n{2,}/).map((x) => x.trim()).filter(Boolean);
     paras.forEach((para, j) => {
       items.push({ key: p.id + "-p" + j, kind: "p",
@@ -735,11 +793,18 @@ function Couverture({ state }) {
     ["Entreprise", meta.entreprise], ["Tuteur école", meta.tuteurEcole],
     ["Tuteur entreprise", meta.tuteurEntreprise], ["Année", meta.annee], ["Remise", meta.dateRendu],
   ].filter(([, v]) => (v || "").trim());
+  const cv = state.cover || { src: "", mode: "bandeau", h: 62 };
+  const pleine = !!cv.src && cv.mode === "pleine";
   return (
-    <div className="cover">
+    <div className={"cover" + (pleine ? " pleine" : "")}>
+      {pleine ? <img className="cov-bg" src={cv.src} alt="" /> : null}
+      {pleine ? <div className="cov-scrim" /> : null}
       <div className="logos">
         {cov.map((l) => <img key={l.id} src={l.src} alt={l.name} style={{ height: l.h + "mm" }} />)}
       </div>
+      {cv.src && cv.mode === "bandeau"
+        ? <img className="bandeau" src={cv.src} alt="" style={{ height: cv.h + "mm", marginTop: "9mm" }} />
+        : null}
       <div className="mid">
         <div className="rule" />
         <h1 className="ttl">{meta.titre || "Titre du dossier"}</h1>
@@ -838,7 +903,7 @@ function usePagination(state) {
   const hostRef = useRef(null);
   const [res, setRes] = useState({ pages: [[]], items: [], tocPages: 0, mapPages: {} });
   const sig = JSON.stringify([
-    state.plan.map((p) => [p.id, p.title, p.level]),
+    state.plan.map((p) => [p.id, p.title, p.level, p.couleur]),
     state.plan.map((p) => [(state.sections[p.id] || {}).text, (state.sections[p.id] || {}).blocks]),
     state.da, state.logos.map((l) => [l.placement, l.h]), state.meta.titre, state.meta.nom,
   ]);
@@ -928,6 +993,106 @@ function ImportFichiers({ dispatch, brief, cible }) {
           ))}
         </div>) : null}
       {err ? <div className="note">{err}</div> : null}
+    </div>
+  );
+}
+
+/* Chaque code d’erreur du connecteur a son propre remède : les fondre dans un
+   « une erreur est survenue » cacherait justement le geste qui débloque. */
+function msgMcp(e) {
+  const c = e && e.code;
+  if (c === "server_not_connected")
+    return "Google Drive n’est pas connecté à votre compte Claude. Ajoutez le connecteur dans vos paramètres, puis rouvrez cette page.";
+  if (c === "needs_reauth")
+    return "Votre accès Google Drive a expiré. Reconnectez-le dans les paramètres de Claude.";
+  if (c === "not_granted" || c === "approval_required")
+    return "Autorisez l’accès à Google Drive quand Claude vous le demande, puis relancez la recherche.";
+  if (c === "blocked_by_policy")
+    return "Votre organisation bloque l’accès à ce connecteur.";
+  if (c === "server_unavailable" || c === "upstream_error")
+    return "Google Drive n’a pas répondu. Réessayez dans un instant.";
+  if (c === "not_in_manifest" || c === "server_not_found")
+    return "Cette page n’a pas accès à Google Drive.";
+  if (c === "tool_error")
+    return "Google Drive a refusé la requête" + (e.message ? " : " + e.message : ".");
+  if (c === "cancelled") return "Recherche annulée.";
+  return (e && e.message) || "Accès à Google Drive impossible.";
+}
+
+function GoogleDocs({ onImport }) {
+  const [mcp, setMcp] = useState(undefined);   // undefined = résolution, null = indisponible
+  const [ouvert, setOuvert] = useState(false);
+  const [q, setQ] = useState("");
+  const [hits, setHits] = useState(null);
+  const [busy, setBusy] = useState("");
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    let a = true;
+    const c = typeof window !== "undefined" ? window.claude : null;
+    if (!c || typeof c.use !== "function") { setMcp(null); return; }
+    c.use("mcp").then((m) => { if (a) setMcp(m || null); }).catch(() => { if (a) setMcp(null); });
+    return () => { a = false; };
+  }, []);
+
+  const chercher = async () => {
+    if (!mcp) return;
+    setBusy("recherche"); setErr("");
+    try {
+      const t = q.trim().replace(/'/g, "\\'");
+      const query = "mimeType = 'application/vnd.google-apps.document'" +
+        (t ? " and title contains '" + t + "'" : "");
+      const r = await mcp.callTool("Google Drive", "search_files",
+        { query, pageSize: 8, excludeContentSnippets: true });
+      const pay = r && r.payload;
+      setHits(pay && Array.isArray(pay.files) ? pay.files : []);
+    } catch (e) { setErr(msgMcp(e)); setHits(null); }
+    finally { setBusy(""); }
+  };
+
+  const importer = async (f) => {
+    if (!mcp) return;
+    setBusy(f.id); setErr("");
+    try {
+      const r = await mcp.callTool("Google Drive", "read_file_content", { fileId: f.id });
+      const pay = r && r.payload;
+      const txt = pay && typeof pay.fileContent === "string" ? pay.fileContent : "";
+      if (!txt.trim()) { setErr("Ce document est vide, ou son contenu n’a pas pu être lu."); return; }
+      onImport(f.title || "Document", txt);
+      setOuvert(false); setHits(null); setQ("");
+    } catch (e) { setErr(msgMcp(e)); }
+    finally { setBusy(""); }
+  };
+
+  if (mcp === undefined || mcp === null) return null;   // rien à proposer : pas de bouton mort
+  if (!ouvert)
+    return (
+      <button className="btn sm" style={{ alignSelf: "flex-start" }} onClick={() => setOuvert(true)}>
+        <Ic n="folder" s={13} />Importer depuis Google Docs
+      </button>);
+
+  return (
+    <div className="gdoc">
+      <div className="row">
+        <input type="text" value={q} placeholder="Filtrer par titre — vide = documents récents"
+               onChange={(e) => setQ(e.target.value)}
+               onKeyDown={(e) => { if (e.key === "Enter") chercher(); }} />
+        <button className="btn sm pri" disabled={busy === "recherche"} onClick={chercher}>
+          {busy === "recherche" ? "…" : "Chercher"}
+        </button>
+        <button className="btn sm ghost" onClick={() => setOuvert(false)}><Ic n="x" s={12} /></button>
+      </div>
+      {err ? <Erreur e={err} onRetry={chercher} /> : null}
+      {hits && !hits.length ? <span className="muted">Aucun document à ce nom dans votre Drive.</span> : null}
+      {(hits || []).map((f) => (
+        <div className="hit" key={f.id}>
+          <b title={f.title}>{f.title}</b>
+          <button className="btn sm" disabled={!!busy} onClick={() => importer(f)}>
+            {busy === f.id ? "Import…" : "Importer"}
+          </button>
+        </div>
+      ))}
+      {!hits && !err ? <span className="muted">Lancez la recherche pour lister vos documents Google.</span> : null}
     </div>
   );
 }
@@ -1047,6 +1212,52 @@ function Membres({ state, dispatch }) {
   );
 }
 
+function PhotoCouverture({ state, dispatch }) {
+  const [over, setOver] = useState(false);
+  const cv = state.cover;
+  const charger = (files) => {
+    const f = Array.from(files).find((x) => /^image\//.test(x.type));
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => dispatch({ t: "cover", v: { src: r.result } });
+    r.readAsDataURL(f);
+  };
+  return (
+    <div className="vstack">
+      {cv.src ? (
+        <div className="logo-row">
+          <img src={cv.src} alt="" style={{ width: 74, height: 52 }} />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7, minWidth: 0 }}>
+            <div className="chips">
+              {[["bandeau", "Bandeau"], ["pleine", "Pleine page"]].map(([k, l]) => (
+                <button className="chip" key={k} data-on={cv.mode === k ? 1 : 0}
+                        onClick={() => dispatch({ t: "cover", v: { mode: k } })}>{l}</button>
+              ))}
+            </div>
+            {cv.mode === "bandeau" ? (
+              <div className="row" style={{ gap: 5 }}>
+                <span className="muted">Hauteur</span>
+                <input type="number" min="20" max="140" value={cv.h} style={{ width: 70 }}
+                       onChange={(e) => dispatch({ t: "cover", v: { h: clamp(Number(e.target.value), 15, 160) } })} />
+                <span className="muted">mm</span>
+              </div>) : (
+              <span className="muted">L’image occupe toute la page ; le titre passe en blanc sur un voile sombre.</span>)}
+          </div>
+          <button className="btn sm ghost danger" title="Retirer"
+                  onClick={() => dispatch({ t: "cover", v: { src: "" } })}><Ic n="trash" s={13} /></button>
+        </div>) : (
+        <label className="drop" data-over={over ? 1 : 0}
+          onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+          onDragLeave={() => setOver(false)}
+          onDrop={(e) => { e.preventDefault(); setOver(false); charger(e.dataTransfer.files); }}>
+          Glissez une photo ici — la carte, le banc de test, l’atelier
+          <input type="file" accept="image/*" style={{ display: "none" }}
+                 onChange={(e) => { charger(e.target.files); e.target.value = ""; }} />
+        </label>)}
+    </div>
+  );
+}
+
 /* Ce qu’il reste à faire avant de générer — cliquable, chaque ligne mène au bon endroit. */
 function Demarrage({ state, dispatch }) {
   const { brief, want, meta, plan } = state;
@@ -1074,6 +1285,20 @@ function Demarrage({ state, dispatch }) {
   };
   return (
     <Card title="Par où commencer" kicker={faits + " / " + items.length}>
+      <F label="Type de dossier" hint="fixe la longueur, le ton et les attendus du format">
+        <div className="chips">
+          {Object.keys(TYPES_DOSSIER).map((k) => (
+            <button className="chip" key={k} data-on={want.type === k ? 1 : 0}
+                    title={TYPES_DOSSIER[k].d} onClick={() => dispatch({ t: "type", v: k })}>
+              {TYPES_DOSSIER[k].l}
+            </button>
+          ))}
+        </div>
+      </F>
+      {(TYPES_DOSSIER[want.type] || {}).a ? (
+        <p className="muted" style={{ margin: 0 }}>
+          Ce qu’un correcteur y cherche : {TYPES_DOSSIER[want.type].a}
+        </p>) : null}
       <div className="bar"><i style={{ width: (faits / items.length) * 100 + "%" }} /></div>
       <div className="vstack" style={{ gap: 7 }}>
         {items.map((x) => (
@@ -1090,9 +1315,59 @@ function Demarrage({ state, dispatch }) {
   );
 }
 
-function EcranConfig({ state, dispatch }) {
+function EcranConfig({ state, dispatch, claude }) {
   const d = state.da, m = state.meta, w = state.want;
   const setPreset = (k) => dispatch({ t: "preset", v: k });
+  const [busyDa, setBusyDa] = useState(false);
+  const [errDa, setErrDa] = useState("");
+  // deux champs de moins pour un compte rendu de TP : ce qui ne sert pas n’est pas affiché
+  const entreprisePertinente = !!((TYPES_DOSSIER[w.type] || {}).entreprise ||
+    m.entreprise.trim() || m.tuteurEntreprise.trim());
+
+  const ajouterTexte = (cible, titre, txt) => {
+    const cur = state[cible];
+    dispatch({ t: cible, v: {
+      raw: (cur.raw ? cur.raw + "\n\n" : "") + "--- " + titre + " ---\n" + txt,
+      sources: [...cur.sources, { name: titre, chars: txt.length }] } });
+  };
+
+  const deduireDa = async () => {
+    setBusyDa(true); setErrDa("");
+    try {
+      const prompt = [
+        "Voici la charte graphique d’un établissement ou d’une entreprise.",
+        "Traduis-la en réglages de mise en page pour un dossier A4. Tu ne commentes pas, tu règles.",
+        "",
+        cut(state.charte.raw, 8000),
+        "",
+        "Polices possibles — reprends une étiquette exactement telle quelle :",
+        FONTS.map((f) => f.l).join(" | "),
+        "Si la charte ne dit rien d’un réglage, choisis une valeur sobre plutôt que d’inventer une règle.",
+        "",
+        'Réponds STRICTEMENT en JSON : {"accent":"#0f6f6a","police":"Helvetica / Arial","taille":11,' +
+        '"interligne":1.5,"alignement":"left","marges":{"t":25,"r":22,"b":22,"l":22},' +
+        '"note":"une phrase sur ce que tu as retenu de la charte"}',
+      ].join("\n");
+      const r = await claude.askJson(prompt, { modelTier: "default" });
+      const f = FONTS.find((x) => x.l === String((r && r.police) || ""));
+      const mg = (r && r.marges) || {};
+      const nb = (v, def, a, b) => clamp(Number(v) || def, a, b);
+      dispatch({ t: "da", v: {
+        preset: "custom",
+        accent: /^#[0-9a-fA-F]{6}$/.test((r && r.accent) || "") ? r.accent : d.accent,
+        font: f ? f.v : d.font,
+        size: nb(r && r.taille, d.size, 8, 16),
+        lh: nb(r && r.interligne, d.lh, 1.1, 2.2),
+        align: (r && r.alignement) === "justify" ? "justify" : "left",
+      } });
+      dispatch({ t: "marges", v: {
+        t: nb(mg.t, d.margins.t, 8, 45), r: nb(mg.r, d.margins.r, 8, 45),
+        b: nb(mg.b, d.margins.b, 8, 45), l: nb(mg.l, d.margins.l, 8, 45),
+      } });
+      dispatch({ t: "charte", v: { note: String((r && r.note) || "").slice(0, 240) } });
+    } catch (e) { setErrDa(msgErreur(e)); }
+    finally { setBusyDa(false); }
+  };
   return (
     <>
       <Demarrage state={state} dispatch={dispatch} />
@@ -1102,6 +1377,7 @@ function EcranConfig({ state, dispatch }) {
                 min={150} placeholder="Coller ici l’énoncé, la grille d’évaluation, les attendus…" />
         </F>
         <ImportFichiers dispatch={dispatch} brief={state.brief} />
+        <GoogleDocs onImport={(titre, txt) => ajouterTexte("brief", titre, txt)} />
       </Card>
 
       <Card title="Brouillon de l’équipe" kicker="facultatif" id="c-brouillon"
@@ -1116,6 +1392,7 @@ function EcranConfig({ state, dispatch }) {
               onChange={(v) => dispatch({ t: "brouillon", v: { raw: v } })}
               placeholder="Coller le brouillon — séparez les idées par une ligne vide, la répartition sera plus fine." />
         <ImportFichiers dispatch={dispatch} brief={state.brouillon} cible="brouillon" />
+        <GoogleDocs onImport={(titre, txt) => ajouterTexte("brouillon", titre, txt)} />
         {state.brouillon.raw.trim() ? (
           <p className="muted" style={{ margin: 0 }}>
             {parasBrouillon(state.brouillon.raw).length} paragraphes détectés · à répartir dans le plan à l’étape 2.
@@ -1211,6 +1488,28 @@ function EcranConfig({ state, dispatch }) {
                  onChange={(e) => dispatch({ t: "da", v: { toc: e.target.checked } })} />
           <span>Insérer un sommaire numéroté</span>
         </label>
+
+        <F label="Charte graphique imposée" hint="facultatif — celle de l’IUT ou de l’entreprise">
+          <Auto value={state.charte.raw} min={70}
+                onChange={(v) => dispatch({ t: "charte", v: { raw: v } })}
+                placeholder="Coller les règles : couleurs de l’établissement, polices imposées, marges…" />
+        </F>
+        <div className="row">
+          <ImportFichiers dispatch={dispatch} brief={state.charte} cible="charte" />
+          <GoogleDocs onImport={(titre, txt) => ajouterTexte("charte", titre, txt)} />
+        </div>
+        <div className="row">
+          <button className="btn" disabled={busyDa || !state.charte.raw.trim()} onClick={deduireDa}>
+            <Ic n={busyDa ? "refresh" : "spark"} s={14} />
+            {busyDa ? "Lecture de la charte…" : "En déduire la direction artistique"}
+          </button>
+        </div>
+        {state.charte.note ? <p className="muted" style={{ margin: 0 }}>Retenu : {state.charte.note}</p> : null}
+        <Erreur e={errDa} onRetry={deduireDa} />
+      </Card>
+
+      <Card title="Photo de couverture" kicker="facultatif" id="c-photo">
+        <PhotoCouverture state={state} dispatch={dispatch} />
       </Card>
 
       <Card title="Logos" id="c-logos"><Logos state={state} dispatch={dispatch} /></Card>
@@ -1218,10 +1517,13 @@ function EcranConfig({ state, dispatch }) {
       <Card title="Métadonnées" id="c-meta">
         <div className="grid2">
           {[["nom", "Nom et prénom"], ["formation", "Formation"], ["etablissement", "Établissement"],
-            ["entreprise", "Entreprise"], ["tuteurEcole", "Tuteur école"], ["tuteurEntreprise", "Tuteur entreprise"],
-            ["annee", "Année scolaire"], ["dateRendu", "Date de rendu"]].map(([k, l]) => (
-            <F key={k} label={l}><T value={m[k]} onChange={(v) => dispatch({ t: "meta", v: { [k]: v } })} /></F>
-          ))}
+            ["tuteurEcole", "Tuteur école"]]
+            .concat(entreprisePertinente
+              ? [["entreprise", "Entreprise"], ["tuteurEntreprise", "Tuteur entreprise"]] : [])
+            .concat([["annee", "Année scolaire"], ["dateRendu", "Date de rendu"]])
+            .map(([k, l]) => (
+              <F key={k} label={l}><T value={m[k]} onChange={(v) => dispatch({ t: "meta", v: { [k]: v } })} /></F>
+            ))}
         </div>
         <F label="Titre du dossier">
           <T value={m.titre} onChange={(v) => dispatch({ t: "meta", v: { titre: v } })} />
@@ -1299,6 +1601,8 @@ function EcranPlan({ state, dispatch, claude }) {
     } finally { setBusy(false); }
   };
 
+  const [dragI, setDragI] = useState(null);
+  const [overI, setOverI] = useState(null);
   const [busyRep, setBusyRep] = useState(false);
   const aBrouillon = state.brouillon.raw.trim().length > 0;
   const orphelins = nonRattaches(state);
@@ -1343,10 +1647,13 @@ function EcranPlan({ state, dispatch, claude }) {
   };
 
   const maj = (i, v) => dispatch({ t: "plan", v: state.plan.map((p, j) => j === i ? { ...p, ...v } : p) });
-  const bouger = (i, dir) => {
-    const n = [...state.plan], j = i + dir;
-    if (j < 0 || j >= n.length) return;
-    [n[i], n[j]] = [n[j], n[i]];
+  /* `to` est un rang d’insertion (0..len), pas un index d’élément :
+     c’est ce que renvoie naturellement le survol pendant le glisser. */
+  const deplacer = (from, to) => {
+    if (from == null || to == null || from === to || to === from + 1) return;
+    const n = [...state.plan];
+    const [it] = n.splice(from, 1);
+    n.splice(to > from ? to - 1 : to, 0, it);
     dispatch({ t: "plan", v: n });
   };
   const supprimer = (i) => dispatch({ t: "plan", v: state.plan.filter((_, j) => j !== i) });
@@ -1398,8 +1705,32 @@ function EcranPlan({ state, dispatch, claude }) {
         </div>) : null}
       <div className="vstack">
         {state.plan.map((p, i) => (
-          <div className="plan-item" data-lvl={p.level} key={p.id}>
-            <span className="grip">{nums[i]}</span>
+          <div className="plan-item" data-lvl={p.level} key={p.id}
+               data-drag={dragI === i ? 1 : 0} data-over={overI === i ? 1 : 0}
+               onDragOver={(e) => {
+                 if (dragI == null) return;
+                 e.preventDefault();
+                 const r = e.currentTarget.getBoundingClientRect();
+                 setOverI(e.clientY < r.top + r.height / 2 ? i : i + 1);
+               }}
+               onDrop={(e) => { e.preventDefault(); deplacer(dragI, overI); setDragI(null); setOverI(null); }}>
+            <span className="grip" draggable tabIndex={0} role="button"
+                  title="Glisser pour déplacer — ou flèches haut/bas au clavier"
+                  aria-label={"Déplacer la section " + nums[i] + " " + p.title}
+                  onDragStart={(e) => {
+                    setDragI(i);
+                    e.dataTransfer.effectAllowed = "move";
+                    try { e.dataTransfer.setData("text/plain", String(i)); } catch (err) {}
+                    const row = e.currentTarget.parentNode;
+                    if (row && e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(row, 24, 20);
+                  }}
+                  onDragEnd={() => { setDragI(null); setOverI(null); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowUp") { e.preventDefault(); deplacer(i, i - 1); }
+                    if (e.key === "ArrowDown") { e.preventDefault(); deplacer(i, i + 2); }
+                  }}>
+              ⠿ {nums[i]}
+            </span>
             <div className="fields">
               <T value={p.title} onChange={(v) => maj(i, { title: v })} placeholder="Titre de la section" />
               <T className="intent" value={p.intent} onChange={(v) => maj(i, { intent: v })}
@@ -1410,21 +1741,35 @@ function EcranPlan({ state, dispatch, claude }) {
                 <span className="tag ok" title="paragraphes du brouillon rattachés">
                   {(state.repartition[p.id] || []).length} ¶
                 </span>) : null}
+              <input type="color" className="swatch" value={p.couleur || state.da.accent}
+                     title={p.couleur ? "Couleur de cette partie — clic droit sur ✕ pour retirer" : "Donner une couleur à cette partie"}
+                     onChange={(e) => maj(i, { couleur: e.target.value })} />
+              {p.couleur ? (
+                <button className="btn sm ghost" title="Retirer la couleur"
+                        onClick={() => maj(i, { couleur: "" })}><Ic n="x" s={12} /></button>) : null}
               <input type="number" className="mono" value={p.words} min={50} step={50} style={{ width: 74 }}
                      onChange={(e) => maj(i, { words: clamp(Number(e.target.value), 40, 4000) })} />
-              <button className="btn sm ghost" title="Niveau"
+              <button className="btn sm ghost" title="Partie ou sous-partie"
                       onClick={() => maj(i, { level: p.level === 1 ? 2 : 1 })}>
                 {p.level === 1 ? "H1" : "H2"}
               </button>
-              <button className="btn sm ghost" title="Monter" onClick={() => bouger(i, -1)}><Ic n="up" s={13} /></button>
-              <button className="btn sm ghost" title="Descendre" onClick={() => bouger(i, 1)}><Ic n="down" s={13} /></button>
               <button className="btn sm ghost danger" title="Supprimer" onClick={() => supprimer(i)}><Ic n="trash" s={13} /></button>
             </div>
           </div>
         ))}
+        {state.plan.length ? (
+          <div className="dropend" data-over={overI === state.plan.length ? 1 : 0}
+               onDragOver={(e) => { if (dragI == null) return; e.preventDefault(); setOverI(state.plan.length); }}
+               onDrop={(e) => { e.preventDefault(); deplacer(dragI, overI); setDragI(null); setOverI(null); }} />
+        ) : null}
         {!state.plan.length ? (
           <p className="muted" style={{ margin: 0 }}>
             Aucune section. Lancez une proposition, ou ajoutez les parties à la main.
+          </p>) : null}
+        {state.plan.length ? (
+          <p className="muted" style={{ margin: 0 }}>
+            Attrapez la poignée ⠿ pour réordonner. H1 bascule une partie en sous-partie.
+            La pastille de couleur ne teinte que les titres de cette partie dans le PDF.
           </p>) : null}
       </div>
     </Card>
@@ -1810,7 +2155,7 @@ function App() {
                 L’édition, la mise en page et l’export PDF fonctionnent sans elle.
               </div>) : null}
 
-            {state.step === 0 ? <EcranConfig state={state} dispatch={dispatch} /> : null}
+            {state.step === 0 ? <EcranConfig state={state} dispatch={dispatch} claude={claude} /> : null}
             {state.step === 1 ? <EcranPlan state={state} dispatch={dispatch} claude={claude} /> : null}
 
             {state.step === 2 ? (
