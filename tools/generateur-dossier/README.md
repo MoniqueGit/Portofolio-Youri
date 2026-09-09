@@ -19,6 +19,19 @@ l'appel HTTP si la capacité n'est pas disponible. Sans clé, l'édition, la mis
 page et l'export PDF continuent de fonctionner ; seuls les boutons de génération
 renvoient une erreur explicite.
 
+## Deux éditions, une seule source
+
+`index.html` est la source. `build-partage.mjs` en tire `partage.html` en
+basculant deux lignes (`AVEC_DRIVE`, `NOM_APP`) et le `<title>` :
+
+| Édition | Fichier | Connecteurs | Usage |
+|---|---|---|---|
+| Personnelle | `index.html` | Google Drive | privée, import direct depuis Google Docs |
+| Équipe | `partage.html` | aucun | partageable, aucun accès à des données tierces |
+
+Toute modification se fait dans `index.html`, puis `node build-partage.mjs`
+régénère l'édition d'équipe. Les deux artifacts se republient séparément.
+
 ## Déployer sur Vercel
 
 ```bash
