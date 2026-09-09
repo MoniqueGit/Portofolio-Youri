@@ -137,6 +137,27 @@ textarea{resize:vertical;line-height:1.55}
 .blk textarea{font-family:var(--mono);font-size:12px;background:var(--paper)}
 .blk img{max-height:120px;align-self:flex-start;border:1px solid var(--line);border-radius:5px;background:#fff}
 
+/* ---------- démarrage guidé ---------- */
+.chk{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:8px;
+  border:1px solid var(--line);background:var(--paper);cursor:pointer;text-align:left;
+  width:100%;font:inherit;color:inherit;transition:background .12s,border-color .12s}
+.chk:hover{background:#f6f7f8;border-color:var(--line2)}
+.chk[data-ok="1"]{border-color:#cfe3de;background:var(--accent-soft)}
+.chk[data-ok="1"]:hover{background:#dcebe7}
+.chk .mk{width:18px;height:18px;border-radius:99px;border:1.5px solid var(--line2);
+  display:grid;place-items:center;flex:none;margin-top:1px;color:#fff}
+.chk[data-ok="1"] .mk{background:var(--accent);border-color:var(--accent)}
+.chk .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.chk .tx b{font-weight:600;font-size:13px}
+.chk .tx span{color:var(--ink3);font-size:12px}
+.chk[data-ok="1"] .tx span{color:var(--accent-d)}
+.opt{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink3);border:1px solid var(--line2);border-radius:4px;padding:1px 5px;margin-left:7px;
+  vertical-align:1px}
+.mbr{display:flex;gap:8px;align-items:center}
+.mbr input:first-child{flex:2}
+.mbr input:nth-child(2){flex:1.4}
+
 .holes{display:flex;flex-direction:column;gap:7px;max-height:280px;overflow:auto}
 .hole{background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:7px;padding:7px 9px;font-size:12.5px}
 .hole b{display:block;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.07em;
@@ -287,7 +308,8 @@ const initial = () => ({
         margins: { ...PRESETS.apple.margins }, toc: true, headerText: "", footerText: "" },
   logos: [],
   meta: { nom: "", formation: "", etablissement: "", entreprise: "", tuteurEcole: "", tuteurEntreprise: "",
-          annee: "", dateRendu: "", titre: "", sousTitre: "" },
+          annee: "", dateRendu: "", titre: "", sousTitre: "", groupe: "" },
+  membres: [],
   echantillon: "",
   plan: [],
   sections: {},
@@ -335,6 +357,7 @@ function reducer(s, a) {
                            lh: p.lh, gap: p.gap, align: p.align, margins: { ...p.margins } } };
     }
     case "logos": return { ...s, logos: a.v };
+    case "membres": return { ...s, membres: a.v };
     case "plan": {
       const next = { ...s.sections };
       a.v.forEach((p) => { if (!next[p.id]) next[p.id] = blankSection(); });
@@ -439,6 +462,16 @@ function contexteGlobal(s) {
     ["Année", m.annee], ["Titre du dossier", m.titre], ["Sous-titre", m.sousTitre],
   ].filter(([, v]) => (v || "").trim());
   L.push(meta.length ? meta.map(([k, v]) => k + " : " + v).join("\n") : "(non renseigné)");
+  const eq = (s.membres || []).filter((x) => (x.nom || "").trim());
+  if (eq.length) {
+    L.push("");
+    L.push("=== TRAVAIL DE GROUPE ===");
+    if ((m.groupe || "").trim()) L.push("Groupe : " + m.groupe);
+    L.push("Membres : " + eq.map((x) => x.nom + (x.role ? " (" + x.role + ")" : "")).join(", "));
+    L.push("Le dossier est collectif : emploie « nous » pour ce que le groupe a fait ensemble,");
+    L.push("et « j’ai » uniquement pour ce dont l’auteur s’est chargé personnellement.");
+    L.push("N’attribue une tâche à un membre que si les consignes le disent explicitement.");
+  }
   return L.join("\n");
 }
 
@@ -514,8 +547,8 @@ const S = ({ value, onChange, options, ...r }) => (
     {options.map((o) => <option key={o} value={o}>{o}</option>)}
   </select>
 );
-const Card = ({ title, right, children, kicker }) => (
-  <section className="card">
+const Card = ({ title, right, children, kicker, id }) => (
+  <section className="card" id={id}>
     <header><h2>{title}{kicker ? <span className="eyebrow" style={{ marginLeft: 8 }}>{kicker}</span> : null}</h2>{right}</header>
     <div className="body">{children}</div>
   </section>
@@ -656,8 +689,13 @@ function styleVars(da) {
 function Couverture({ state }) {
   const { meta, da, logos } = state;
   const cov = logos.filter((l) => l.placement === "garde");
+  const eq = (state.membres || []).filter((x) => (x.nom || "").trim());
+  const auteurs = [meta.nom].concat(eq.map((x) => x.nom + (x.role ? " (" + x.role + ")" : "")))
+                            .filter((v) => (v || "").trim());
   const lignes = [
-    ["Auteur", meta.nom], ["Formation", meta.formation], ["Établissement", meta.etablissement],
+    [auteurs.length > 1 ? "Auteurs" : "Auteur", auteurs.join(" · ")],
+    ["Groupe", meta.groupe],
+    ["Formation", meta.formation], ["Établissement", meta.etablissement],
     ["Entreprise", meta.entreprise], ["Tuteur école", meta.tuteurEcole],
     ["Tuteur entreprise", meta.tuteurEntreprise], ["Année", meta.annee], ["Remise", meta.dateRendu],
   ].filter(([, v]) => (v || "").trim());
@@ -943,12 +981,82 @@ function Logos({ state, dispatch }) {
   );
 }
 
+function Membres({ state, dispatch }) {
+  const list = state.membres || [];
+  const set = (v) => dispatch({ t: "membres", v });
+  return (
+    <div className="vstack">
+      {list.map((m, i) => (
+        <div className="mbr" key={m.id}>
+          <input type="text" value={m.nom} placeholder={"Membre " + (i + 2)}
+                 onChange={(e) => set(list.map((x) => x.id === m.id ? { ...x, nom: e.target.value } : x))} />
+          <input type="text" value={m.role} placeholder="Rôle (optionnel)"
+                 onChange={(e) => set(list.map((x) => x.id === m.id ? { ...x, role: e.target.value } : x))} />
+          <button className="btn sm ghost danger" title="Retirer"
+                  onClick={() => set(list.filter((x) => x.id !== m.id))}>
+            <Ic n="trash" s={13} />
+          </button>
+        </div>
+      ))}
+      <button className="btn sm" style={{ alignSelf: "flex-start" }}
+              onClick={() => set([...list, { id: uid(), nom: "", role: "" }])}>
+        <Ic n="plus" s={13} />Ajouter un membre
+      </button>
+      <p className="muted" style={{ margin: 0 }}>
+        Les membres apparaissent sur la page de garde et sont transmis au modèle : la rédaction
+        bascule alors sur « nous » pour le travail collectif, et garde « j’ai » pour votre part.
+      </p>
+    </div>
+  );
+}
+
+/* Ce qu’il reste à faire avant de générer — cliquable, chaque ligne mène au bon endroit. */
+function Demarrage({ state, dispatch }) {
+  const { brief, want, meta, plan } = state;
+  const items = [
+    { id: "c-consignes", ok: brief.raw.trim().length > 80, t: "Coller les consignes du prof",
+      w: "C’est ce qui distingue un plan sur mesure d’un plan passe-partout." },
+    { id: "c-voulu", ok: want.sujet.trim().length > 3, t: "Préciser le sujet",
+      w: "Une phrase suffit : elle cadre le plan et chaque section." },
+    { id: "c-meta", ok: !!(meta.nom.trim() && meta.titre.trim()), t: "Nom et titre du dossier",
+      w: "Ils remplissent la page de garde, l’en-tête et le pied de page." },
+    { id: "c-echantillon", opt: true, ok: words(state.echantillon) >= 120,
+      t: "Coller 200 mots de votre écriture",
+      w: "Le seul réglage qui change vraiment le rendu du texte." },
+    { id: "@plan", ok: plan.length > 0, t: "Construire le plan",
+      w: "Étape 2 : proposé par Claude, puis entièrement modifiable." },
+  ];
+  const faits = items.filter((x) => x.ok).length;
+  const aller = (id) => {
+    if (id === "@plan") { dispatch({ t: "step", v: 1 }); return; }
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  return (
+    <Card title="Par où commencer" kicker={faits + " / " + items.length}>
+      <div className="bar"><i style={{ width: (faits / items.length) * 100 + "%" }} /></div>
+      <div className="vstack" style={{ gap: 7 }}>
+        {items.map((x) => (
+          <button className="chk" data-ok={x.ok ? 1 : 0} key={x.id} onClick={() => aller(x.id)}>
+            <span className="mk">{x.ok ? <Ic n="check" s={11} /> : null}</span>
+            <span className="tx">
+              <b>{x.t}{x.opt ? <span className="opt">facultatif</span> : null}</b>
+              <span>{x.w}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function EcranConfig({ state, dispatch }) {
   const d = state.da, m = state.meta, w = state.want;
   const setPreset = (k) => dispatch({ t: "preset", v: k });
   return (
     <>
-      <Card title="Consignes du professeur" kicker="entrée brute">
+      <Demarrage state={state} dispatch={dispatch} />
+      <Card title="Consignes du professeur" kicker="entrée brute" id="c-consignes">
         <F label="Collez le sujet tel quel" hint="tout est repris verbatim dans les appels">
           <Auto value={state.brief.raw} onChange={(v) => dispatch({ t: "brief", v: { raw: v } })}
                 min={150} placeholder="Coller ici l’énoncé, la grille d’évaluation, les attendus…" />
@@ -956,7 +1064,7 @@ function EcranConfig({ state, dispatch }) {
         <ImportFichiers dispatch={dispatch} brief={state.brief} />
       </Card>
 
-      <Card title="Ce que je veux">
+      <Card title="Ce que je veux" id="c-voulu">
         <F label="Sujet précis">
           <T value={w.sujet} onChange={(v) => dispatch({ t: "want", v: { sujet: v } })}
              placeholder="Ex. : mise au point du robot suiveur de ligne analogique" />
@@ -982,7 +1090,7 @@ function EcranConfig({ state, dispatch }) {
         </div>
       </Card>
 
-      <Card title="Direction artistique">
+      <Card title="Direction artistique" id="c-da">
         <div className="chips">
           {Object.keys(PRESETS).map((k) => (
             <button className="chip" key={k} data-on={d.preset === k ? 1 : 0} onClick={() => setPreset(k)}>
@@ -1047,9 +1155,9 @@ function EcranConfig({ state, dispatch }) {
         </label>
       </Card>
 
-      <Card title="Logos"><Logos state={state} dispatch={dispatch} /></Card>
+      <Card title="Logos" id="c-logos"><Logos state={state} dispatch={dispatch} /></Card>
 
-      <Card title="Métadonnées">
+      <Card title="Métadonnées" id="c-meta">
         <div className="grid2">
           {[["nom", "Nom et prénom"], ["formation", "Formation"], ["etablissement", "Établissement"],
             ["entreprise", "Entreprise"], ["tuteurEcole", "Tuteur école"], ["tuteurEntreprise", "Tuteur entreprise"],
@@ -1063,9 +1171,15 @@ function EcranConfig({ state, dispatch }) {
         <F label="Sous-titre">
           <T value={m.sousTitre} onChange={(v) => dispatch({ t: "meta", v: { sousTitre: v } })} />
         </F>
+        <F label="Nom du groupe" hint="optionnel — ex. « Groupe 4 · TP B »">
+          <T value={m.groupe} onChange={(v) => dispatch({ t: "meta", v: { groupe: v } })} />
+        </F>
+        <F label="Autres membres du groupe">
+          <Membres state={state} dispatch={dispatch} />
+        </F>
       </Card>
 
-      <Card title="Échantillon de votre écriture" kicker="fortement conseillé"
+      <Card title="Échantillon de votre écriture" kicker="fortement conseillé" id="c-echantillon"
             right={<span className="tag">{words(state.echantillon)} mots</span>}>
         <p className="muted" style={{ margin: 0 }}>
           200 à 300 mots que vous avez écrits vous-même (un vieux compte rendu fait l’affaire).
@@ -1466,7 +1580,12 @@ function App() {
   const faits = state.plan.filter((p) => (state.sections[p.id] || {}).text).length;
 
   const ETAPES = ["Configuration", "Plan", "Rédaction", "Export"];
-  const peutAvancer = [true, state.plan.length > 0, faits > 0, true];
+  // index = étape visée. L’écran du plan est toujours atteignable, sinon on ne
+  // pourrait jamais y construire le plan qu’il exigeait.
+  const peutAvancer = [true, true, state.plan.length > 0, faits > 0];
+  const blocage = [null, null,
+    state.plan.length ? null : "Construisez d’abord le plan.",
+    faits ? null : "Rédigez au moins une section avant l’export."];
 
   const apercu = (
     <div className="card" style={{ padding: 0 }}>
@@ -1615,10 +1734,14 @@ function App() {
                       onClick={() => dispatch({ t: "step", v: state.step - 1 })}>
                 <Ic n="left" s={14} />Retour
               </button>
-              <button className="btn pri" disabled={state.step === 3 || !peutAvancer[state.step + 1]}
-                      onClick={() => dispatch({ t: "step", v: state.step + 1 })}>
-                Suivant<Ic n="right" s={14} />
-              </button>
+              <div className="row">
+                {state.step < 3 && blocage[state.step + 1]
+                  ? <span className="muted">{blocage[state.step + 1]}</span> : null}
+                <button className="btn pri" disabled={state.step === 3 || !peutAvancer[state.step + 1]}
+                        onClick={() => dispatch({ t: "step", v: state.step + 1 })}>
+                  {state.step < 3 ? ETAPES[state.step + 1] : "Suivant"}<Ic n="right" s={14} />
+                </button>
+              </div>
             </div>
           </div>
 
