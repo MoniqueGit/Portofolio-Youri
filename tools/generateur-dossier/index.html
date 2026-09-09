@@ -347,32 +347,69 @@ function reducer(s, a) {
 const blankSection = () => ({ text: "", status: "vide", locked: false, blocks: [] });
 
 /* ============================ appels Claude ============================ */
+/* Deux transports possibles, résolus une seule fois :
+   - dans un artifact Claude, la capacité « sample » (streaming, aucune clé) ;
+   - en déploiement autonome, la fonction serverless /api/claude. */
+const API_URL = "/api/claude";
+let sampleP = null;
+function getSample() {
+  if (sampleP) return sampleP;
+  const c = typeof window !== "undefined" ? window.claude : null;
+  sampleP = (c && typeof c.use === "function")
+    ? c.use("sample").catch(() => null)
+    : Promise.resolve(null);
+  return sampleP;
+}
+function erreur(msg, code) { const e = new Error(msg); e.code = code; return e; }
+
+async function appelHttp(input, opts) {
+  const o = opts || {};
+  const messages = typeof input === "string" ? [{ role: "user", content: input }] : input;
+  let r;
+  try {
+    r = await fetch(API_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ messages, max_tokens: o.max_tokens || 4000 }),
+      signal: o.signal,
+    });
+  } catch (e) {
+    if (e && e.name === "AbortError") throw erreur("Génération interrompue.", "cancelled");
+    throw erreur("Le service de génération est injoignable (/api/claude).", "unavailable");
+  }
+  let j = null;
+  try { j = await r.json(); } catch (e) { j = null; }
+  if (!r.ok) {
+    const code = r.status === 429 ? "rate_limited" : r.status === 503 ? "not_granted" : "bad_request";
+    throw erreur((j && j.error) || ("Le service de génération a répondu " + r.status + "."), code);
+  }
+  if (o.onText && j && j.text) o.onText({ text: j.text, delta: j.text });
+  return { text: (j && j.text) || "", truncated: !!(j && j.truncated) };
+}
+async function appelHttpJson(input, opts) {
+  const r = await appelHttp(input, opts);
+  const t = (r.text || "").trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  try { return JSON.parse(a >= 0 && b > a ? t.slice(a, b + 1) : t); }
+  catch (e) { throw erreur("Réponse illisible : le plan n’était pas du JSON valide.", "bad_request"); }
+}
+
 function useClaude() {
-  const ref = useRef(null);
-  const [ready, setReady] = useState(null); // null = en cours, true/false = résolu
+  const [mode, setMode] = useState(null); // null = en cours de résolution
   useEffect(() => {
     let alive = true;
-    const c = typeof window !== "undefined" ? window.claude : null;
-    if (!c || typeof c.use !== "function") { setReady(false); return; }
-    c.use("sample").then((s) => { if (!alive) return; ref.current = s; setReady(!!s); })
-                   .catch(() => alive && setReady(false));
+    getSample().then((s) => { if (alive) setMode(s ? "sample" : "http"); });
     return () => { alive = false; };
   }, []);
   const ask = useCallback(async (input, opts) => {
-    if (!ref.current) {
-      const e = new Error("Claude n’est pas disponible dans cette vue.");
-      e.code = "unavailable"; throw e;
-    }
-    return ref.current(input, opts);
+    const s = await getSample();
+    return s ? s(input, opts) : appelHttp(input, opts);
   }, []);
   const askJson = useCallback(async (input, opts) => {
-    if (!ref.current) {
-      const e = new Error("Claude n’est pas disponible dans cette vue.");
-      e.code = "unavailable"; throw e;
-    }
-    return ref.current.json(input, opts);
+    const s = await getSample();
+    return s ? s.json(input, opts) : appelHttpJson(input, opts);
   }, []);
-  return { ask, askJson, ready };
+  return { ask, askJson, mode };
 }
 
 const cut = (t, n) => (!t ? "" : t.length <= n ? t : t.slice(0, n) + "\n[…texte tronqué…]");
@@ -1154,7 +1191,7 @@ function msgErreur(e) {
   if (code === "not_granted") return "L’accès à Claude n’a pas été autorisé pour cette page.";
   if (code === "rate_limited") return "Trop d’appels d’affilée. Attendez une minute avant de relancer.";
   if (code === "cancelled") return "Génération interrompue.";
-  if (code === "unavailable") return "Claude n’est pas joignable depuis cette vue (ouvrez la page publiée sur claude.ai).";
+  if (code === "unavailable") return "Le service de génération n’a pas répondu. Vérifiez la connexion, puis relancez.";
   return (e && e.message) ? e.message : "Erreur inconnue pendant l’appel.";
 }
 
@@ -1469,7 +1506,6 @@ function App() {
               ))}
             </nav>
             <div className="topacts">
-              {claude.ready === false ? <span className="tag">hors ligne</span> : null}
               <button className="btn sm ghost" title="Charger un squelette de rapport de projet"
                       onClick={() => dispatch({ t: "load", state: exemple() })}>
                 <Ic n="eye" s={13} />Exemple
@@ -1488,10 +1524,12 @@ function App() {
         <div className={"shell" + (state.step === 1 ? " wide" : "")}>
           <div className="pane">
             {globalErr ? <Erreur e={globalErr} /> : null}
-            {claude.ready === false ? (
+            {claude.mode === "http" ? (
               <div className="note">
-                Claude n’est pas joignable depuis cette vue : les boutons de génération resteront muets.
-                L’édition, la mise en page et l’export PDF fonctionnent normalement.
+                Déploiement autonome : la génération passe par la fonction <code>/api/claude</code>.
+                Si les boutons restent muets, c’est que la variable d’environnement
+                <strong> ANTHROPIC_API_KEY</strong> n’est pas configurée côté serveur.
+                L’édition, la mise en page et l’export PDF fonctionnent sans elle.
               </div>) : null}
 
             {state.step === 0 ? <EcranConfig state={state} dispatch={dispatch} /> : null}
