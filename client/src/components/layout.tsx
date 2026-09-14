@@ -75,7 +75,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       <a
         href="#contenu"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-[4px] focus:bg-foreground focus:px-4 focus:py-2 focus:text-[0.9375rem] focus:text-background"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-foreground focus:px-4 focus:py-2 focus:text-[0.9375rem] focus:text-background"
       >
         Aller au contenu
       </a>
@@ -130,7 +130,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <a
               href={`${b}${profile.cvFile}`}
               download="CV_Youri_Figuie.pdf"
-              className="hidden rounded-[4px] border border-border bg-surface px-4 py-2 text-[0.9375rem] font-semibold text-foreground transition-colors duration-300 hover:border-primary/50 sm:inline-flex"
+              className="radius-control hidden border border-border bg-surface px-4 py-2 text-[0.9375rem] font-semibold text-foreground transition-colors duration-300 hover:border-primary/50 sm:inline-flex"
             >
               Mon CV
             </a>
@@ -139,7 +139,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
               aria-expanded={menuOpen}
-              className="flex h-9 w-9 items-center justify-center rounded-[4px] border border-border text-foreground transition-colors duration-300 hover:border-primary/50 md:hidden"
+              className="radius-control flex h-9 w-9 items-center justify-center border border-border text-foreground transition-colors duration-300 hover:border-primary/50 md:hidden"
             >
               {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
@@ -180,7 +180,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <motion.a
                 href={`${b}${profile.cvFile}`}
                 download="CV_Youri_Figuie.pdf"
-                className="mt-8 inline-flex items-center justify-center rounded-[4px] bg-primary px-6 py-4 text-base font-semibold text-primary-foreground"
+                className="radius-control mt-8 inline-flex items-center justify-center bg-primary px-6 py-4 text-base font-semibold text-primary-foreground"
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5, ease: EASE }}

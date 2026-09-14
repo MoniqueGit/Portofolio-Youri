@@ -102,7 +102,7 @@ function PillLink({
       ? "bg-primary text-primary-foreground hover:bg-[hsl(var(--efis))] hover:text-[hsl(var(--panel))]"
       : "border border-border bg-surface text-foreground hover:border-primary/50";
 
-  const cls = `inline-flex items-center justify-center gap-2 rounded-[4px] px-5 py-3 text-[1rem] font-semibold transition-colors duration-300 sm:px-6 sm:py-3.5 sm:text-[1.0625rem] ${styles}`;
+  const cls = `radius-control inline-flex items-center justify-center gap-2 px-5 py-3 text-[1rem] font-semibold transition-colors duration-300 sm:px-6 sm:py-3.5 sm:text-[1.0625rem] ${styles}`;
   const inner = (
     <>
       {Icon && <Icon className="h-4 w-4" />}
@@ -489,7 +489,7 @@ function Contact() {
   }
 
   const fieldClass =
-    "h-12 rounded-[4px] border-border bg-surface text-[1.0625rem] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-[hsl(var(--efis))]/40";
+    "radius-field h-12 border-border bg-surface text-[1.0625rem] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-[hsl(var(--efis))]/40";
 
   return (
     <Section id="contact">
@@ -540,7 +540,7 @@ function Contact() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: EASE }}
             >
-              <span className="flex h-12 w-12 items-center justify-center rounded-[4px] bg-[hsl(var(--efis))]/12 text-primary">
+              <span className="radius-control flex h-12 w-12 items-center justify-center bg-[hsl(var(--efis))]/12 text-primary">
                 <Check className="h-5 w-5" />
               </span>
               <p className="type-heading">Message envoyé</p>
@@ -599,7 +599,7 @@ function Contact() {
                       <FormControl>
                         <Textarea
                           placeholder="Votre message…"
-                          className="min-h-40 resize-none rounded-[4px] border-border bg-surface text-[1.0625rem] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-[hsl(var(--efis))]/40"
+                          className="radius-field min-h-40 resize-none border-border bg-surface text-[1.0625rem] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-[hsl(var(--efis))]/40"
                           {...field}
                         />
                       </FormControl>
@@ -610,7 +610,7 @@ function Contact() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-primary text-[1.0625rem] font-semibold text-primary-foreground transition-colors duration-300 hover:bg-[hsl(var(--efis))] hover:text-[hsl(var(--panel))] disabled:opacity-60"
+                  className="radius-control inline-flex h-12 w-full items-center justify-center gap-2 bg-primary text-[1.0625rem] font-semibold text-primary-foreground transition-colors duration-300 hover:bg-[hsl(var(--efis))] hover:text-[hsl(var(--panel))] disabled:opacity-60"
                 >
                   {isSubmitting ? (
                     <>

@@ -221,6 +221,24 @@
     box-shadow: inset 0 2px 0 0 hsl(var(--efis));
   }
 
+  /*
+   * Le rayon encode l'interaction, il n'est pas décoratif.
+   *
+   * Sur un panneau d'instruments, ce qu'on PRESSE est arrondi — boutons-poussoirs,
+   * molettes, voyants — et ce qui STRUCTURE reste franc : le panneau, les repères,
+   * les légendes. Le site applique la même règle. Un rayon uniforme partout, c'est
+   * justement le défaut relevé dans l'audit `frontend-design`.
+   */
+  .radius-control {
+    border-radius: 9999px;
+  }
+
+  /* Champs de saisie : adoucis sans devenir des boutons. On les remplit, on ne
+     les presse pas — ils sont donc entre les deux. */
+  .radius-field {
+    border-radius: 0.5rem;
+  }
+
   /* ── Réglette de repères — la marge cotée d'un plan technique ─────────── */
 
   .rail {

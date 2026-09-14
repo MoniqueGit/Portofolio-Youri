@@ -12,7 +12,7 @@ export default function NotFound() {
         </p>
         <a
           href={home}
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-[1.0625rem] font-medium text-primary-foreground transition-colors duration-300 hover:bg-primary/90"
+          className="radius-control mt-8 inline-flex items-center gap-2 bg-primary px-6 py-3.5 text-[1.0625rem] font-medium text-primary-foreground transition-colors duration-300 hover:bg-primary/90"
         >
           <ArrowLeft className="h-4 w-4" />
           Retour à l'accueil

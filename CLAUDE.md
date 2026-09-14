@@ -83,10 +83,28 @@ qui porte le registre, là où on mettrait d'ordinaire une seconde police :
 - `.type-data` / `.type-readout` : chasse 84–88 %, chiffres tabulaires, pour les relevés
 
 ### Mise en page
-Fond clair partout **sauf** `/collins`, seul panneau sombre du site. Blocs à angles
-francs (rayon 4–6 px), pas d'ombre qui enfle : la hiérarchie se lit au filet et à
-l'espace. Chaque section porte un filet supérieur avec une graduation cyan à gauche,
-comme une cote en marge de plan.
+Fond clair partout **sauf** `/collins`, seul panneau sombre du site. Pas d'ombre qui
+enfle : la hiérarchie se lit au filet et à l'espace. Chaque section porte un filet
+supérieur avec une graduation cyan à gauche, comme une cote en marge de plan.
+
+### Le rayon encode l'interaction (demande de Youri du 14/09/2026)
+Sur un panneau d'instruments, ce qu'on **presse** est arrondi — boutons-poussoirs,
+molettes, voyants — et ce qui **structure** reste franc. Le site suit la même règle,
+donc le rayon n'est jamais décoratif :
+
+| Rayon | Classe | Quoi |
+|---|---|---|
+| plein (pilule) | `.radius-control` | tout ce qui se presse : CTA, bouton d'envoi, bouton CV, hamburger, voyant de confirmation |
+| 8 px | `.radius-field` | champs de saisie — on les remplit, on ne les presse pas |
+| 6 px | `.block`, portrait | surfaces de contenu |
+| 3 px | badges et étiquettes | ce sont des libellés, pas des commandes |
+
+Un rayon **uniforme** partout est justement le défaut relevé par l'audit
+`frontend-design`. Avant d'arrondir quoi que ce soit, se demander : est-ce que ça se
+presse ? Si non, ça reste franc.
+
+⚠ `.radius-control` est une classe CSS maison : les variantes Tailwind (`focus:`,
+`hover:`…) ne s'y appliquent pas. Pour un état, utiliser `focus:rounded-full`.
 
 ### Motion design — UN seul moment orchestré
 `client/src/index.css`, classes `po-*`. À l'ouverture, la page joue un **auto-test
