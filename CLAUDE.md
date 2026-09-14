@@ -36,15 +36,34 @@
 - React 19 + TypeScript + Vite + Tailwind CSS 4
 - Framer Motion, React Hook Form + Zod, Wouter, Lucide React
 - Fichiers clés :
-  - `client/src/pages/home.tsx` — page principale
-  - `client/src/components/layout.tsx` — header / footer / nav
-  - `client/src/index.css` — variables CSS, couleurs, fonts
+  - `client/src/content/profile.ts` — **tout le contenu du site** (textes, expériences,
+    projets, compétences). Source unique de vérité : pour corriger un texte, c'est ici.
+  - `client/src/pages/home.tsx` — assemblage des sections (mise en forme uniquement)
+  - `client/src/components/layout.tsx` — header / menu mobile / footer
+  - `client/src/components/motion.tsx` — primitives d'animation partagées (Reveal, Parallax, EASE)
+  - `client/src/index.css` — tokens de couleur, échelle typographique, utilitaires
   - `client/index.html` — métadonnées SEO, import Google Fonts
 
-## Design (NE PAS CHANGER)
-- Fonts : **Space Grotesk** (display) · **Inter** (body) · **JetBrains Mono** (mono)
-- Couleurs : tactical green `hsl(142,24%,8%)` background · `hsl(142,24%,20%)` primary
-- DA : militaire / technique / dark — cohérente avec le CV PDF
+## Design — DA « claire » (refonte validée par Youri)
+> L'ancienne DA militaire sombre (fond `hsl(142,24%,8%)`, Space Grotesk, JetBrains Mono,
+> scanline, libellés monospace type HUD) a été **remplacée** à la demande de Youri :
+> fond clair et lisible en projection pour les enseignants, animations façon Apple.
+
+- **Police unique** : `Inter` (axe optique `opsz` 14..32 — équivalent SF Pro Text / Display).
+  Pas de police display ni monospace séparée.
+- **Fonds** : `--background` `hsl(240 20% 99%)` (#fbfbfd) · surfaces `#ffffff` · bandeaux `hsl(240 12% 96%)`
+- **Texte** : `--foreground` `hsl(240 6% 10%)` · secondaire `hsl(240 4% 42%)` (contraste AA)
+- **Accent unique** : bleu `hsl(214 95% 43%)` (#0761d6) — liens, CTA, onglet actif
+- **Bandeau sombre** de contraste : `--ink` `hsl(240 8% 9%)` (section « Pourquoi me choisir »)
+- **Formes** : pilules pour les boutons, cartes `rounded-[1.25rem]`, ombres très douces, aucune lueur
+- **Animations** : une seule courbe `EASE = cubic-bezier(0.16, 1, 0.3, 1)`.
+  Apparitions au scroll courtes (24 px + léger flou), parallaxe faible, hero qui recule au scroll.
+  Tout est désactivé sous `prefers-reduced-motion`.
+
+### Règles de design
+- Une seule couleur d'accent. Pas de dégradé voyant, pas de lueur, pas d'icône qui flotte en boucle.
+- Toute nouvelle animation réutilise `EASE` et les composants de `motion.tsx`.
+- Ne pas réintroduire le vert tactique, Space Grotesk, JetBrains Mono ni les libellés monospace.
 
 ---
 
@@ -61,6 +80,10 @@
 
 ## Règles absolues
 - Ne JAMAIS inventer des expériences, compétences ou projets qui ne sont pas dans ce fichier
-- Ne JAMAIS changer les couleurs ou polices sans accord explicite
+- Ne JAMAIS changer les couleurs ou polices sans accord explicite (la DA claire ci-dessus
+  a fait l'objet d'un accord explicite le 14/09/2026)
 - Ne JAMAIS remettre "Alexandre Durand", "AD.Systems", "IUT Ville d'Avray", "TECH-DEFENSE SOLUTIONS", "AERO-LAB INNOVATION", "VHDL", "FPGA", "ROS", "OpenCV"
 - Toujours vérifier la cohérence avec le CV PDF avant d'ajouter du contenu
+- Le site liste 3 expériences (Réserviste, Figurant, Hôte de caisse Log'in Solutions) alors
+  que la section « Expériences réelles » ci-dessus n'en cite que 2 : Log'in Solutions était
+  déjà en ligne, elle a été conservée. À trancher avec Youri.
