@@ -96,18 +96,9 @@ export const experiences: Experience[] = [
     href: "/collins",
     hrefLabel: "Voir la page Collins Aerospace",
   },
-  {
-    role: "Réserviste opérationnel",
-    company: "Armée de Terre, 3ᵉ RPIMa, Carcassonne",
-    period: "Depuis 2025",
-    tags: ["Défense", "Discipline", "Engagement"],
-    bullets: [
-      "Engagement opérationnel au sein du 3ᵉ RPIMa, avec application stricte des procédures et protocoles militaires.",
-      "Réactivité et prise de décision rapide sous contrainte physique et temporelle.",
-      "Travail en cohésion d'équipe sur des missions à hautes exigences : fiabilité, rigueur, engagement collectif.",
-      "Réflexes directement transposables en milieu industriel : sang-froid et respect des consignes de sécurité.",
-    ],
-  },
+  /* Le réserviste n'est plus listé ici : il a sa propre carte, plus bas dans
+     cette même section. Voir `engagement` ci-dessous. Le sortir de la liste
+     évite de dire deux fois la même chose sur la page. */
   {
     role: "Figurant",
     company: "France Télévisions, « Karma, trop jeunes pour se taire »",
@@ -131,6 +122,35 @@ export const experiences: Experience[] = [
     ],
   },
 ];
+
+/**
+ * Engagement dans la réserve opérationnelle.
+ *
+ * ⚠ RIEN N'EST À DEVINER ICI. Un brief externe du 15/09/2026 proposait
+ * « Grade : Sergent », « Sapeur de Combat », « Depuis 2026 » et « Blagnac » :
+ * les deux premiers sont inventés, les deux derniers appartiennent à
+ * l'alternance Collins. Un grade militaire ne se suppose pas — il s'affiche
+ * seulement si Youri le renseigne lui-même.
+ */
+export const engagement = {
+  role: "Réserviste opérationnel",
+  branch: "Armée de Terre",
+  unit: "3ᵉ RPIMa",
+  location: "Carcassonne",
+  since: "Depuis 2025",
+  statut: "Réserve opérationnelle",
+  /** ⚠ À COMPLÉTER PAR YOURI — laissé vide, la ligne ne s'affiche pas. */
+  grade: "",
+  /** ⚠ À COMPLÉTER PAR YOURI — idem. */
+  specialite: "",
+  tags: ["Défense", "Discipline", "Engagement"],
+  apports: [
+    "Engagement opérationnel au sein du 3ᵉ RPIMa, avec application stricte des procédures et protocoles militaires.",
+    "Réactivité et prise de décision rapide sous contrainte physique et temporelle.",
+    "Travail en cohésion d'équipe sur des missions à hautes exigences : fiabilité, rigueur, engagement collectif.",
+    "Réflexes directement transposables en milieu industriel : sang-froid et respect des consignes de sécurité.",
+  ],
+} as const;
 
 export type Education = {
   degree: string;

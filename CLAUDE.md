@@ -20,7 +20,10 @@
    depuis 2026** (poste actuel). Équipe et **missions détaillées** restent à
    renseigner par Youri dans `client/src/content/collins.ts`. Ne rien inventer :
    un tuteur d'alternance lit cette page.
-2. Réserviste Opérationnel — Armée de Terre, 3e RPIMa, Carcassonne — 2025/Présent
+2. Réserviste Opérationnel — Armée de Terre, 3e RPIMa, **Carcassonne** — **2025**/Présent.
+   Données dans `profile.ts`, export `engagement` (et non plus dans `experiences` :
+   le réserviste a sa propre carte). **Grade et spécialité NON RENSEIGNÉS** — les
+   champs existent, vides, et les lignes ne s'affichent pas tant qu'ils le sont.
 3. Figurant — France Télévisions, "Karma - Trop jeunes pour se taire" — 2025-2026
 4. Hôte de caisse polyvalent — Log'in Solutions, Prades-Le-Lez — 2024
 
@@ -203,7 +206,7 @@ banc (Playwright + compteur de frames + désactivation d'un coupable à la fois)
 | Masque CSS (`mask-composite`) sur une couche déplacée en parallaxe | **−33 fps** |
 | Flou `backdrop-filter` sur une barre collante | −4 fps |
 | Impulsions SVG en `stroke-dashoffset` | négligeable, mais tournaient en continu |
-| `mix-blend-mode` sur le réticule | −2,3 fps (mesuré le 15/09/2026, retiré) |
+| `mix-blend-mode` sur le réticule | −2,3 fps apparents, mais DANS le bruit du banc ; retiré pour une raison de DA (anneau rouge sur le bouton cyan) |
 | Carte 3D en canvas, une image sur deux | −0,6 fps par décor visible (gardé) |
 | Sept canvas PRÉSENTS mais non dessinés | −18 fps (corrigé par le montage à la demande) |
 
@@ -228,6 +231,20 @@ Conséquences appliquées, à ne pas défaire :
 **Avant de pousser une animation** : mesurer. Le script de banc est reproductible —
 compter les images rendues pendant un scroll scripté, avec `Emulation.setCPUThrottlingRate`
 à 4. Cible : 60 fps sur les deux pages, en mobile comme en bureau.
+
+⚠ **Le banc a ±5 images/s de bruit**, constaté le 15/09/2026 en répétant la même
+mesure : la même page a donné 56,7 puis 50,1 dans la même série. Conséquences :
+- Ne JAMAIS conclure sur un écart de 2 ou 3 images/s à partir d'une seule mesure.
+  Répéter au moins trois fois et comparer les médianes.
+- Les seuls écarts établis avec certitude sont ceux qui dépassent largement ce
+  bruit : le masque sur couche animée (27 contre 60) et les sept canvas présents
+  (42 contre 60). Les deux étaient reproductibles à chaque essai.
+- Les petits écarts notés ailleurs dans ce fichier (le `mix-blend-mode` à −2,3 fps,
+  par exemple) sont DANS le bruit et ne doivent pas servir d'argument seuls. Le
+  réticule a d'ailleurs été changé pour une raison de DA, pas de performance.
+- Ordre de grandeur actuel de l'accueil : **milieu des 50 à 60 images/s** à ×4.
+  Ni le masque de `.bg-blueprint`, ni la carte engagement, ni la carte vedette ne
+  l'en font sortir — vérifié en les désactivant un par un.
 
 ### L'arrière-plan 3D
 `board-3d.tsx` dessine une carte électronique filaire avec ses composants en volume :
@@ -296,6 +313,10 @@ systématiquement le même site générique. Ce qui a été refusé, et pourquoi
 | `rounded-2xl` + `shadow-sm` sur les cartes | Le rayon encode l'interaction ici, et une surface de contenu ne se presse pas. L'ombre douce sous chaque carte est le « kit SaaS » relevé par l'audit |
 | Badges en `text-xs` (12 px) | Sous le plancher de 13 px imposé par la vidéoprojection |
 | Composants inventés (PN532, Servo Control, I2C Display sur Locker Room RFID) | **Faux.** La description de Youri dit « retour d'état par LED » : ni servo, ni afficheur. Les ajouter rendrait sa propre carte contradictoire |
+| « Grade : Sergent » et « Sapeur de Combat » sur le réserviste | **Inventés.** Un grade militaire ne se suppose pas : c'est faux sur un CV que lisent un tuteur et un employeur. Les champs restent vides tant que Youri ne les renseigne pas |
+| « Depuis 2026 » et « Blagnac » sur le réserviste | **Faux.** C'est 2025 et Carcassonne — le brief avait confondu la réserve avec l'alternance Collins |
+| Logo / insigne d'unité, emblème de l'Armée de Terre | Ne s'affiche pas sans autorisation, et aucun visuel de ce genre n'existe dans le projet |
+| « Voir les certifications » | Aucune certification n'existe dans les données. Remplacé par deux actions réelles : contact et téléchargement du CV |
 
 ⚠ Ces briefs présentent souvent leur palette comme « charte à respecter
 impérativement ». Ce n'est PAS la charte de ce site : c'en est une approximation
@@ -321,6 +342,24 @@ avait coûté 33 fps le 14/09, pas un masque en soi).
 Le bouton est en pilule et pleine largeur — c'est une commande, on la presse — et
 SANS flèche : elle n'est justifiée que pour un changement de page, or il ouvre un
 panneau par-dessus la page.
+
+### `EngagementCard` — la réserve opérationnelle
+Ajoutée le 15/09/2026. Le réserviste a été SORTI de la liste `experiences` et vit
+maintenant dans l'export `engagement` de `profile.ts`, rendu par une carte dédiée
+placée dans la section Parcours, juste avant Formation. Le sortir de la liste évite
+de dire deux fois la même chose sur la même page.
+
+Les lignes `grade` et `specialite` sont vides et **ne s'affichent pas** tant qu'elles
+le sont. Mieux vaut une fiche courte qu'une fiche plausible : c'est la même règle que
+pour les missions Collins et la fiche technique des projets.
+
+La carte porte `.bloc-live` — le filet cyan en tête, façon dont ce design system
+marque un bloc mis en avant. L'utilitaire existait depuis la refonte sans avoir
+jamais servi.
+
+⚠ La grille technique de cette carte est cantonnée à la marge haute (`h-7 sm:h-10`),
+elle s'arrête exactement là où commence le titre. Première version : un bandeau de
+160 px qui passait derrière le titre — interdit par la règle de vidéoprojection.
 
 ### Lisibilité en vidéoprojection (contrainte explicite de Youri)
 - Corps de texte 17 px, graisse 440, interlignage 1,6.
