@@ -461,6 +461,11 @@ qu'en global : le conteneur distant est éphémère, un `-g` disparaît avec lui
   a fait l'objet d'un accord explicite le 14/09/2026)
 - Ne JAMAIS remettre "Alexandre Durand", "AD.Systems", "IUT Ville d'Avray", "TECH-DEFENSE SOLUTIONS", "AERO-LAB INNOVATION", "VHDL", "FPGA", "ROS", "OpenCV"
 - Toujours vérifier la cohérence avec le CV PDF avant d'ajouter du contenu
-- Le site liste 3 expériences (Réserviste, Figurant, Hôte de caisse Log'in Solutions) alors
-  que la section « Expériences réelles » ci-dessus n'en cite que 2 : Log'in Solutions était
-  déjà en ligne, elle a été conservée. À trancher avec Youri.
+- Répartition du contenu, depuis le 15/09/2026 : l'export `experiences` de
+  `profile.ts` contient TROIS entrées (Collins, Figurant, Hôte de caisse Log'in
+  Solutions) et le réserviste vit à part dans l'export `engagement`, rendu par sa
+  propre carte. Les quatre expériences réelles sont bien toutes à l'écran — elles
+  ne sont simplement pas dans la même liste.
+  (Cette note remplace une remarque devenue fausse, qui parlait d'un désaccord entre
+  la liste du site et la section « Expériences réelles » ci-dessus. Celle-ci cite
+  désormais les quatre, Log'in Solutions comprise : il n'y a plus rien à trancher.)
