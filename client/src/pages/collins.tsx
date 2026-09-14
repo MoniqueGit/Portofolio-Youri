@@ -45,7 +45,7 @@ export default function Collins() {
   return (
     <div className="panel min-h-screen">
       {/* Barre de retour — la page a sa propre identité, pas le bandeau clair */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[hsl(var(--panel))]/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[hsl(var(--panel))]/96 backdrop-blur-[3px]">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5 sm:px-8">
           <Link
             href="/"
@@ -69,7 +69,7 @@ export default function Collins() {
       <main className="relative overflow-hidden">
         {/* Pistes cyan, cantonnées à la marge droite */}
         <div
-          className="backdrop-layer on-panel [mask-image:linear-gradient(to_left,black_0%,black_18%,transparent_56%)]"
+          className="backdrop-layer on-panel hidden lg:block"
           aria-hidden="true"
         >
           <CircuitTraces />

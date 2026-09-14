@@ -144,7 +144,7 @@ function Hero() {
     <section
       id="top"
       ref={ref}
-      className="relative flex min-h-[92svh] items-center overflow-hidden px-5 pb-20 pt-28 sm:px-8 sm:pt-32"
+      className="relative flex min-h-[86svh] items-center overflow-hidden px-5 pb-14 pt-24 sm:px-8 sm:pb-20 sm:pt-32 lg:min-h-[92svh]"
     >
       <HeroBackdrop />
 
@@ -152,7 +152,7 @@ function Hero() {
         className="relative z-10 mx-auto w-full max-w-6xl"
         style={reduced ? undefined : { opacity, y }}
       >
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-16">
+        <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-16">
           <div className="relative">
             {/* Réglette de repères : elle s'allume de haut en bas à l'ouverture */}
             <div
@@ -173,13 +173,13 @@ function Hero() {
             />
 
             <p
-              className="type-lead po-fade mt-7 max-w-xl text-pretty text-muted-foreground"
+              className="type-lead po-fade mt-6 max-w-xl text-pretty text-muted-foreground sm:mt-7"
               style={{ animationDelay: "0.55s" }}
             >
               {profile.tagline}
             </p>
 
-            <div className="po-fade mt-10 flex flex-wrap gap-3" style={{ animationDelay: "0.95s" }}>
+            <div className="po-fade mt-8 flex flex-wrap gap-3 sm:mt-10" style={{ animationDelay: "0.95s" }}>
               <PillLink href="/collins" internal>La page Collins Aerospace</PillLink>
               <PillLink
                 href={`${b}${profile.cvFile}`}
@@ -195,7 +195,9 @@ function Hero() {
             </div>
           </div>
 
-          <div className="po-fade order-first lg:order-none" style={{ animationDelay: "1.15s" }}>
+          {/* Pas de `order-first` : sur mobile le nom doit être lu avant la photo,
+              sinon les boutons tombent sous la ligne de flottaison. */}
+          <div className="po-fade" style={{ animationDelay: "1.15s" }}>
             <Parallax distance={22} className="mx-auto max-w-[15rem] sm:max-w-[18rem] lg:max-w-none">
               <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] border border-border bg-subtle">
                 <img

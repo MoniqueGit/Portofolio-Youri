@@ -122,6 +122,38 @@ pistes de circuit en arrière-plan.
 **Interdit** : apparition fondu-glissé sur chaque section, survol animé sur chaque
 carte. C'est le défaut générique, retiré volontairement.
 
+### Performance des animations — règles issues d'une mesure, pas d'une intuition
+Le 14/09/2026, le site tournait à **27 images/s au scroll**. Diagnostic mesuré au
+banc (Playwright + compteur de frames + désactivation d'un coupable à la fois) :
+
+| Cause | Coût mesuré |
+|---|---|
+| Masque CSS (`mask-composite`) sur une couche déplacée en parallaxe | **−33 fps** |
+| Flou `backdrop-filter` sur une barre collante | −4 fps |
+| Impulsions SVG en `stroke-dashoffset` | négligeable, mais tournaient en continu |
+
+**La règle, non négociable** : seules `transform` et `opacity` s'animent sur le
+compositeur. Tout le reste — `font-stretch`, `letter-spacing`, `clip-path`,
+`width`, `stroke-dashoffset`, `mask-*` — passe par le fil principal et fait tomber
+les images. ([web.dev](https://web.dev/articles/animations-guide))
+
+Conséquences appliquées, à ne pas défaire :
+- **Aucun masque CSS sur une couche animée.** Les pistes d'arrière-plan évitent le
+  texte par leur GÉOMÉTRIE (elles ne sont dessinées que dans le bandeau haut, la
+  colonne de droite et le bandeau bas). La géométrie est calculée une fois ; un
+  masque est recomposé à chaque image.
+- L'entrée du titre utilise `transform: scaleX()`, pas `font-stretch`.
+- La réglette utilise `transform: scaleY()`, pas `clip-path`.
+- Les compteurs écrivent dans le DOM par `ref`, jamais par `setState` par image.
+- La parallaxe est une interpolation directe, sans `useSpring` (un ressort
+  entretient une boucle même à l'arrêt).
+- Les barres collantes ont un fond quasi opaque et un flou de 3 px maximum.
+- Les arrière-plans décoratifs sont masqués sous 1024 px.
+
+**Avant de pousser une animation** : mesurer. Le script de banc est reproductible —
+compter les images rendues pendant un scroll scripté, avec `Emulation.setCPUThrottlingRate`
+à 4. Cible : 60 fps sur les deux pages, en mobile comme en bureau.
+
 ### Lisibilité en vidéoprojection (contrainte explicite de Youri)
 - Corps de texte 17 px, graisse 440, interlignage 1,6.
 - Textes secondaires 15 px minimum, badges 13 px minimum. Rien sous 13 px.

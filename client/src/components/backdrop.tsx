@@ -1,46 +1,46 @@
-import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { type CSSProperties } from "react";
 
 /**
- * Arrière-plans animés.
+ * Arrière-plan : réseau de pistes de circuit imprimé.
  *
- * Parti pris : plutôt que des particules génériques, un réseau de pistes de
- * circuit imprimé parcouru par des impulsions cyan. Le motif dit quelque chose
- * du métier de Youri (électronique, avionique) au lieu de décorer pour décorer.
+ * ─── Leçon de performance, mesurée ───────────────────────────────────────────
+ * La première version masquait ce calque en CSS (`mask-composite`) ET le
+ * déplaçait en parallaxe au scroll. Résultat mesuré : 27 images/s au lieu de 60.
+ * Un masque sur une couche qui bouge oblige le navigateur à tout recomposer à
+ * chaque image.
  *
- * Contraintes respectées partout :
- *  - lent (10 à 60 s par cycle) ;
- *  - très peu contrasté, masqué là où il y a du texte ;
- *  - `aria-hidden` et `pointer-events: none` ;
- *  - keyframes CSS uniquement, donc aucun travail JS par frame.
+ * Correctif : plus aucun masque, plus aucune parallaxe ici. Les pistes sont
+ * simplement DESSINÉES là où il n'y a pas de texte. La géométrie remplace le
+ * masque, et ça ne coûte rien puisque c'est calculé une fois pour toutes.
+ *
+ * Seules `transform` et `opacity` s'animent sur le compositeur ; tout le reste
+ * passe par le fil principal. Toute animation ajoutée ici doit s'y tenir.
+ * ────────────────────────────────────────────────────────────────────────────
  */
 
-/*
- * Tracés façon routage PCB : segments orthogonaux et chanfreins à 45°.
- * Durées volontairement premières entre elles (26, 29, 34, 37, 41, 47 s) et
- * décalages étalés : les impulsions ne se resynchronisent jamais, donc le motif
- * ne se met jamais à « battre la mesure ».
+/**
+ * Tracés façon routage PCB. Ils occupent uniquement le bandeau haut (y < 200),
+ * la colonne de droite (x > 780) et le bandeau bas (y > 700) : les trois zones
+ * où le texte du hero ne va jamais.
  */
 const TRACES = [
-  { d: "M -40 120 H 210 L 258 168 V 340 H 470 L 510 380 H 760", dur: 34, delay: 0 },
-  { d: "M -40 520 H 150 L 196 474 V 250 H 430", dur: 41, delay: 7 },
-  { d: "M 1240 90 H 1010 L 964 136 V 300 H 780 L 738 342 V 520", dur: 29, delay: 14 },
-  { d: "M 1240 430 H 1080 L 1036 474 V 620 H 860", dur: 47, delay: 21 },
-  { d: "M 300 840 V 660 L 344 616 H 560 L 604 660 V 840", dur: 37, delay: 28 },
-  { d: "M 940 840 V 700 L 984 656 H 1180", dur: 26, delay: 35 },
+  "M -40 88 H 236 L 276 128 V 196",
+  "M 1240 58 H 980 L 940 98 V 178 H 724",
+  "M 1240 296 H 1024 L 984 336 V 468",
+  "M 1240 556 H 1064 L 1024 596 V 712 H 884",
+  "M -40 764 H 296 L 336 724 H 616",
+  "M 604 880 V 792 L 644 752 H 908 L 948 792 V 880",
 ];
 
-/** Pastilles de connexion, posées sur les extrémités et les coudes des pistes. */
-const PADS = [
-  { cx: 258, cy: 168, delay: 0 },
-  { cx: 510, cy: 380, delay: 1.4 },
-  { cx: 196, cy: 474, delay: 2.8 },
-  { cx: 964, cy: 136, delay: 0.7 },
-  { cx: 738, cy: 342, delay: 2.1 },
-  { cx: 1036, cy: 474, delay: 3.5 },
-  { cx: 344, cy: 616, delay: 1.9 },
-  { cx: 604, cy: 660, delay: 4.2 },
-  { cx: 984, cy: 656, delay: 3.1 },
+/** Pastilles de connexion, posées sur les coudes. Elles n'animent que l'opacité. */
+const PADS: [number, number, number][] = [
+  [276, 128, 0],
+  [940, 98, 1.4],
+  [984, 336, 2.8],
+  [1024, 596, 0.7],
+  [336, 724, 2.1],
+  [644, 752, 3.5],
+  [948, 792, 1.9],
 ];
 
 export function CircuitTraces({ className = "" }: { className?: string }) {
@@ -52,30 +52,17 @@ export function CircuitTraces({ className = "" }: { className?: string }) {
       focusable="false"
       className={`h-full w-full ${className}`}
     >
-      {/* Couche statique : ce qui reste visible si l'utilisateur a coupé les animations. */}
-      {TRACES.map((t) => (
-        <path key={`s-${t.d}`} d={t.d} className="trace-static" />
+      {TRACES.map((d) => (
+        <path key={d} d={d} className="trace-static" />
       ))}
-
-      {/* Couche animée : une impulsion parcourt chaque piste, décalée dans le temps
-          pour qu'aucune ne parte en même temps qu'une autre. */}
-      {TRACES.map((t) => (
-        <path
-          key={`p-${t.d}`}
-          d={t.d}
-          className="trace-pulse"
-          style={{ animationDuration: `${t.dur}s`, animationDelay: `${t.delay}s` }}
-        />
-      ))}
-
-      {PADS.map((p) => (
+      {PADS.map(([cx, cy, delay]) => (
         <circle
-          key={`${p.cx}-${p.cy}`}
-          cx={p.cx}
-          cy={p.cy}
+          key={`${cx}-${cy}`}
+          cx={cx}
+          cy={cy}
           r={3.5}
           className="trace-pad"
-          style={{ animationDelay: `${p.delay}s` }}
+          style={{ animationDelay: `${delay}s` } as CSSProperties}
         />
       ))}
     </svg>
@@ -83,23 +70,14 @@ export function CircuitTraces({ className = "" }: { className?: string }) {
 }
 
 /**
- * Fond du hero : nappes + pistes, avec une parallaxe légère au scroll.
- * Le fond descend moins vite que le contenu — l'écart crée la profondeur.
+ * Fond du hero. Statique : aucun masque, aucune parallaxe, aucun écouteur de
+ * scroll. Masqué sous 1024 px — sur un téléphone, un décor de fond est la
+ * première chose à couper, et c'est là que la fluidité compte le plus.
  */
 export function HeroBackdrop() {
-  const ref = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "14%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.85], [1, 0]);
-
   return (
-    <div ref={ref} className="backdrop-layer" aria-hidden="true">
-      <motion.div className="absolute inset-0" style={reduced ? undefined : { y, opacity }}>
-        <div className="backdrop-fade absolute inset-0">
-          <CircuitTraces />
-        </div>
-      </motion.div>
+    <div className="backdrop-layer hidden lg:block" aria-hidden="true">
+      <CircuitTraces />
     </div>
   );
 }

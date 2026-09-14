@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion, useInView, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
+import { useEffect, useRef, type ReactNode } from "react";
+import { motion, useInView, useReducedMotion, useScroll, useTransform } from "framer-motion";
 
 /**
  * Courbe unique du site : démarrage franc, décélération longue. C'est ce qui
@@ -25,34 +25,10 @@ export function Readout({
   decimals?: number;
   className?: string;
 }) {
-  const ref = useRef<HTMLSpanElement>(null);
+  const hote = useRef<HTMLSpanElement>(null);
+  const chiffre = useRef<HTMLSpanElement>(null);
   const reduced = useReducedMotion();
-  // Déclenche dès que le relevé entre dans le viewport : au-delà, on lisait
-  // encore « 0 » alors que le bloc était déjà à l'écran.
-  const inView = useInView(ref, { once: true, margin: "0px 0px -8% 0px" });
-  const [shown, setShown] = useState(reduced ? value : 0);
-
-  useEffect(() => {
-    if (!inView || reduced) {
-      if (reduced) setShown(value);
-      return;
-    }
-    const duration = 1100;
-    const start = performance.now();
-    let frame = 0;
-
-    const step = (now: number) => {
-      const t = Math.min((now - start) / duration, 1);
-      // Même courbe que le reste du site, calculée à la main : la valeur
-      // balaye vite puis se pose, comme une aiguille.
-      const eased = 1 - Math.pow(1 - t, 4);
-      setShown(value * eased);
-      if (t < 1) frame = requestAnimationFrame(step);
-    };
-
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-  }, [inView, reduced, value]);
+  const inView = useInView(hote, { once: true, margin: "0px 0px -8% 0px" });
 
   const format = (n: number) =>
     n.toLocaleString("fr-FR", {
@@ -60,14 +36,48 @@ export function Readout({
       maximumFractionDigits: decimals,
     });
 
+  useEffect(() => {
+    const el = chiffre.current;
+    if (!el) return;
+
+    if (reduced) {
+      el.textContent = format(value);
+      return;
+    }
+    if (!inView) return;
+
+    /*
+     * On écrit directement dans le DOM plutôt que de passer par un state React.
+     * Un `setState` par image, c'est un rendu React complet soixante fois par
+     * seconde pour changer trois caractères — du travail sur le fil principal,
+     * exactement ce qui fait tomber les images.
+     */
+    const duree = 1100;
+    const debut = performance.now();
+    let frame = 0;
+
+    const pas = (now: number) => {
+      const t = Math.min((now - debut) / duree, 1);
+      const adouci = 1 - Math.pow(1 - t, 4);
+      el.textContent = format(value * adouci);
+      if (t < 1) frame = requestAnimationFrame(pas);
+    };
+
+    frame = requestAnimationFrame(pas);
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inView, reduced, value, decimals]);
+
   /*
-   * La valeur finale est portée par `aria-label` et le compteur est masqué aux
+   * La valeur finale est portée par `aria-label` et le compteur masqué aux
    * technologies d'assistance : un lecteur d'écran doit entendre « 30,2 », pas
-   * « 0 » ni le défilement des valeurs intermédiaires.
+   * le défilement des valeurs intermédiaires.
    */
   return (
-    <span ref={ref} className={className} aria-label={format(value)} role="text">
-      <span aria-hidden="true">{format(shown)}</span>
+    <span ref={hote} className={className} aria-label={format(value)} role="text">
+      <span ref={chiffre} aria-hidden="true">
+        {reduced ? format(value) : format(0)}
+      </span>
     </span>
   );
 }
@@ -88,12 +98,19 @@ export function Parallax({
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const raw = useTransform(scrollYProgress, [0, 1], [distance, -distance]);
-  const y = useSpring(raw, { stiffness: 120, damping: 30, mass: 0.4 });
+  /*
+   * Interpolation directe, sans ressort : un `useSpring` entretient sa propre
+   * boucle d'animation en continu, même quand le scroll est à l'arrêt.
+   * Ici la valeur est strictement liée à la position de scroll — rien ne
+   * tourne quand rien ne bouge.
+   */
+  const y = useTransform(scrollYProgress, [0, 1], [distance, -distance]);
 
   return (
     <div ref={ref} className={className}>
-      <motion.div style={reduced ? undefined : { y }}>{children}</motion.div>
+      <motion.div style={reduced ? undefined : { y, willChange: "transform" }}>
+        {children}
+      </motion.div>
     </div>
   );
 }

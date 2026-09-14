@@ -281,22 +281,17 @@
 }
 
 /*
- * Le nom ne fait pas un fondu-glissé : il s'ÉLARGIT. La chasse passe de 62 %
- * à 112 % pendant qu'il apparaît, comme une valeur qui se fixe sur un cadran.
- * Effet rendu possible par l'axe variable d'Archivo ; sans la police, il ne
- * reste qu'un fondu, ce qui reste correct.
+ * Le nom ne fait pas un fondu-glissé : il s'ÉLARGIT, comme une valeur qui se
+ * fixe sur un cadran.
+ *
+ * La première version animait `font-stretch` et `letter-spacing`. Les deux
+ * recalculent la mise en page à CHAQUE image, sur le plus gros texte de la
+ * page — la pire combinaison possible. Même lecture, mais en `transform` :
+ * le compositeur s'en charge seul, sans jamais toucher au fil principal.
  */
 @keyframes po-resolve {
-  from {
-    opacity: 0;
-    font-stretch: 62%;
-    letter-spacing: 0.06em;
-  }
-  to {
-    opacity: 1;
-    font-stretch: 112%;
-    letter-spacing: -0.035em;
-  }
+  from { opacity: 0; transform: scaleX(0.74); }
+  to   { opacity: 1; transform: scaleX(1); }
 }
 
 @keyframes po-fade {
@@ -304,10 +299,11 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Les graduations de la réglette s'allument de haut en bas. */
+/* Les graduations s'allument de haut en bas. `scaleY` est composité,
+   `clip-path` repeint : même effet, coût nul. */
 @keyframes po-rail {
-  from { clip-path: inset(0 0 100% 0); }
-  to   { clip-path: inset(0 0 0 0); }
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
 }
 
 .po-horizon {
@@ -316,6 +312,7 @@
 }
 
 .po-resolve {
+  transform-origin: left center;
   animation: po-resolve 1.1s var(--ease-out-expo) 0.15s both;
 }
 
@@ -324,6 +321,7 @@
 }
 
 .po-rail {
+  transform-origin: top center;
   animation: po-rail 1.4s var(--ease-out-expo) 0.1s both;
 }
 
@@ -337,24 +335,6 @@
   stroke-linejoin: round;
 }
 
-.trace-pulse {
-  fill: none;
-  stroke: hsl(var(--efis) / 0.5);
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 64 2400;
-  animation: trace-run 32s linear infinite backwards;
-}
-
-@keyframes trace-run {
-  0%   { stroke-dashoffset: 2464; opacity: 0; }
-  1.5% { opacity: 1; }
-  24%  { opacity: 1; }
-  26%  { stroke-dashoffset: 0; opacity: 0; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
-}
-
 .trace-pad {
   fill: hsl(var(--efis) / 0.3);
   animation: pad-breathe 6s ease-in-out infinite;
@@ -366,7 +346,6 @@
 }
 
 .on-panel .trace-static { stroke: hsl(var(--efis) / 0.16); }
-.on-panel .trace-pulse  { stroke: hsl(var(--efis) / 0.65); }
 .on-panel .trace-pad    { fill: hsl(var(--efis) / 0.5); }
 
 .backdrop-layer {
@@ -375,21 +354,6 @@
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-}
-
-/*
- * Le motif est effacé dans la bande occupée par le texte. Un fond animé qui
- * traverse un titre coûte plus en lisibilité qu'il ne rapporte en allure.
- */
-.backdrop-fade {
-  -webkit-mask-image:
-    linear-gradient(to bottom, black 0%, black 15%, transparent 28%, transparent 68%, black 84%, black 100%),
-    linear-gradient(to right, hsl(0 0% 0% / 0.4) 0%, hsl(0 0% 0% / 0.62) 34%, black 66%);
-  mask-image:
-    linear-gradient(to bottom, black 0%, black 15%, transparent 28%, transparent 68%, black 84%, black 100%),
-    linear-gradient(to right, hsl(0 0% 0% / 0.4) 0%, hsl(0 0% 0% / 0.62) 34%, black 66%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -401,7 +365,5 @@
     transition-duration: 0.001ms !important;
   }
 
-  /* On fige l'auto-test sur son état final plutôt qu'en cours de course. */
-  .trace-pulse { display: none; }
   .trace-pad   { opacity: 0.6; }
 }
