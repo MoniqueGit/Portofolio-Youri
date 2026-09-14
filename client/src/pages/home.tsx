@@ -430,7 +430,7 @@ function Projects() {
     <Section id="projets" className="bg-surface">
       <SectionHeader
         title="Ce que j'ai conçu, soudé et débogué."
-        lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype. Ouvrez un dossier pour le détail."
+        lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype. Ouvrez une carte pour le détail."
       />
 
       <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3">
@@ -534,7 +534,7 @@ function Contact() {
           </div>
         </div>
 
-        <div className="block p-7 sm:p-9">
+        <div className="bloc p-7 sm:p-9">
           {submitted ? (
             <motion.div
               className="flex flex-col items-center justify-center gap-4 py-16 text-center"

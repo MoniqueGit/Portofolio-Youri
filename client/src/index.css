@@ -205,11 +205,14 @@
   }
 
   /*
-   * Bloc de contenu. Rayon volontairement faible (6 px) et ombre quasi nulle :
+   * Bloc de contenu. Nommé `bloc` et non `block` : Tailwind définit déjà un
+   * utilitaire `block` (display: block), et les deux se superposaient sans
+   * bruit — tout élément écrivant `class="block"` héritait d'un fond blanc,
+   * d'une bordure et d'un rayon. Le nom français rend la collision impossible. Rayon volontairement faible (6 px) et ombre quasi nulle :
    * on est dans un registre d'instrument, pas de carte SaaS. La hiérarchie se
    * lit au filet et à l'espace, pas à l'empilement d'ombres.
    */
-  .block {
+  .bloc {
     background: hsl(var(--surface));
     border: 1px solid hsl(var(--border));
     border-radius: 6px;
@@ -217,7 +220,7 @@
 
   /* Le bloc mis en avant se distingue par un filet cyan en tête, pas par
      une ombre plus grosse : c'est la convention des afficheurs. */
-  .block-live {
+  .bloc-live {
     box-shadow: inset 0 2px 0 0 hsl(var(--efis));
   }
 

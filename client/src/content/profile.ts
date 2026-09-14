@@ -5,7 +5,7 @@
  */
 import {
   Cpu, Wrench, Code2, MonitorCog, Zap, CircuitBoard, Bot,
-  Nfc, LayoutDashboard, Shirt, Mail, Phone, Linkedin, MapPin,
+  Nfc, LayoutDashboard, Shirt, Mail, Phone, Linkedin, MapPin, Gamepad2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -240,9 +240,29 @@ export type Project = {
   cover?: string;
   /** Photos supplémentaires du dossier, même dossier que `cover`. */
   gallery?: string[];
+  /**
+   * Route interne quand le projet a sa propre page : la carte y mène au lieu
+   * d'ouvrir le dossier en surimpression. Chemin sans le préfixe de base —
+   * wouter s'en charge (le site est servi sous /Portofolio-Youri/).
+   */
+  page?: string;
 };
 
 export const academicProjects: Project[] = [
+  {
+    slug: "pichenette-game",
+    title: "Pichenette Game",
+    icon: Gamepad2,
+    origin: "BUT GEII",
+    summary: "Une borne d'arcade de bureau qui mesure la force d'une pichenette.",
+    desc: "Borne d'arcade miniature : on envoie une pichenette, la machine mesure la force du coup et affiche un score. Derrière le jeu, la chaîne de mesure complète — capter, conditionner, traiter, afficher.",
+    tags: ["Électronique", "Instrumentation", "Mesure"],
+    context: "Projet mené en BUT GEII, à l'IUT de Montpellier.",
+    /* Vide volontairement : le détail vit sur la page dédiée, et rien n'y est
+       inventé tant que Youri n'a pas renseigné client/src/content/pichenette.ts */
+    highlights: [],
+    page: "/pichenette",
+  },
   {
     slug: "de-electronique",
     title: "Dé électronique",
