@@ -117,13 +117,28 @@ la question revient.
 - Sans `cover`, la carte affiche proprement son icône de repli : rien n'est cassé,
   le dossier indique simplement « Photos du projet à venir ».
 
-## Skills installés (`.claude/skills/`)
-Repris de https://github.com/anthropics/skills (Apache 2.0), installés le 14/09/2026 :
+## Skills installés
+De https://github.com/anthropics/skills (Apache 2.0), copiés dans `.claude/skills/` :
 - **`frontend-design`** — direction artistique, typographie, et surtout la liste des
   tics visuels qui trahissent une page générée. À relire avant toute évolution de la DA.
 - **`webapp-testing`** — outillage Playwright pour piloter le site en local
   (captures, console, découverte d'éléments). `scripts/with_server.py` lance
   `npm run dev:client` et attend que le port réponde avant de jouer le script.
+
+De https://github.com/vercel-labs/skills (MIT), installé par `npx skills add` :
+- **`find-skills`** — recherche et installation de skills via `npx skills`.
+  Posé dans `.agents/skills/` avec un lien symbolique depuis `.claude/skills/`,
+  et tracé dans `skills-lock.json` (source + empreinte SHA-256).
+  **Limite dans cet environnement** : `skills.sh` est bloqué par le proxy réseau,
+  donc `npx skills find` ne renvoie jamais rien — et il annonce « No skills found »
+  au lieu de signaler l'échec réseau. `npx skills add <url github>` fonctionne,
+  lui, puisqu'il passe par GitHub.
+
+### Avant d'installer un skill
+Un skill, ce sont des instructions que l'agent suivra, avec ses permissions.
+Les lire avant installation : chercher les appels réseau sortants, `eval`/`exec`,
+et les scripts fournis. Préférer l'installation dans le projet (versionnée) plutôt
+qu'en global : le conteneur distant est éphémère, un `-g` disparaît avec lui.
 
 ## Dev
 - Lancer le frontend : `npm run dev:client` → http://localhost:5000
