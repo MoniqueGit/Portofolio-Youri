@@ -233,7 +233,12 @@
   stroke-linejoin: round;
 }
 
-/* Impulsion : un court segment qui parcourt la piste, comme un signal. */
+/*
+ * Impulsion : un court segment qui parcourt la piste, comme un signal.
+ * Le trajet n'occupe que le premier quart du cycle ; les trois autres quarts
+ * sont un silence. Avec six pistes désynchronisées, il y a en moyenne une à
+ * deux impulsions à l'écran — ça respire, au lieu de défiler sans arrêt.
+ */
 .trace-pulse {
   fill: none;
   stroke: hsl(var(--primary) / 0.4);
@@ -241,12 +246,15 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 64 2400;
-  animation: trace-run 14s linear infinite;
+  animation: trace-run 32s linear infinite backwards;
 }
 
 @keyframes trace-run {
-  from { stroke-dashoffset: 2464; }
-  to   { stroke-dashoffset: 0; }
+  0%   { stroke-dashoffset: 2464; opacity: 0; }
+  1.5% { opacity: 1; }
+  24%  { opacity: 1; }
+  26%  { stroke-dashoffset: 0; opacity: 0; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
 }
 
 /* Pastilles de connexion : respiration très lente. */

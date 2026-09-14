@@ -15,14 +15,19 @@ import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion
  *  - keyframes CSS uniquement, donc aucun travail JS par frame.
  */
 
-/** Tracés façon routage PCB : segments orthogonaux et chanfreins à 45°. */
+/*
+ * Tracés façon routage PCB : segments orthogonaux et chanfreins à 45°.
+ * Durées volontairement premières entre elles (26, 29, 34, 37, 41, 47 s) et
+ * décalages étalés : les impulsions ne se resynchronisent jamais, donc le motif
+ * ne se met jamais à « battre la mesure ».
+ */
 const TRACES = [
-  { d: "M -40 120 H 210 L 258 168 V 340 H 470 L 510 380 H 760", dur: 15, delay: 0 },
-  { d: "M -40 520 H 150 L 196 474 V 250 H 430", dur: 18, delay: 2.5 },
-  { d: "M 1240 90 H 1010 L 964 136 V 300 H 780 L 738 342 V 520", dur: 16, delay: 1.2 },
-  { d: "M 1240 430 H 1080 L 1036 474 V 620 H 860", dur: 13, delay: 4 },
-  { d: "M 300 840 V 660 L 344 616 H 560 L 604 660 V 840", dur: 20, delay: 3.2 },
-  { d: "M 940 840 V 700 L 984 656 H 1180", dur: 17, delay: 5.5 },
+  { d: "M -40 120 H 210 L 258 168 V 340 H 470 L 510 380 H 760", dur: 34, delay: 0 },
+  { d: "M -40 520 H 150 L 196 474 V 250 H 430", dur: 41, delay: 7 },
+  { d: "M 1240 90 H 1010 L 964 136 V 300 H 780 L 738 342 V 520", dur: 29, delay: 14 },
+  { d: "M 1240 430 H 1080 L 1036 474 V 620 H 860", dur: 47, delay: 21 },
+  { d: "M 300 840 V 660 L 344 616 H 560 L 604 660 V 840", dur: 37, delay: 28 },
+  { d: "M 940 840 V 700 L 984 656 H 1180", dur: 26, delay: 35 },
 ];
 
 /** Pastilles de connexion, posées sur les extrémités et les coudes des pistes. */
