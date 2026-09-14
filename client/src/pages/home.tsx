@@ -1,73 +1,461 @@
-import { motion } from "framer-motion";
-import { Layout } from "@/components/layout";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Link } from "wouter";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { ArrowRight, ArrowUpRight, Check, Download, Linkedin, Loader2 } from "lucide-react";
+
+import { Layout } from "@/components/layout";
+import { Parallax, EASE } from "@/components/motion";
+import { ProjectCard, ProjectDossier } from "@/components/project-card";
+import { HeroBackdrop } from "@/components/backdrop";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import heroBg from "@/assets/hero-bg.png";
-
-// Préfixe automatique pour les assets public/ selon l'environnement (dev vs gh-pages)
-const b = import.meta.env.BASE_URL;
-
-// ── Formspree — remplace par ton ID après inscription sur formspree.io ──
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/meelwjkk";
-const PHOTOS = {
-  profil:     `${b}photo-profil.jpg`,
-};
 import {
-  Cpu, Shield, Code, Send, Download, User, Briefcase,
-  GraduationCap, ChevronRight, Terminal, Wrench, Globe,
-  Linkedin, Mail, Phone, MapPin, ExternalLink, Zap, Mountain, Dumbbell, Laptop,
-  Wifi, LayoutDashboard, Shirt
-} from "lucide-react";
+  about, academicProjects, contactLinks, education, experiences,
+  highlights, personalProjects, profile, skillGroups, softSkills,
+  type Project,
+} from "@/content/profile";
+import { collins } from "@/content/collins";
+
+const b = import.meta.env.BASE_URL;
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/meelwjkk";
 
 const contactSchema = z.object({
-  name: z.string().min(2, "Nom requis"),
-  email: z.string().email("Format invalide"),
-  message: z.string().min(10, "Message trop court"),
+  name: z.string().min(2, "Indiquez votre nom."),
+  email: z.string().email("Adresse e-mail invalide."),
+  message: z.string().min(10, "Message un peu court (10 caractères minimum)."),
 });
 
-// ── Motion Variants ──────────────────────────────────────────────────────────
-const fadeInUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
-};
+/* ── Briques ──────────────────────────────────────────────────────────────── */
 
-const fadeInLeft = {
-  hidden: { opacity: 0, x: -20 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.96 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-};
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
-};
-
-// Reusable animated accent line under section titles
-function AccentLine({ delay = 0 }: { delay?: number }) {
+/**
+ * Section. Le filet supérieur porte une graduation cyan à gauche : un repère
+ * de position, comme les cotes en marge d'un plan. C'est une information de
+ * structure, pas une décoration.
+ */
+function Section({
+  id,
+  children,
+  className = "",
+}: {
+  id?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <motion.div
-      className="h-[2px] bg-primary/40"
-      initial={{ width: 0 }}
-      whileInView={{ width: 48 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-    />
+    <section id={id} className={`relative scroll-mt-20 px-5 sm:px-8 ${className}`}>
+      <div className="mx-auto max-w-6xl">
+        <div className="relative border-t border-border py-20 sm:py-28">
+          <span className="absolute left-0 top-0 h-[3px] w-10 bg-[hsl(var(--efis))]" aria-hidden="true" />
+          {children}
+        </div>
+      </div>
+    </section>
   );
 }
 
-export default function Home() {
+function SectionHeader({ title, lead }: { title: string; lead?: string }) {
+  return (
+    <div className="max-w-3xl">
+      <h2 className="type-title text-balance">{title}</h2>
+      {lead && <p className="type-lead mt-5 text-muted-foreground text-pretty">{lead}</p>}
+    </div>
+  );
+}
+
+function Tag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="type-data rounded-[3px] border border-border bg-background px-2.5 py-1 text-[0.8125rem] text-muted-foreground">
+      {children}
+    </span>
+  );
+}
+
+/**
+ * Bouton pilule. `internal` passe par wouter plutôt que par une ancre brute :
+ * sur GitHub Pages le site est servi sous /Portofolio-Youri/, et un href="/collins"
+ * écrit en dur pointerait à la racine du domaine.
+ */
+function PillLink({
+  href,
+  children,
+  variant = "primary",
+  icon: Icon,
+  download,
+  external,
+  internal,
+}: {
+  href: string;
+  children: React.ReactNode;
+  variant?: "primary" | "secondary";
+  icon?: typeof Download;
+  download?: string;
+  external?: boolean;
+  internal?: boolean;
+}) {
+  const styles =
+    variant === "primary"
+      ? "bg-primary text-primary-foreground hover:bg-[hsl(var(--efis))] hover:text-[hsl(var(--panel))]"
+      : "border border-border bg-surface text-foreground hover:border-primary/50";
+
+  const cls = `radius-control inline-flex items-center justify-center gap-2 px-5 py-3 text-[1rem] font-semibold transition-colors duration-300 sm:px-6 sm:py-3.5 sm:text-[1.0625rem] ${styles}`;
+  const inner = (
+    <>
+      {Icon && <Icon className="h-4 w-4" />}
+      {children}
+    </>
+  );
+
+  if (internal) {
+    return (
+      <Link href={href} className={cls}>
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <a
+      href={href}
+      download={download}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className={cls}
+    >
+      {inner}
+    </a>
+  );
+}
+
+/* ── Hero : la séquence d'allumage ────────────────────────────────────────── */
+
+function Hero() {
+  const ref = useRef<HTMLElement>(null);
+  const reduced = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, 70]);
+
+  return (
+    <section
+      id="top"
+      ref={ref}
+      className="relative flex min-h-[92svh] items-center overflow-hidden px-5 pb-20 pt-28 sm:px-8 sm:pt-32"
+    >
+      <HeroBackdrop />
+
+      <motion.div
+        className="relative z-10 mx-auto w-full max-w-6xl"
+        style={reduced ? undefined : { opacity, y }}
+      >
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-16">
+          <div className="relative">
+            {/* Réglette de repères : elle s'allume de haut en bas à l'ouverture */}
+            <div
+              className="rail po-rail absolute -left-6 top-1 hidden h-full w-[5px] lg:block"
+              aria-hidden="true"
+            />
+
+            <h1 className="type-display po-resolve">
+              {profile.firstName}
+              <br />
+              {profile.lastName}
+            </h1>
+
+            {/* Ligne d'horizon : elle se trace, comme à la mise sous tension */}
+            <div
+              className="po-horizon mt-7 h-px w-full max-w-xl bg-[hsl(var(--efis))]"
+              style={{ animationDelay: "0.1s" }}
+            />
+
+            <p
+              className="type-lead po-fade mt-7 max-w-xl text-pretty text-muted-foreground"
+              style={{ animationDelay: "0.55s" }}
+            >
+              {profile.tagline}
+            </p>
+
+            <div className="po-fade mt-10 flex flex-wrap gap-3" style={{ animationDelay: "0.95s" }}>
+              <PillLink href="/collins" internal>La page Collins Aerospace</PillLink>
+              <PillLink
+                href={`${b}${profile.cvFile}`}
+                download="CV_Youri_Figuie.pdf"
+                variant="secondary"
+                icon={Download}
+              >
+                Télécharger le CV
+              </PillLink>
+              <PillLink href={profile.linkedin} external variant="secondary" icon={Linkedin}>
+                LinkedIn
+              </PillLink>
+            </div>
+          </div>
+
+          <div className="po-fade order-first lg:order-none" style={{ animationDelay: "1.15s" }}>
+            <Parallax distance={22} className="mx-auto max-w-[15rem] sm:max-w-[18rem] lg:max-w-none">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] border border-border bg-subtle">
+                <img
+                  src={`${b}${profile.photo}`}
+                  alt={`Portrait de ${profile.firstName} ${profile.lastName}`}
+                  className="h-full w-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                />
+              </div>
+            </Parallax>
+          </div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+/* ── Bandeau de repères ───────────────────────────────────────────────────── */
+
+function Highlights() {
+  return (
+    <section className="border-y border-border bg-surface">
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
+        {highlights.map((h) => (
+          <div key={h.label} className="bg-surface px-5 py-8 sm:px-6 sm:py-10">
+            <p className="text-[1.0625rem] font-bold tracking-[-0.02em] [font-stretch:106%] sm:text-xl">
+              {h.value}
+            </p>
+            <p className="type-data mt-1.5 text-[0.9375rem] text-muted-foreground">{h.label}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ── Profil ───────────────────────────────────────────────────────────────── */
+
+function About() {
+  return (
+    <Section id="profil">
+      <SectionHeader title="Apprendre en faisant, pas seulement en écoutant." lead={about.intro} />
+
+      <div className="mt-14 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+        {about.facts.map((fact) => (
+          <div key={fact.label} className="bg-background p-6">
+            <p className="type-label text-muted-foreground">{fact.label}</p>
+            <ul className="mt-4 space-y-2.5">
+              {fact.items.map((item) => (
+                <li key={item} className="flex items-start gap-2.5 text-[1.0625rem] leading-snug">
+                  <span className="mt-[0.6rem] h-1 w-1 shrink-0 bg-[hsl(var(--efis))]" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ── Collins : l'aperçu qui renvoie vers la page dédiée ───────────────────── */
+
+function CollinsTeaser() {
+  return (
+    <Section id="collins">
+      <SectionHeader
+        title="Mon alternance chez Collins Aerospace."
+        lead={collins.intro}
+      />
+
+      <div className="mt-12 grid gap-px bg-border sm:grid-cols-3">
+        {collins.figures.map((f) => (
+          <div key={f.label} className="bg-background px-1 py-7 sm:px-6">
+            <p className="type-readout text-primary">
+              {f.value.toLocaleString("fr-FR", {
+                minimumFractionDigits: f.decimals,
+                maximumFractionDigits: f.decimals,
+              })}
+              <span className="ml-1 text-[0.5em] align-baseline">{f.unit}</span>
+            </p>
+            <p className="type-data mt-3 text-[0.9375rem] text-muted-foreground">{f.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-10">
+        <Link
+          href="/collins"
+          className="group inline-flex items-center gap-2 border-b-2 border-[hsl(var(--efis))] pb-1 text-[1.0625rem] font-semibold transition-colors hover:text-primary"
+        >
+          L'entreprise, ses chiffres et ce que j'y fais
+          <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
+        </Link>
+      </div>
+    </Section>
+  );
+}
+
+/* ── Parcours ─────────────────────────────────────────────────────────────── */
+
+function Journey() {
+  return (
+    <Section id="parcours" className="bg-surface">
+      <SectionHeader
+        title="Expériences"
+        lead="Des environnements très différents, un même fil conducteur : faire ce qui est demandé, correctement, avec l'équipe."
+      />
+
+      <div className="mt-14">
+        {experiences.map((exp) => (
+          <article
+            key={exp.role + exp.company}
+            className="grid gap-6 border-t border-border py-10 lg:grid-cols-[11rem_minmax(0,1fr)] lg:gap-12"
+          >
+            <p className="type-data text-[0.9375rem] text-muted-foreground lg:pt-1.5">{exp.period}</p>
+            <div>
+              <h3 className="type-heading">{exp.role}</h3>
+              <p className="type-data mt-1.5 text-[1.0625rem] text-primary">{exp.company}</p>
+
+              {exp.bullets.length > 0 && (
+                <ul className="mt-6 space-y-3">
+                  {exp.bullets.map((bullet) => (
+                    <li key={bullet} className="flex gap-3 leading-relaxed text-muted-foreground">
+                      <span className="mt-[0.7rem] h-1 w-1 shrink-0 bg-border" />
+                      <span className="text-pretty">{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {exp.href && (
+                <Link
+                  href={exp.href}
+                  className="group mt-5 inline-flex items-center gap-2 font-semibold text-primary"
+                >
+                  {exp.hrefLabel}
+                  <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
+                </Link>
+              )}
+
+              <div className="mt-6 flex flex-wrap gap-2">
+                {exp.tags.map((t) => (
+                  <Tag key={t}>{t}</Tag>
+                ))}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <h2 className="type-title mt-24 text-balance sm:mt-28">Formation</h2>
+
+      <div className="mt-12 grid gap-px bg-border lg:grid-cols-2">
+        {education.map((edu) => (
+          <div key={edu.degree} className="bg-surface p-8">
+            <p className="type-data text-[0.9375rem] text-muted-foreground">{edu.period}</p>
+            <h3 className="type-heading mt-2 text-balance">{edu.degree}</h3>
+            <p className="type-data mt-2 text-[1.0625rem] text-primary">{edu.school}</p>
+            <p className="mt-4 text-muted-foreground">{edu.detail}</p>
+            {edu.modules.length > 0 && (
+              <>
+                <div className="my-6 h-px w-full bg-border" />
+                <p className="type-label text-muted-foreground">Matières clés</p>
+                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {edu.modules.map((m) => (
+                    <li
+                      key={m}
+                      className="flex items-start gap-2 text-[0.9375rem] text-muted-foreground"
+                    >
+                      <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-[hsl(var(--efis))]" />
+                      {m}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ── Compétences ──────────────────────────────────────────────────────────── */
+
+function Skills() {
+  return (
+    <Section id="competences">
+      <SectionHeader
+        title="Ce que je sais faire aujourd'hui."
+        lead="Des acquis de BUT, complétés par ce que j'explore de mon côté et par ce que j'apprends en entreprise. Ni plus, ni moins."
+      />
+
+      <div className="mt-14 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+        {skillGroups.map((group) => (
+          <div key={group.label} className="bg-background p-7">
+            <group.icon className="h-5 w-5 text-[hsl(var(--efis))]" strokeWidth={1.75} />
+            <h3 className="mt-5 text-[1.0625rem] font-bold tracking-[-0.02em]">{group.label}</h3>
+            <ul className="mt-5 space-y-4">
+              {group.skills.map((s) => (
+                <li key={s.name}>
+                  <p className="font-semibold leading-snug">{s.name}</p>
+                  <p className="mt-0.5 text-[0.9375rem] leading-snug text-muted-foreground">{s.desc}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="type-label mr-2 text-muted-foreground">Savoir-être</span>
+        {softSkills.map((s) => (
+          <Tag key={s}>{s}</Tag>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ── Projets ──────────────────────────────────────────────────────────────── */
+
+function Projects() {
+  const [openProject, setOpenProject] = useState<Project | null>(null);
+
+  return (
+    <Section id="projets" className="bg-surface">
+      <SectionHeader
+        title="Ce que j'ai conçu, soudé et débogué."
+        lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype. Ouvrez un dossier pour le détail."
+      />
+
+      <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3">
+        {academicProjects.map((p) => (
+          <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
+        ))}
+      </div>
+
+      <h2 className="type-title mt-24 text-balance sm:mt-28">Et ce que je fais en dehors des cours.</h2>
+      <p className="type-lead mt-5 max-w-3xl text-muted-foreground text-pretty">
+        Des projets lancés de ma propre initiative, parce que la curiosité ne s'arrête pas à la fin du TD.
+      </p>
+
+      <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3">
+        {personalProjects.map((p) => (
+          <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
+        ))}
+      </div>
+
+      <ProjectDossier project={openProject} onClose={() => setOpenProject(null)} />
+    </Section>
+  );
+}
+
+/* ── Contact ──────────────────────────────────────────────────────────────── */
+
+function Contact() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -83,19 +471,16 @@ export default function Home() {
       const res = await fetch(FORMSPREE_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ name: values.name, email: values.email, message: values.message }),
+        body: JSON.stringify(values),
       });
-      if (res.ok) {
-        setSubmitted(true);
-        form.reset();
-        toast({ title: "TRANSMISSION RÉUSSIE", description: "Message reçu. Je reviens vers toi sous 48h." });
-      } else {
-        throw new Error();
-      }
+      if (!res.ok) throw new Error("Envoi refusé");
+      setSubmitted(true);
+      form.reset();
+      toast({ title: "Message envoyé", description: "Je reviens vers vous sous 48 h." });
     } catch {
       toast({
-        title: "ERREUR DE TRANSMISSION",
-        description: "Problème d'envoi. Écris-moi directement à youri.figuie@etu.umontpellier.fr",
+        title: "L'envoi a échoué",
+        description: `Écrivez-moi directement à ${profile.email}.`,
         variant: "destructive",
       });
     } finally {
@@ -103,901 +488,159 @@ export default function Home() {
     }
   }
 
+  const fieldClass =
+    "radius-field h-12 border-border bg-surface text-[1.0625rem] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-[hsl(var(--efis))]/40";
+
   return (
-    <Layout>
-      {/* ─── HERO ─── */}
-      <section className="relative min-h-[90vh] flex items-center px-4 md:px-8 lg:px-16 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroBg}
-            alt="Technical Background"
-            className="w-full h-full object-cover opacity-10 grayscale brightness-50"
+    <Section id="contact">
+      <div className="grid gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
+        <div>
+          <SectionHeader
+            title="Me contacter."
+            lead="Une question sur mon parcours, un projet, une opportunité pour la suite ? Je réponds sous 48 h."
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
-        </div>
 
-        <div className="container relative z-10 max-w-6xl mx-auto">
-
-          {/* Tag line — slides in first */}
-          <motion.div
-            className="flex items-center gap-3 mb-6"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <motion.div
-              className="h-[1px] bg-primary"
-              initial={{ width: 0 }}
-              animate={{ width: 48 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            />
-            <span className="font-mono text-[10px] tracking-[0.4em] text-primary uppercase">
-              Systèmes Embarqués // Électronique // Défense
-            </span>
-          </motion.div>
-
-          {/* H1 — large staggered entrance */}
-          <motion.h1
-            className="text-5xl sm:text-6xl md:text-9xl font-display font-bold tracking-tighter mb-4 leading-[0.9]"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          >
-            YOURI <br />
-            <span className="text-primary/60 italic font-light">FIGUIÉ</span>
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            className="font-mono text-xs text-muted-foreground mb-6 tracking-widest"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.45 }}
-          >
-            Étudiant BUT1 GEII · Alternance 2026–2028 · Montpellier
-          </motion.p>
-
-          {/* Description — slides from left */}
-          <motion.p
-            className="text-xl md:text-2xl text-white/75 max-w-2xl font-light leading-relaxed mb-12 border-l border-white/10 pl-8"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          >
-            En formation en Génie Électrique et Informatique Industrielle, je cherche une alternance
-            pour mêler théorie et pratique dans les systèmes embarqués, l'électronique et la robotique.
-          </motion.p>
-
-          {/* CTA Buttons */}
-          <motion.div
-            className="flex flex-wrap gap-4"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.65 }}
-          >
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-              <Button
-                size="lg"
-                className="bg-primary hover:bg-primary/80 text-white font-bold tracking-wider rounded-none px-6 md:px-10 h-12 md:h-14 flex items-center gap-3 border border-white/10 group"
-                asChild
-              >
-                <a href={`${b}cv-youri-figuie.pdf`} download="CV_Youri_Figuie.pdf">
-                  <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform duration-300" />
-                  TÉLÉCHARGER MON CV
-                </a>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-white/20 text-white hover:bg-white/5 rounded-none px-6 md:px-10 h-12 md:h-14 flex items-center gap-3 group"
-                asChild
-              >
-                <a href="https://linkedin.com/in/youri-fg/" target="_blank" rel="noopener noreferrer">
-                  <Linkedin className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" /> LINKEDIN
-                </a>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-white/20 text-white hover:bg-white/5 rounded-none px-6 md:px-10 h-12 md:h-14 flex items-center gap-3 group"
-                asChild
-              >
-                <a href="#contact">
-                  <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" /> PRENDRE CONTACT
-                </a>
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* HUD Decoration — fades in last, blinking cursor */}
-        <motion.div
-          className="absolute bottom-20 right-20 hidden xl:block"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.9 }}
-        >
-          <div className="font-mono text-[10px] text-primary/55 space-y-2">
-            <div className="flex justify-between gap-8">
-              <span>STATUT</span>
-              <span className="text-primary cursor-blink">RECHERCHE ACTIVE</span>
-            </div>
-            <div className="flex justify-between gap-8"><span>CIBLE</span><span>ALTERNANCE 2026–2028</span></div>
-            <div className="flex justify-between gap-8"><span>LOCALISATION</span><span>MONTPELLIER 34</span></div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ─── SECTIONS ─── */}
-      <div className="space-y-20 md:space-y-32 py-20 md:py-32">
-
-        {/* ─── QUI SUIS-JE ─── */}
-        <motion.section
-          id="about"
-          className="container max-w-5xl mx-auto px-4 md:px-8 scroll-mt-24"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <div className="grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-16 items-start">
-            <motion.div className="lg:sticky lg:top-32" variants={fadeInLeft}>
-              <div className="flex items-center gap-4 mb-6">
-                <User className="w-5 h-5 text-primary" />
-                <h2 className="text-2xl font-display font-bold uppercase tracking-widest">Qui suis-je ?</h2>
-              </div>
-              <AccentLine delay={0.3} />
-            </motion.div>
-
-            <div className="space-y-8">
-              <motion.div className="flex flex-col sm:flex-row gap-6 items-start" variants={fadeInUp}>
-                <div className="shrink-0 w-32 h-40 border border-white/15 overflow-hidden bg-white/5 relative group/photo">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <User className="w-10 h-10 text-white/10" />
-                  </div>
-                  <img
-                    src={PHOTOS.profil}
-                    alt="Youri Figuié"
-                    className="w-full h-full object-cover relative z-10 transition-transform duration-500 group-hover/photo:scale-105"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                </div>
-                <p className="text-xl text-white/80 leading-relaxed font-light">
-                  Technicien supérieur en formation en <strong className="text-white">Génie Électrique et Informatique Industrielle</strong> à l'IUT de Montpellier, je souhaite me spécialiser dans les <strong className="text-white">systèmes embarqués</strong>. Je recherche activement une alternance afin de mêler théorie et pratique en entreprise.
-                </p>
-              </motion.div>
-
-              <motion.div className="grid sm:grid-cols-2 gap-6" variants={stagger}>
-                {[
-                  {
-                    title: "Qualités",
-                    items: [
-                      { icon: <ChevronRight className="w-3 h-3 text-primary/70 shrink-0" />, text: "Rigoureux & Curieux" },
-                      { icon: <ChevronRight className="w-3 h-3 text-primary/70 shrink-0" />, text: "En quête d'apprentissage constant" },
-                    ],
-                  },
-                  {
-                    title: "Langues",
-                    items: [
-                      { icon: <ChevronRight className="w-3 h-3 text-primary/70 shrink-0" />, text: "Français — Natif" },
-                      { icon: <ChevronRight className="w-3 h-3 text-primary/70 shrink-0" />, text: "Anglais — B2 Technique" },
-                    ],
-                  },
-                  {
-                    title: "Centres d'intérêt",
-                    items: [
-                      { icon: <Mountain className="w-3 h-3 text-primary/70 shrink-0" />, text: "Bivouac / Randonnée" },
-                      { icon: <Dumbbell className="w-3 h-3 text-primary/70 shrink-0" />, text: "Musculation" },
-                      { icon: <Laptop className="w-3 h-3 text-primary/70 shrink-0" />, text: "Nouvelles technologies" },
-                    ],
-                  },
-                  {
-                    title: "Infos",
-                    items: [
-                      { icon: <MapPin className="w-3 h-3 text-primary/70 shrink-0" />, text: "Prades-Le-Lez (34)" },
-                      { icon: <ChevronRight className="w-3 h-3 text-primary/70 shrink-0" />, text: "19 ans · Permis B" },
-                      { icon: <ChevronRight className="w-3 h-3 text-primary/70 shrink-0" />, text: "Alternance 2026–2028" },
-                    ],
-                  },
-                ].map((card) => (
-                  <motion.div
-                    key={card.title}
-                    className="p-6 border border-white/10 bg-white/5 rounded-sm relative overflow-hidden group/card"
-                    variants={scaleIn}
-                    whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                  >
-                    <div className="absolute inset-x-0 bottom-0 h-[1px] bg-primary/0 group-hover/card:bg-primary/25 transition-colors duration-300" />
-                    <h3 className="font-mono text-xs text-primary mb-3 uppercase tracking-widest">{card.title}</h3>
-                    <ul className="space-y-2 text-sm text-white/80">
-                      {card.items.map((item, j) => (
-                        <li key={j} className="flex items-center gap-2">{item.icon} {item.text}</li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* ─── ALTERNANCE ─── */}
-        <motion.section
-          id="alternance"
-          className="container max-w-5xl mx-auto px-4 md:px-8 scroll-mt-24"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <div className="grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-16 items-start">
-            <motion.div className="lg:sticky lg:top-32" variants={fadeInLeft}>
-              <div className="flex items-center gap-4 mb-6">
-                <Briefcase className="w-5 h-5 text-primary" />
-                <h2 className="text-2xl font-display font-bold uppercase tracking-widest">Alternance</h2>
-              </div>
-              <AccentLine delay={0.3} />
-              <p className="font-mono text-[10px] text-primary/60 uppercase tracking-widest mt-4">2026 — 2028</p>
-            </motion.div>
-
-            <div className="space-y-8">
-              <motion.p className="text-xl text-white/80 leading-relaxed font-light" variants={fadeInUp}>
-                L'alternance représente pour moi la meilleure façon d'apprendre : <strong className="text-white">confronter la théorie à la réalité professionnelle</strong>, prendre de vraies responsabilités et progresser dans un cadre professionnel structuré.
-              </motion.p>
-
-              <motion.div className="grid sm:grid-cols-2 gap-4" variants={stagger}>
-                {[
-                  {
-                    title: "Goût du travail",
-                    text: "J'aime produire quelque chose de concret. L'idée de contribuer à de vrais projets techniques, avec des enjeux réels, me motive davantage que n'importe quel cours magistral.",
-                  },
-                  {
-                    title: "Indépendance",
-                    text: "L'alternance me permet d'avancer vers l'autonomie financière et professionnelle. C'est une démarche active, pas subie — je veux construire ma place dans le monde professionnel.",
-                  },
-                ].map((card) => (
-                  <motion.div
-                    key={card.title}
-                    className="p-6 border border-white/10 bg-white/5 rounded-sm relative overflow-hidden group/card"
-                    variants={scaleIn}
-                    whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                  >
-                    <div className="absolute inset-x-0 bottom-0 h-[1px] bg-primary/0 group-hover/card:bg-primary/25 transition-colors duration-300" />
-                    <h3 className="font-mono text-xs text-primary mb-3 uppercase tracking-widest">{card.title}</h3>
-                    <p className="text-sm text-white/75 leading-relaxed">{card.text}</p>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              <motion.div className="border border-white/10 bg-white/5 p-6" variants={fadeInUp}>
-                <h3 className="font-mono text-xs text-primary uppercase tracking-widest mb-5">Missions visées — Technicien Supérieur</h3>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "R&D systèmes embarqués",
-                    "Conception & test électronique",
-                    "Développement firmware C / C++",
-                    "Intégration capteurs / signaux",
-                    "Robotique & automatisation",
-                    "Validation & prototypage",
-                  ].map(m => (
-                    <motion.div key={m} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-                      <Badge variant="outline" className="rounded-none border-white/15 text-xs text-white/80 py-1 hover:border-primary/30 hover:text-white transition-colors cursor-default">{m}</Badge>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-
-            </div>
-          </div>
-        </motion.section>
-
-        {/* ─── EXPÉRIENCES ─── */}
-        <motion.section
-          id="exp"
-          className="container max-w-5xl mx-auto px-4 md:px-8 scroll-mt-24"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <div className="grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-16 items-start">
-            <motion.div className="lg:sticky lg:top-32" variants={fadeInLeft}>
-              <div className="flex items-center gap-4 mb-6">
-                <Briefcase className="w-5 h-5 text-primary" />
-                <h2 className="text-2xl font-display font-bold uppercase tracking-widest">Expériences</h2>
-              </div>
-              <AccentLine delay={0.3} />
-            </motion.div>
-
-            <div className="space-y-12">
-              {[
-                {
-                  role: "Réserviste Opérationnel",
-                  company: "ARMÉE DE TERRE — 3e RPIMa · Carcassonne",
-                  date: "2025 — Présent",
-                  photo: undefined,
-                  tags: ["Défense", "Discipline", "Engagement"],
-                  bullets: [
-                    "Engagement opérationnel au sein du 3e RPIMa avec application stricte des procédures et protocoles militaires",
-                    "Développement de la réactivité et de la prise de décision rapide sous contrainte physique et temporelle",
-                    "Travail en cohésion d'équipe dans des missions à hautes exigences : fiabilité, rigueur et engagement collectif",
-                    "Acquisition de réflexes directement transposables en milieu industriel : discipline, sang-froid et respect des consignes de sécurité",
-                  ],
-                },
-                {
-                  role: "Hôte de Caisse Polyvalent",
-                  company: "LOG'IN SOLUTIONS · Prades-Le-Lez",
-                  date: "2024",
-                  photo: undefined,
-                  tags: ["Service client", "Rigueur", "Polyvalence"],
-                  bullets: [
-                    "Gestion autonome et rigoureuse des opérations de caisse : précision comptable et respect des procédures internes",
-                    "Accueil et orientation des clients avec aisance relationnelle et sens du service",
-                    "Polyvalence opérationnelle : adaptation aux différents postes et besoins de l'équipe selon les flux d'activité",
-                  ],
-                },
-                {
-                  role: "Figurant",
-                  company: "FRANCE TÉLÉVISIONS — « Karma - Trop jeunes pour se taire »",
-                  date: "2025 — 2026",
-                  photo: undefined,
-                  tags: ["Travail en équipe", "Adaptabilité", "Professionnel"],
-                  bullets: [
-                    "Participation à un tournage professionnel long format en interaction avec des équipes techniques et artistiques structurées",
-                    "Adaptation immédiate aux directives de production dans un environnement à contraintes multiples (délais, organisation plateau)",
-                    "Collaboration efficace avec des équipes pluridisciplinaires : réalisateurs, techniciens de plateau et comédiens",
-                  ],
-                },
-              ].map((exp, i) => (
-                <motion.div key={i} className="group border-b border-white/5 pb-12 last:border-0 relative" variants={fadeInUp}>
-                  {/* Left border reveal on hover */}
-                  <div className="absolute left-0 top-0 w-[2px] h-0 bg-primary group-hover:h-full transition-all duration-500" />
-                  <div className={`pl-5 ${exp.photo ? "flex gap-6 items-start" : ""}`}>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-baseline mb-3 flex-wrap gap-2">
-                        <h3 className="text-2xl font-bold group-hover:text-primary transition-colors duration-300">{exp.role}</h3>
-                        <span className="font-mono text-xs text-muted-foreground">{exp.date}</span>
-                      </div>
-                      <div className="text-primary font-mono text-xs mb-6 tracking-widest">{exp.company}</div>
-                      <ul className="space-y-2 mb-6">
-                        {exp.bullets.map((b, j) => (
-                          <li key={j} className="flex items-start gap-3 text-sm text-white/80">
-                            <ChevronRight className="w-3 h-3 text-primary/60 mt-0.5 shrink-0" />
-                            {b}
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="flex gap-2 flex-wrap">
-                        {exp.tags.map(t => (
-                          <Badge key={t} variant="outline" className="rounded-none border-white/10 text-[10px] hover:border-primary/30 transition-colors">{t}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                    {exp.photo && (
-                      <div className="shrink-0 w-44 h-52 border border-white/10 overflow-hidden hidden sm:block bg-white/5 relative group/photo">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <User className="w-6 h-6 text-white/10" />
-                        </div>
-                        <img
-                          src={exp.photo}
-                          alt={exp.role}
-                          className="w-full h-full object-cover relative z-10 transition-transform duration-500 group-hover/photo:scale-105"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
-
-        {/* ─── FORMATIONS ─── */}
-        <motion.section
-          id="edu"
-          className="container max-w-5xl mx-auto px-4 md:px-8 scroll-mt-24"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <div className="grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-16 items-start">
-            <motion.div className="lg:sticky lg:top-32" variants={fadeInLeft}>
-              <div className="flex items-center gap-4 mb-6">
-                <GraduationCap className="w-5 h-5 text-primary" />
-                <h2 className="text-2xl font-display font-bold uppercase tracking-widest">Formations</h2>
-              </div>
-              <AccentLine delay={0.3} />
-            </motion.div>
-
-            <div className="space-y-6">
-              {[
-                {
-                  degree: "BUT Génie Électrique et Informatique Industrielle",
-                  school: "IUT Montpellier",
-                  period: "2025 — Présent",
-                  detail: "Spécialisation systèmes embarqués et électronique industrielle.",
-                  modules: ["Programmation systèmes (C / Python)", "Électronique analogique & numérique", "Automatisme industriel", "Traitement du signal"],
-                },
-                {
-                  degree: "Baccalauréat Général — Mathématiques & NSI",
-                  school: "Lycée Jean Jaurès",
-                  period: "2022 — 2025",
-                  detail: "Mention Assez Bien.",
-                  modules: [] as string[],
-                },
-              ].map((edu, i) => (
-                <motion.div
-                  key={i}
-                  className="p-8 border border-white/5 bg-white/5 relative group"
-                  variants={scaleIn}
-                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                >
-                  <div className="absolute top-0 left-0 w-[2px] h-0 bg-primary group-hover:h-full transition-all duration-500" />
-                  <div className="flex justify-between items-start flex-wrap gap-2 mb-2">
-                    <h3 className="text-xl font-bold">{edu.degree}</h3>
-                    <span className="font-mono text-xs text-muted-foreground">{edu.period}</span>
-                  </div>
-                  <div className="text-primary font-mono text-xs mb-3 uppercase tracking-[0.2em]">{edu.school}</div>
-                  <p className="text-sm text-white/70">{edu.detail}</p>
-                  {edu.modules.length > 0 && (
-                    <div className="mt-4">
-                      <span className="font-mono text-[10px] text-primary/70 uppercase tracking-widest mb-2 block">Matières clés</span>
-                      <ul className="grid grid-cols-2 gap-y-1.5 gap-x-4">
-                        {edu.modules.map(m => (
-                          <li key={m} className="flex items-center gap-2 text-xs text-white/75">
-                            <ChevronRight className="w-2.5 h-2.5 text-primary/60 shrink-0" /> {m}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
-
-        {/* ─── COMPÉTENCES ─── */}
-        <motion.section
-          id="skills"
-          className="container max-w-6xl mx-auto px-4 md:px-8 scroll-mt-24"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <motion.div className="text-center mb-10 md:mb-16" variants={fadeInUp}>
-            <span className="font-mono text-[10px] text-primary tracking-[0.4em] uppercase mb-4 block">Capabilities Matrix</span>
-            <h2 className="text-4xl font-display font-bold uppercase">Compétences</h2>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            {[
-              {
-                icon: <Code className="w-4 h-4 text-primary" />,
-                label: "Programmation",
-                skills: [
-                  { name: "Python", desc: "scripts, automatisation, traitement de données" },
-                  { name: "C / C++", desc: "bases orientées systèmes embarqués" },
-                  { name: "HTML", desc: "bases web techniques" },
-                ],
-              },
-              {
-                icon: <Cpu className="w-4 h-4 text-primary" />,
-                label: "Électronique",
-                skills: [
-                  { name: "Analogique & numérique", desc: "bases théoriques et pratiques" },
-                  { name: "Lecture de schémas", desc: "schémas électriques et PCB" },
-                  { name: "Capteurs / Signaux", desc: "acquisition et traitement" },
-                  { name: "Logique embarquée", desc: "STM32, ESP32, soudure" },
-                ],
-              },
-              {
-                icon: <Wrench className="w-4 h-4 text-primary" />,
-                label: "Outils",
-                skills: [
-                  { name: "n8n", desc: "automatisation de workflows" },
-                  { name: "Git", desc: "versionning, environnement dev" },
-                  { name: "Windows / Linux", desc: "environnements de travail" },
-                ],
-              },
-              {
-                icon: <Terminal className="w-4 h-4 text-primary" />,
-                label: "Logiciels",
-                skills: [
-                  { name: "QElectrotech", desc: "schémas électriques" },
-                  { name: "Control Expert", desc: "automatisme Schneider (PLC)" },
-                  { name: "Quartus", desc: "conception logique numérique" },
-                ],
-              },
-            ].map((cat) => (
-              <motion.div
-                key={cat.label}
-                className="p-6 border border-white/10 bg-white/5 relative overflow-hidden group"
-                variants={scaleIn}
-                whileHover={{ y: -3, transition: { duration: 0.2 } }}
-              >
-                {/* Top highlight on hover */}
-                <div className="absolute inset-x-0 top-0 h-[1px] bg-primary/0 group-hover:bg-primary/35 transition-colors duration-300" />
-                <div className="flex items-center gap-3 mb-6">
-                  {cat.icon}
-                  <h3 className="font-mono text-[11px] text-primary uppercase tracking-widest">{cat.label}</h3>
-                </div>
-                <ul className="space-y-4">
-                  {cat.skills.map(s => (
-                    <li key={s.name} className="group/skill">
-                      <span className="text-sm text-white/90 font-medium group-hover/skill:text-white transition-colors duration-200">{s.name}</span>
-                      <p className="text-xs text-white/55 mt-0.5 leading-relaxed">{s.desc}</p>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Savoir-être */}
-          <motion.div className="border border-white/5 bg-white/5 p-4 flex flex-wrap gap-3 items-center" variants={fadeInUp}>
-            <div className="flex items-center gap-2 shrink-0">
-              <Shield className="w-3.5 h-3.5 text-primary" />
-              <span className="font-mono text-[10px] text-primary uppercase tracking-widest">Savoir-être</span>
-            </div>
-            <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
-            {["Rigueur", "Travail en équipe", "Curiosité & autonomie", "Adaptabilité", "Permis B"].map(q => (
-              <motion.div key={q} whileHover={{ scale: 1.05 }}>
-                <Badge variant="outline" className="rounded-none border-white/15 text-xs text-white/75 hover:text-white hover:border-primary/30 transition-colors cursor-default">{q}</Badge>
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.section>
-
-        {/* ─── PROJETS ACADÉMIQUES ─── */}
-        <motion.section
-          id="projects"
-          className="container max-w-6xl mx-auto px-4 md:px-8 scroll-mt-24"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <motion.div className="flex items-center justify-between mb-10 md:mb-16" variants={fadeInUp}>
-            <h2 className="text-4xl font-display font-bold uppercase tracking-tight">Projets Académiques</h2>
-            <div className="h-[1px] flex-1 mx-8 bg-white/5" />
-          </motion.div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Dé Électronique",
-                icon: <Zap className="w-10 h-10 text-primary/40 group-hover:text-primary/70 transition-colors duration-300" />,
-                desc: "Conception d'un circuit électronique complet : intégration des composants, tests de fonctionnement et correction de bugs électroniques.",
-                tags: ["Électronique", "PCB", "Hardware"],
-                delay: 0,
-              },
-              {
-                title: "Carte STM32",
-                icon: <Cpu className="w-10 h-10 text-primary/40 group-hover:text-primary/70 transition-colors duration-300" />,
-                desc: "Assemblage et soudure d'une carte STM32, contrôle des connexions et validation du fonctionnement en langage C (STMicroelectronics).",
-                tags: ["STM32", "C", "Embarqué"],
-                delay: 0.6,
-              },
-              {
-                title: "Robot Suiveur de Ligne",
-                icon: <Terminal className="w-10 h-10 text-primary/40 group-hover:text-primary/70 transition-colors duration-300" />,
-                desc: "Conception d'un robot analogique avec capteurs de ligne, réglages électroniques fins et tests prototype jusqu'à validation finale.",
-                tags: ["Robotique", "Capteurs", "Analogique"],
-                delay: 1.2,
-              },
-            ].map((project, i) => (
-              <motion.div
-                key={i}
-                className="border border-white/10 bg-white/5 rounded-none overflow-hidden group hover:border-primary/40 transition-all duration-300"
-                variants={scaleIn}
-                whileHover={{ y: -4, transition: { duration: 0.25 } }}
-              >
-                <div className="h-40 bg-secondary/50 flex items-center justify-center border-b border-white/5">
-                  {/* Icon floats in a loop */}
-                  <motion.div
-                    animate={{ y: [0, -7, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: project.delay }}
-                  >
-                    {project.icon}
-                  </motion.div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors duration-300">{project.title}</h3>
-                  <p className="text-sm text-white/70 leading-relaxed mb-4">{project.desc}</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {project.tags.map(t => (
-                      <Badge key={t} variant="secondary" className="rounded-none text-[10px]">{t}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* ─── PROJETS PERSO ─── */}
-        <motion.section
-          id="perso"
-          className="container max-w-6xl mx-auto px-4 md:px-8 scroll-mt-24"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <motion.div className="flex items-center justify-between mb-10 md:mb-16" variants={fadeInUp}>
-            <h2 className="text-4xl font-display font-bold uppercase tracking-tight">Projets Personnels</h2>
-            <div className="h-[1px] flex-1 mx-8 bg-white/5" />
-            <span className="font-mono text-[10px] text-primary/60 uppercase tracking-widest shrink-0">Initiative propre</span>
-          </motion.div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Locker Room RFID",
-                icon: <Wifi className="w-10 h-10 text-primary/40 group-hover:text-primary/70 transition-colors duration-300" />,
-                status: "Réalisé",
-                desc: "Système de casier électronique sécurisé par badge RFID. Conçu autour d'une ESP32 programmée en C++, avec gestion des accès, lecture des tags et retour d'état via LED.",
-                tags: ["ESP32", "C++", "RFID", "Électronique"],
-                delay: 0,
-              },
-              {
-                title: "Atlas",
-                icon: <LayoutDashboard className="w-10 h-10 text-primary/40 group-hover:text-primary/70 transition-colors duration-300" />,
-                status: "En développement",
-                desc: "Solution tout-en-un pour gérants de locations BNB : automatisation des tâches récurrentes (messages, check-in, calendrier) et dashboard centralisé de suivi des réservations.",
-                tags: ["Automatisation", "Dashboard", "n8n", "Web"],
-                delay: 0.5,
-              },
-              {
-                title: "NLMB — Collection",
-                icon: <Shirt className="w-10 h-10 text-primary/40 group-hover:text-primary/70 transition-colors duration-300" />,
-                status: "Réalisé",
-                desc: "Création d'une collection de t-shirts pour mon équipe sous le nom NLMB : conception du design, choix des supports, coordination de la production et distribution.",
-                tags: ["Design", "Entrepreneuriat", "Team"],
-                delay: 1,
-              },
-            ].map((project, i) => (
-              <motion.div
-                key={i}
-                className="border border-white/10 bg-white/5 rounded-none overflow-hidden group hover:border-primary/40 transition-all duration-300"
-                variants={scaleIn}
-                whileHover={{ y: -4, transition: { duration: 0.25 } }}
-              >
-                <div className="h-40 bg-secondary/50 flex items-center justify-center border-b border-white/5 relative">
-                  <motion.div
-                    animate={{ y: [0, -7, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: project.delay }}
-                  >
-                    {project.icon}
-                  </motion.div>
-                  <span className={`absolute top-3 right-3 font-mono text-[9px] uppercase tracking-widest px-2 py-1 border ${project.status === "En développement" ? "border-yellow-500/40 text-yellow-400/80 animate-pulse-status" : "border-primary/40 text-primary/80"}`}>
-                    {project.status}
-                  </span>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors duration-300">{project.title}</h3>
-                  <p className="text-sm text-white/70 leading-relaxed mb-4">{project.desc}</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {project.tags.map(t => (
-                      <Badge key={t} variant="secondary" className="rounded-none text-[10px]">{t}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* ─── POURQUOI ME CHOISIR ─── */}
-        <motion.section
-          id="why"
-          className="container max-w-4xl mx-auto px-4 md:px-8 py-16 md:py-24 bg-primary/5 border-y border-primary/10 scroll-mt-24 text-center"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <motion.div variants={fadeInUp}>
-            <Globe className="w-10 h-10 text-primary mx-auto mb-8" />
-            <h2 className="text-4xl font-display font-bold mb-12 uppercase tracking-widest">Pourquoi me choisir ?</h2>
-          </motion.div>
-          <div className="grid md:grid-cols-2 gap-10 text-left">
-            {[
-              {
-                num: "01.",
-                title: "Des bases concrètes, dès la première année",
-                desc: "En BUT GEII, j'ai déjà conçu des circuits, soudé des cartes STM32 et fabriqué un robot suiveur de ligne. J'arrive avec de la pratique réelle, pas uniquement de la théorie.",
-              },
-              {
-                num: "02.",
-                title: "Engagement et rigueur acquis sur le terrain",
-                desc: "Réserviste au 3e RPIMa, j'ai appris à respecter les procédures, rester calme sous pression et être fiable dans un cadre exigeant. Ce sont des réflexes qui s'appliquent partout.",
-              },
-              {
-                num: "03.",
-                title: "Curiosité qui ne s'arrête pas au cours",
-                desc: "Système RFID en C++, automatisation n8n, dashboard Atlas : j'explore en dehors des cours, parce que ça m'intéresse vraiment. L'apprentissage est un moteur, pas une contrainte.",
-              },
-              {
-                num: "04.",
-                title: "Un cap défini, une motivation sincère",
-                desc: "Je sais dans quelle direction je veux aller — les systèmes embarqués, l'électronique, la défense. Ce n'est pas une certitude, c'est une orientation claire que j'assume et que je construis chaque jour.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                className="space-y-3 group/why p-4 border border-transparent hover:border-white/5 hover:bg-white/[0.02] transition-all duration-300 rounded-sm"
-                variants={fadeInUp}
-                whileHover={{ x: 4, transition: { duration: 0.2 } }}
-              >
-                <h3 className="text-xl font-bold flex items-center gap-3">
-                  <span className="text-primary font-mono text-sm shrink-0">{item.num}</span>
-                  <span className="group-hover/why:text-primary transition-colors duration-300">{item.title}</span>
-                </h3>
-                <p className="text-white/70 font-light leading-relaxed text-sm">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* ─── CONTACT ─── */}
-        <motion.section
-          id="contact"
-          className="container max-w-2xl mx-auto px-4 md:px-8 scroll-mt-24"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <motion.div className="text-center mb-12" variants={fadeInUp}>
-            <h2 className="text-4xl font-display font-bold mb-4 uppercase">Uplink</h2>
-            <p className="text-white/65 font-light mb-8">Canal de communication direct.</p>
-
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              {[
-                {
-                  href: "mailto:youri.figuie@etu.umontpellier.fr",
-                  icon: <Mail className="w-3 h-3" />,
-                  label: "youri.figuie@etu.umontpellier.fr",
-                  external: false,
-                },
-                {
-                  href: "tel:0647209158",
-                  icon: <Phone className="w-3 h-3" />,
-                  label: "06 47 20 91 58",
-                  external: false,
-                },
-                {
-                  href: "https://linkedin.com/in/youri-fg/",
-                  icon: <Linkedin className="w-3 h-3" />,
-                  label: "linkedin.com/in/youri-fg",
-                  external: true,
-                },
-              ].map((link) => (
-                <motion.a
-                  key={link.href}
+          <div className="mt-10">
+            {contactLinks.map((link) => {
+              const Icon = link.icon;
+              const content = (
+                <>
+                  <Icon className="h-4 w-4 shrink-0 text-[hsl(var(--efis))]" />
+                  <span>{link.label}</span>
+                  {link.external && <ArrowUpRight className="ml-auto h-4 w-4 text-muted-foreground" />}
+                </>
+              );
+              return link.href ? (
+                <a
+                  key={link.label}
                   href={link.href}
                   target={link.external ? "_blank" : undefined}
                   rel={link.external ? "noopener noreferrer" : undefined}
-                  className="flex items-center gap-2 text-xs font-mono text-white/65 hover:text-primary transition-all duration-200 border border-white/10 px-4 py-2 hover:border-primary/30 group"
-                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                  className="flex items-center gap-3 border-t border-border px-1 py-4 transition-colors duration-300 hover:text-primary"
                 >
-                  <span className="group-hover:scale-110 transition-transform duration-200">{link.icon}</span>
-                  {link.label}
-                  {link.external && <ExternalLink className="w-2.5 h-2.5 opacity-50" />}
-                </motion.a>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="bg-background border border-white/10 rounded-none p-8 relative overflow-hidden"
-            variants={scaleIn}
-          >
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-primary/50" />
-
-            {submitted ? (
-              /* État succès */
-              <motion.div
-                className="flex flex-col items-center justify-center py-12 gap-4 text-center"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-              >
-                <div className="w-12 h-12 border border-primary/40 flex items-center justify-center mb-2">
-                  <Send className="w-5 h-5 text-primary" />
+                  {content}
+                </a>
+              ) : (
+                <div
+                  key={link.label}
+                  className="flex items-center gap-3 border-t border-border px-1 py-4 text-muted-foreground"
+                >
+                  {content}
                 </div>
-                <p className="font-mono text-xs text-primary uppercase tracking-widest">Transmission confirmée</p>
-                <p className="text-sm text-white/60 max-w-xs">Message reçu. Je reviens vers toi sous 48h.</p>
-                <button
-                  onClick={() => setSubmitted(false)}
-                  className="mt-4 font-mono text-[10px] text-white/30 hover:text-white/60 uppercase tracking-widest transition-colors"
-                >
-                  Nouveau message
-                </button>
-              </motion.div>
-            ) : (
-              <>
-                <p className="text-xs font-mono text-white/50 mb-6 text-center uppercase tracking-widest">— ou via le formulaire —</p>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    <div className="grid md:grid-cols-2 gap-8">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-mono text-white/60 uppercase">Identité</FormLabel>
-                            <FormControl>
-                              <Input placeholder="VOTRE NOM" {...field} className="rounded-none border-white/10 bg-white/5 focus:border-primary h-12 text-white/90 placeholder:text-white/30" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-mono text-white/60 uppercase">Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="VOTRE EMAIL" {...field} className="rounded-none border-white/10 bg-white/5 focus:border-primary h-12 text-white/90 placeholder:text-white/30" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="message"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-mono text-white/60 uppercase">Message</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="VOTRE MESSAGE..." {...field} className="rounded-none border-white/10 bg-white/5 focus:border-primary min-h-[150px] resize-none text-white/90 placeholder:text-white/30" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                      <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full bg-primary hover:bg-primary/80 disabled:opacity-50 text-white font-bold tracking-widest rounded-none h-14 flex items-center justify-center gap-3"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <motion.span
-                              className="w-3 h-3 border border-white/60 border-t-white rounded-full"
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                            />
-                            TRANSMISSION EN COURS…
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4" />
-                            TRANSMETTRE
-                          </>
-                        )}
-                      </Button>
-                    </motion.div>
-                  </form>
-                </Form>
-              </>
-            )}
-          </motion.div>
-        </motion.section>
+              );
+            })}
+          </div>
+        </div>
 
+        <div className="block p-7 sm:p-9">
+          {submitted ? (
+            <motion.div
+              className="flex flex-col items-center justify-center gap-4 py-16 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE }}
+            >
+              <span className="radius-control flex h-12 w-12 items-center justify-center bg-[hsl(var(--efis))]/12 text-primary">
+                <Check className="h-5 w-5" />
+              </span>
+              <p className="type-heading">Message envoyé</p>
+              <p className="max-w-xs text-muted-foreground">Merci, je reviens vers vous sous 48 h.</p>
+              <button
+                type="button"
+                onClick={() => setSubmitted(false)}
+                className="mt-2 text-[0.9375rem] font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                Écrire un autre message
+              </button>
+            </motion.div>
+          ) : (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="type-label">Nom</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Votre nom" autoComplete="name" className={fieldClass} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="type-label">Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="vous@entreprise.fr"
+                            autoComplete="email"
+                            className={fieldClass}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="message"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="type-label">Message</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Votre message…"
+                          className="radius-field min-h-40 resize-none border-border bg-surface text-[1.0625rem] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-[hsl(var(--efis))]/40"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="radius-control inline-flex h-12 w-full items-center justify-center gap-2 bg-primary text-[1.0625rem] font-semibold text-primary-foreground transition-colors duration-300 hover:bg-[hsl(var(--efis))] hover:text-[hsl(var(--panel))] disabled:opacity-60"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Envoi en cours…
+                    </>
+                  ) : (
+                    "Envoyer le message"
+                  )}
+                </button>
+              </form>
+            </Form>
+          )}
+        </div>
       </div>
+    </Section>
+  );
+}
+
+export default function Home() {
+  return (
+    <Layout>
+      <Hero />
+      <Highlights />
+      <About />
+      <CollinsTeaser />
+      <Journey />
+      <Skills />
+      <Projects />
+      <Contact />
     </Layout>
   );
 }
