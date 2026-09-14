@@ -24,14 +24,10 @@
 3. Figurant — France Télévisions, "Karma - Trop jeunes pour se taire" — 2025-2026
 4. Hôte de caisse polyvalent — Log'in Solutions, Prades-Le-Lez — 2024
 
-## Projets académiques réels (exactement ces 4, pas d'autres)
-1. **Pichenette Game** — borne d'arcade miniature de bureau qui mesure la force d'une
-   pichenette et affiche un score. Décrit par Youri le 14/09/2026. ⚠ SEUL le PRINCIPE
-   est connu : capteur, microcontrôleur, affichage, alimentation et structure ne sont
-   PAS renseignés et ne doivent pas être devinés (voir `client/src/content/pichenette.ts`).
-2. Dé électronique — conception circuit, intégration composants, tests et correction de bugs
-3. Soudure carte STM32 — assemblage, contrôle connexions, validation C (STMicroelectronics)
-4. Robot suiveur de ligne analogique — capteurs, réglages électroniques, tests prototype
+## Projets académiques réels (exactement ces 3, pas d'autres)
+1. Dé électronique — conception circuit, intégration composants, tests et correction de bugs
+2. Soudure carte STM32 — assemblage, contrôle connexions, validation C (STMicroelectronics)
+3. Robot suiveur de ligne analogique — capteurs, réglages électroniques, tests prototype
 
 ## Compétences réelles (NE PAS INVENTER d'autres)
 - Langages : C/C++, Python, HTML
@@ -50,16 +46,10 @@
     projets, compétences). Source unique de vérité : pour corriger un texte, c'est ici.
   - `client/src/content/collins.ts` — faits sur Collins Aerospace (chiffres sourcés
     et datés) + la mission de Youri, À COMPLÉTER par lui
-  - `client/src/content/pichenette.ts` — projet Pichenette Game. Fiche technique et
-    composants À COMPLÉTER par Youri : tout est volontairement vide, la page affiche
-    alors une mention d'attente au lieu d'une spécification inventée.
   - `client/src/pages/home.tsx` — assemblage des sections (mise en forme uniquement)
   - `client/src/pages/collins.tsx` — page dédiée `/collins`, seul panneau sombre
-  - `client/src/pages/pichenette.tsx` — page dédiée `/pichenette` (fond clair)
   - `client/src/components/layout.tsx` — header / menu mobile / footer
   - `client/src/components/motion.tsx` — primitives d'animation partagées (Reveal, Parallax, EASE)
-  - `client/src/components/force-gauge.tsx` — instrument de mesure jouable de la page
-    Pichenette. Seul composant sombre hors `/collins`, et seul vrai jeu du site.
   - `client/src/index.css` — tokens de couleur, échelle typographique, utilitaires
   - `client/index.html` — métadonnées SEO, import Google Fonts
 
@@ -117,8 +107,8 @@ presse ? Si non, ça reste franc.
 ⚠ La surface de contenu s'appelle `.bloc`, PAS `.block` : Tailwind définit déjà
 `block` (`display: block`), et les deux se superposaient en silence — tout élément
 écrivant `class="block"` (y compris des composants shadcn) héritait d'un fond blanc,
-d'une bordure et d'un rayon. Bug constaté le 14/09/2026 sur le cadran de la jauge de
-force, qui s'affichait sur un rectangle blanc. Ne jamais renommer `.bloc` en `.block`.
+d'une bordure et d'un rayon — un SVG posé sur le panneau sombre s'affichait ainsi sur
+un rectangle blanc. Bug constaté le 14/09/2026. Ne jamais renommer `.bloc` en `.block`.
 
 ⚠ `.radius-control` est une classe CSS maison : les variantes Tailwind (`focus:`,
 `hover:`…) ne s'y appliquent pas. Pour un état, utiliser `focus:rounded-full`.
@@ -170,31 +160,6 @@ Conséquences appliquées, à ne pas défaire :
 compter les images rendues pendant un scroll scripté, avec `Emulation.setCPUThrottlingRate`
 à 4. Cible : 60 fps sur les deux pages, en mobile comme en bureau.
 
-### Page projet `/pichenette` — et ce qui a été refusé du brief externe
-Le 14/09/2026, Youri a transmis un brief produit par un autre modèle pour ce projet.
-Sa consigne : « adapte en gardant la DA ». Ont donc été REPRIS l'intention et la
-structure (page dédiée, principe expliqué, fiche technique, démonstration jouable) ;
-ont été REFUSÉS, et il ne faut pas les réintroduire :
-
-| Demandé par le brief | Pourquoi refusé |
-|---|---|
-| Fond charbon `#0d0d11`, néons rouge/orange | Contredit le fond clair exigé pour la vidéoprojection |
-| Space Grotesk / Syne / Monument, JetBrains Mono | Polices déjà écartées de ce site (voir Règles de design) |
-| Glassmorphism, grain overlay, particules | Décor générique, et coûteux à l'image près |
-| GSAP + ScrollTrigger | Framer Motion est déjà là : deuxième bibliothèque d'animation pour le même résultat |
-| Three.js / React Three Fiber | Aucun modèle 3D de la machine n'existe — ce serait un faux rendu, pour ~1 Mo de bundle |
-| Lenis (défilement « lissé ») | Détourne le défilement natif : c'est exactement la sensation de latence dont Youri s'était plaint |
-| Capteur piézo, jauge de contrainte, ESP32, 7 segments, fichiers STL/STEP | **Inventés par le brief.** Rien de tout cela n'est confirmé par Youri |
-
-Le bundle est resté à ~617 ko. Avec GSAP + Three.js + drei + Lenis, il aurait dépassé
-le mégaoctet pour une page qui n'en avait pas besoin.
-
-**Ce qui porte la page à la place** : un instrument de mesure JOUABLE
-(`force-gauge.tsx`). Une pichenette au doigt ou à la souris, l'aiguille dépasse puis
-se stabilise, un repère ambre retient le maximum. C'est le seul objet qui appartienne
-aux deux mondes du site — une borne d'arcade mesure une force, un cockpit aussi. Le
-mouvement RÉPOND à une action : il ne viole pas la règle du moment orchestré unique.
-
 ### Lisibilité en vidéoprojection (contrainte explicite de Youri)
 - Corps de texte 17 px, graisse 440, interlignage 1,6.
 - Textes secondaires 15 px minimum, badges 13 px minimum. Rien sous 13 px.
@@ -235,17 +200,12 @@ mouvement RÉPOND à une action : il ne viole pas la règle du moment orchestré
 - Sans logo, la page affiche proprement le nom en typographie : rien n'est cassé.
 
 ## Routage GitHub Pages
-Le site a trois routes (`/`, `/collins` et `/pichenette`). GitHub Pages ne sert pas les routes
+Le site a deux routes (`/` et `/collins`). GitHub Pages ne sert pas les routes
 profondes : `client/public/404.html` les réécrit en `?p=chemin`, et un script en
 tête de `client/index.html` les restaure avant le démarrage de l'application.
 **Les deux vont ensemble** — modifier l'un sans l'autre casse les liens directs.
 Les liens internes passent par `<Link>` de wouter, jamais par `<a href="/...">` :
 le site est servi sous `/Portofolio-Youri/`.
-
-Un projet doté de sa propre page se déclare par le champ `page` dans
-`client/src/content/profile.ts` : la carte devient alors un lien (et non un bouton
-ouvrant le dossier en surimpression), et gagne une flèche — la seule flèche autorisée
-sur un libellé, puisqu'elle annonce un changement de page.
 
 ⚠ Pour tester le build GitHub Pages en local, `vite preview` a BESOIN de la base,
 sinon il sert à la racine et les fichiers renvoient 404 :

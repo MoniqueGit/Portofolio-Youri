@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
-import { ArrowRight, Check, ImageIcon } from "lucide-react";
+import { Check, ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Project } from "@/content/profile";
 
@@ -58,62 +57,6 @@ function ProjectMedia({ project, rounded = false }: { project: Project; rounded?
 
 export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () => void }) {
   const extra = project.tags.length - VISIBLE_TAGS;
-  const cls =
-    "bloc group flex h-full w-full flex-col overflow-hidden text-left transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]";
-
-  const contenu = (
-    <>
-      <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden border-b border-border">
-        <ProjectMedia project={project} />
-        <span className="absolute right-4 top-4">
-          <Chip tone="solid">{project.origin}</Chip>
-        </span>
-        {project.status && (
-          <span className="absolute left-4 top-4">
-            <Chip>{project.status}</Chip>
-          </span>
-        )}
-      </div>
-
-      <div className="flex flex-1 flex-col p-6">
-        <h3 className="type-heading text-balance">{project.title}</h3>
-        <p className="mt-2 text-[1.0625rem] font-medium text-primary">{project.summary}</p>
-        <p className="mt-3 line-clamp-3 flex-1 text-[1.0625rem] leading-relaxed text-muted-foreground">
-          {project.desc}
-        </p>
-        <div className="mt-6 flex flex-wrap gap-2">
-          {project.tags.slice(0, VISIBLE_TAGS).map((t) => (
-            <Chip key={t}>{t}</Chip>
-          ))}
-          {extra > 0 && <Chip>+{extra}</Chip>}
-        </div>
-      </div>
-
-      {/* Pas de flèche accolée au libellé quand la carte ouvre un dossier : la
-          carte entière est cliquable, le soulignement au survol suffit. La
-          flèche n'apparaît que pour un CHANGEMENT DE PAGE, où elle informe. */}
-      <div className="flex items-center gap-2 border-t border-border px-6 py-4 text-[0.9375rem] font-medium">
-        <span className="underline-offset-4 transition-colors duration-300 group-hover:text-primary group-hover:underline">
-          {project.page ? "Ouvrir la page du projet" : "Voir le dossier"}
-        </span>
-        {project.page && (
-          <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
-        )}
-      </div>
-    </>
-  );
-
-  /* Projet doté de sa propre page : la carte est un lien, pas un bouton —
-     le clic milieu et « ouvrir dans un nouvel onglet » doivent fonctionner. */
-  if (project.page) {
-    return (
-      <div className="h-full">
-        <Link href={project.page} className={cls} aria-label={`Ouvrir la page du projet ${project.title}`}>
-          {contenu}
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <div className="h-full">
@@ -122,9 +65,41 @@ export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () 
         type="button"
         onClick={onOpen}
         aria-label={`Ouvrir le dossier du projet ${project.title}`}
-        className={cls}
+        className="bloc group flex h-full w-full flex-col overflow-hidden text-left transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]"
       >
-        {contenu}
+        <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden border-b border-border">
+          <ProjectMedia project={project} />
+          <span className="absolute right-4 top-4">
+            <Chip tone="solid">{project.origin}</Chip>
+          </span>
+          {project.status && (
+            <span className="absolute left-4 top-4">
+              <Chip>{project.status}</Chip>
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-1 flex-col p-6">
+          <h3 className="type-heading text-balance">{project.title}</h3>
+          <p className="mt-2 text-[1.0625rem] font-medium text-primary">{project.summary}</p>
+          <p className="mt-3 line-clamp-3 flex-1 text-[1.0625rem] leading-relaxed text-muted-foreground">
+            {project.desc}
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {project.tags.slice(0, VISIBLE_TAGS).map((t) => (
+              <Chip key={t}>{t}</Chip>
+            ))}
+            {extra > 0 && <Chip>+{extra}</Chip>}
+          </div>
+        </div>
+
+        {/* Pas de flèche accolée au libellé : la carte entière est cliquable,
+            le soulignement au survol suffit à l'annoncer. */}
+        <div className="border-t border-border px-6 py-4 text-[0.9375rem] font-medium">
+          <span className="underline-offset-4 transition-colors duration-300 group-hover:text-primary group-hover:underline">
+            Voir le dossier
+          </span>
+        </div>
       </button>
     </div>
   );
