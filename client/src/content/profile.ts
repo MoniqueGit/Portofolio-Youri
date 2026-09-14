@@ -12,9 +12,9 @@ import {
 export const profile = {
   firstName: "Youri",
   lastName: "Figuié",
-  title: "Étudiant en BUT GEII, spécialité systèmes embarqués et électronique",
+  title: "Alternant chez Collins Aerospace, étudiant en BUT GEII",
   tagline:
-    "Je conçois, soude et teste des cartes électroniques. Je cherche une alternance de 2026 à 2028 pour mettre cette pratique au service d'une vraie équipe.",
+    "Je conçois, soude et teste des cartes électroniques. Depuis 2026, je le fais en alternance chez Collins Aerospace, l'un des plus gros équipementiers aéronautiques au monde.",
   email: "youri.figuie@etu.umontpellier.fr",
   phone: "06 47 20 91 58",
   phoneHref: "tel:+33647209158",
@@ -27,24 +27,29 @@ export const profile = {
 
 /** Bandeau de caractéristiques sous le hero — lecture en 3 secondes. */
 export const highlights: { value: string; label: string }[] = [
+  { value: "Collins Aerospace", label: "Alternant depuis 2026" },
   { value: "BUT GEII", label: "IUT de Montpellier" },
-  { value: "2026–2028", label: "Alternance recherchée" },
-  { value: "Montpellier", label: "Mobile, permis B" },
   { value: "Réserviste", label: "Armée de Terre, 3ᵉ RPIMa" },
+  { value: "Montpellier", label: "Mobile, permis B" },
 ];
 
 export const about = {
   intro:
-    "Technicien supérieur en formation en Génie Électrique et Informatique Industrielle à l'IUT de Montpellier, je me spécialise dans les systèmes embarqués. Je recherche une alternance pour confronter la théorie à la réalité d'une entreprise.",
+    "Technicien supérieur en formation en Génie Électrique et Informatique Industrielle à l'IUT de Montpellier, je me spécialise dans les systèmes embarqués. Depuis 2026, je partage mon temps entre l'IUT et Collins Aerospace.",
   facts: [
     { label: "Qualités", items: ["Rigoureux et curieux", "En quête d'apprentissage constant"] },
     { label: "Langues", items: ["Français, langue maternelle", "Anglais, niveau B2 technique"] },
     { label: "Centres d'intérêt", items: ["Bivouac et randonnée", "Musculation", "Nouvelles technologies"] },
-    { label: "Informations", items: ["Prades-Le-Lez (34)", "19 ans, permis B", "Alternance de 2026 à 2028"] },
+    { label: "Informations", items: ["Prades-Le-Lez (34)", "19 ans, permis B", "Alternant chez Collins Aerospace"] },
   ],
 };
 
-export const alternance = {
+/**
+ * Ancien argumentaire de candidature. PLUS AFFICHÉ depuis que Youri est en
+ * poste chez Collins (choix du 14/09/2026) : le site est devenu une vitrine,
+ * pas une candidature. Conservé ici pour pouvoir être remis facilement.
+ */
+export const alternanceArchive = {
   intro:
     "L'alternance est pour moi la meilleure façon d'apprendre : confronter la théorie à la réalité professionnelle, prendre de vraies responsabilités et progresser dans un cadre structuré.",
   arguments: [
@@ -71,11 +76,26 @@ export type Experience = {
   role: string;
   company: string;
   period: string;
+  /** Peut être vide quand le détail vit sur une page dédiée. */
   bullets: string[];
   tags: string[];
+  /** Lien vers la page dédiée, le cas échéant. */
+  href?: string;
+  hrefLabel?: string;
 };
 
 export const experiences: Experience[] = [
+  {
+    role: "Alternant",
+    company: "Collins Aerospace",
+    period: "Depuis 2026",
+    tags: ["Aéronautique", "Systèmes embarqués", "BUT GEII"],
+    // Missions volontairement non listées ici : elles vivent sur la page dédiée,
+    // et restent à renseigner par Youri dans content/collins.ts.
+    bullets: [],
+    href: "/collins",
+    hrefLabel: "Voir la page Collins Aerospace",
+  },
   {
     role: "Réserviste opérationnel",
     company: "Armée de Terre, 3ᵉ RPIMa, Carcassonne",
@@ -325,8 +345,11 @@ export const personalProjects: Project[] = [
   },
 ];
 
-/* Quatre arguments, pas quatre étapes : volontairement non numérotés. */
-export const whyMe = [
+/**
+ * Ancienne section « Pourquoi me choisir ». PLUS AFFICHÉE pour la même raison
+ * que `alternanceArchive`. Conservée pour pouvoir être remise.
+ */
+export const whyMeArchive = [
   {
     title: "Des bases concrètes, dès la première année",
     desc: "En BUT GEII, j'ai déjà conçu des circuits, soudé des cartes STM32 et fabriqué un robot suiveur de ligne. J'arrive avec de la pratique réelle, pas uniquement de la théorie.",
@@ -354,9 +377,9 @@ export const contactLinks = [
 
 export const navItems = [
   { href: "#profil", label: "Profil" },
+  { href: "#collins", label: "Collins" },
   { href: "#parcours", label: "Parcours" },
   { href: "#competences", label: "Compétences" },
   { href: "#projets", label: "Projets" },
-  { href: "#alternance", label: "Alternance" },
   { href: "#contact", label: "Contact" },
 ];

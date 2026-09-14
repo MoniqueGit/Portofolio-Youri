@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "wouter";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -74,7 +75,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       <a
         href="#contenu"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-foreground focus:px-4 focus:py-2 focus:text-[0.9375rem] focus:text-background"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-[4px] focus:bg-foreground focus:px-4 focus:py-2 focus:text-[0.9375rem] focus:text-background"
       >
         Aller au contenu
       </a>
@@ -92,7 +93,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <a
             href="#top"
             onClick={(e) => goTo(e, "#top")}
-            className="shrink-0 text-[1.0625rem] font-semibold tracking-[-0.02em]"
+            className="shrink-0 text-[1.0625rem] font-bold tracking-[-0.025em] [font-stretch:106%]"
           >
             {profile.firstName} {profile.lastName}
           </a>
@@ -107,7 +108,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   onClick={(e) => goTo(e, item.href)}
                   aria-current={active ? "true" : undefined}
                   className={cn(
-                    "relative rounded-full px-3 py-1.5 text-[0.9375rem] transition-colors duration-300",
+                    "relative px-3 py-1.5 text-[0.9375rem] font-medium transition-colors duration-300",
                     active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -115,7 +116,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   {active && (
                     <motion.span
                       layoutId="nav-pill"
-                      className="absolute inset-0 -z-10 rounded-full bg-subtle"
+                      className="absolute inset-x-0 -bottom-px -z-10 h-[2px] bg-[hsl(var(--efis))]"
                       transition={{ duration: 0.45, ease: EASE }}
                     />
                   )}
@@ -129,7 +130,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <a
               href={`${b}${profile.cvFile}`}
               download="CV_Youri_Figuie.pdf"
-              className="hidden rounded-full border border-border bg-surface px-4 py-2 text-[0.9375rem] font-medium text-foreground transition-colors duration-300 hover:bg-subtle sm:inline-flex"
+              className="hidden rounded-[4px] border border-border bg-surface px-4 py-2 text-[0.9375rem] font-semibold text-foreground transition-colors duration-300 hover:border-primary/50 sm:inline-flex"
             >
               Mon CV
             </a>
@@ -138,7 +139,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
               aria-expanded={menuOpen}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground transition-colors duration-300 hover:bg-subtle md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-[4px] border border-border text-foreground transition-colors duration-300 hover:border-primary/50 md:hidden"
             >
               {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
@@ -147,7 +148,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Fil de progression de lecture */}
         <motion.div
-          className="h-px origin-left bg-primary"
+          className="h-px origin-left bg-[hsl(var(--efis))]"
           style={{ scaleX: progress, opacity: scrolled ? 1 : 0 }}
         />
       </header>
@@ -179,7 +180,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <motion.a
                 href={`${b}${profile.cvFile}`}
                 download="CV_Youri_Figuie.pdf"
-                className="mt-8 inline-flex items-center justify-center rounded-full bg-primary px-6 py-4 text-base font-medium text-primary-foreground"
+                className="mt-8 inline-flex items-center justify-center rounded-[4px] bg-primary px-6 py-4 text-base font-semibold text-primary-foreground"
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5, ease: EASE }}
@@ -198,11 +199,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
           <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xl font-semibold tracking-[-0.025em]">
+              <p className="text-xl font-bold tracking-[-0.028em] [font-stretch:108%]">
                 {profile.firstName} {profile.lastName}
               </p>
               <p className="mt-1 max-w-sm text-[0.9375rem] text-muted-foreground">
-                BUT GEII à l'IUT de Montpellier. En recherche d'alternance pour 2026 à 2028.
+                Alternant chez Collins Aerospace, en BUT GEII à l'IUT de Montpellier.
               </p>
             </div>
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-[0.9375rem]">
@@ -227,6 +228,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
               >
                 CV (PDF)
               </a>
+              <Link href="/collins" className="text-muted-foreground transition-colors hover:text-foreground">
+                Collins Aerospace
+              </Link>
             </div>
           </div>
           <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-[0.8125rem] text-muted-foreground sm:flex-row sm:justify-between">

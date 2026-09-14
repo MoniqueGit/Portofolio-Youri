@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
+import Collins from "@/pages/collins";
 
 // Strips trailing slash so wouter base matches both dev ("/") and gh-pages ("/Portofolio-Youri")
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -14,6 +15,7 @@ function Router() {
     <WouterRouter base={base}>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/collins" component={Collins} />
         <Route component={NotFound} />
       </Switch>
     </WouterRouter>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Check, ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { RevealItem } from "@/components/motion";
 import type { Project } from "@/content/profile";
 
 const b = import.meta.env.BASE_URL;
@@ -14,9 +13,9 @@ const VISIBLE_TAGS = 3;
 function Chip({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "solid" }) {
   const styles =
     tone === "solid"
-      ? "border-transparent bg-foreground/85 text-background backdrop-blur"
+      ? "border-transparent bg-foreground/88 text-background backdrop-blur"
       : "border-border bg-background text-muted-foreground";
-  return <span className={`rounded-full border px-3 py-1 text-[0.8125rem] ${styles}`}>{children}</span>;
+  return <span className={`type-data rounded-[3px] border px-2.5 py-1 text-[0.8125rem] ${styles}`}>{children}</span>;
 }
 
 /**
@@ -60,13 +59,13 @@ export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () 
   const extra = project.tags.length - VISIBLE_TAGS;
 
   return (
-    <RevealItem className="h-full">
+    <div className="h-full">
       {/* Toute la carte est le bouton : une seule cible, cohérente au clavier. */}
       <button
         type="button"
         onClick={onOpen}
         aria-label={`Ouvrir le dossier du projet ${project.title}`}
-        className="surface-card surface-card-hover group flex h-full w-full flex-col overflow-hidden text-left hover:-translate-y-1.5"
+        className="block group flex h-full w-full flex-col overflow-hidden text-left transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]"
       >
         <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden border-b border-border">
           <ProjectMedia project={project} />
@@ -102,7 +101,7 @@ export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () 
           </span>
         </div>
       </button>
-    </RevealItem>
+    </div>
   );
 }
 
@@ -117,7 +116,7 @@ export function ProjectDossier({
 }) {
   return (
     <Dialog open={project !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[88vh] max-w-3xl overflow-y-auto rounded-[1.5rem] border-border bg-background p-0">
+      <DialogContent className="max-h-[88vh] max-w-3xl overflow-y-auto rounded-lg border-border bg-background p-0">
         {project && (
           <article className="group">
             {/* Sans photo, le bandeau reste compact : pas de grand vide au-dessus du texte.
@@ -143,7 +142,7 @@ export function ProjectDossier({
 
               <div className="my-8 h-px w-full bg-border" />
 
-              <p className="type-eyebrow text-muted-foreground">Ce que j'ai fait</p>
+              <p className="type-label text-muted-foreground">Ce que j'ai fait</p>
               <ul className="mt-4 space-y-2.5">
                 {project.highlights.map((h) => (
                   <li key={h} className="flex gap-3 text-[1.0625rem] leading-relaxed text-muted-foreground">
@@ -153,7 +152,7 @@ export function ProjectDossier({
                 ))}
               </ul>
 
-              <p className="type-eyebrow mt-8 text-muted-foreground">Technologies et méthodes</p>
+              <p className="type-label mt-8 text-muted-foreground">Technologies et méthodes</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {project.tags.map((t) => (
                   <Chip key={t}>{t}</Chip>
@@ -163,7 +162,7 @@ export function ProjectDossier({
 
               {project.gallery && project.gallery.length > 0 && (
                 <>
-                  <p className="type-eyebrow mt-8 text-muted-foreground">Photos</p>
+                  <p className="type-label mt-8 text-muted-foreground">Photos</p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     {project.gallery.map((g) => (
                       <img
@@ -172,7 +171,7 @@ export function ProjectDossier({
                         alt={`${project.title} — photo`}
                         loading="lazy"
                         decoding="async"
-                        className="aspect-[4/3] w-full rounded-xl border border-border object-cover"
+                        className="aspect-[4/3] w-full rounded border border-border object-cover"
                       />
                     ))}
                   </div>
@@ -180,7 +179,7 @@ export function ProjectDossier({
               )}
 
               {!project.cover && (
-                <p className="mt-8 flex items-center gap-2 rounded-xl bg-subtle px-4 py-3 text-[0.9375rem] text-muted-foreground">
+                <p className="mt-8 flex items-center gap-2 rounded bg-subtle px-4 py-3 text-[0.9375rem] text-muted-foreground">
                   <ImageIcon className="h-4 w-4 shrink-0" />
                   Photos du projet à venir.
                 </p>

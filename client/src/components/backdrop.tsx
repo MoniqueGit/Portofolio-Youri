@@ -5,8 +5,8 @@ import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion
  * Arrière-plans animés.
  *
  * Parti pris : plutôt que des particules génériques, un réseau de pistes de
- * circuit imprimé parcouru par des impulsions. Le motif dit quelque chose du
- * métier de Youri (électronique, embarqué) au lieu de décorer pour décorer.
+ * circuit imprimé parcouru par des impulsions cyan. Le motif dit quelque chose
+ * du métier de Youri (électronique, avionique) au lieu de décorer pour décorer.
  *
  * Contraintes respectées partout :
  *  - lent (10 à 60 s par cycle) ;
@@ -82,47 +82,6 @@ export function CircuitTraces({ className = "" }: { className?: string }) {
   );
 }
 
-/** Nappes de couleur très diffuses, en dérive lente. Donne de la profondeur. */
-export function Aurora({ intensity = 1 }: { intensity?: number }) {
-  const blobs = [
-    {
-      color: "hsl(214 95% 55%)",
-      opacity: 0.1 * intensity,
-      style: { top: "-18%", right: "-8%", width: "46rem", height: "34rem" },
-      animation: "drift-a 46s ease-in-out infinite",
-    },
-    {
-      color: "hsl(250 60% 60%)",
-      opacity: 0.08 * intensity,
-      style: { top: "18%", left: "-14%", width: "40rem", height: "32rem" },
-      animation: "drift-b 62s ease-in-out infinite",
-    },
-    {
-      color: "hsl(190 80% 52%)",
-      opacity: 0.07 * intensity,
-      style: { bottom: "-22%", left: "34%", width: "38rem", height: "28rem" },
-      animation: "drift-c 54s ease-in-out infinite",
-    },
-  ];
-
-  return (
-    <>
-      {blobs.map((b) => (
-        <div
-          key={b.animation}
-          className="aurora-blob"
-          style={{
-            ...b.style,
-            background: b.color,
-            opacity: b.opacity,
-            animation: b.animation,
-          }}
-        />
-      ))}
-    </>
-  );
-}
-
 /**
  * Fond du hero : nappes + pistes, avec une parallaxe légère au scroll.
  * Le fond descend moins vite que le contenu — l'écart crée la profondeur.
@@ -137,31 +96,10 @@ export function HeroBackdrop() {
   return (
     <div ref={ref} className="backdrop-layer" aria-hidden="true">
       <motion.div className="absolute inset-0" style={reduced ? undefined : { y, opacity }}>
-        <Aurora />
         <div className="backdrop-fade absolute inset-0">
           <CircuitTraces />
         </div>
       </motion.div>
-    </div>
-  );
-}
-
-/** Fond du bandeau sombre : mêmes pistes, contraste inversé. */
-export function InkBackdrop() {
-  return (
-    <div className="backdrop-layer on-ink rounded-[2rem]" aria-hidden="true">
-      <div className="absolute inset-0 opacity-90 [mask-image:linear-gradient(to_left,black_0%,black_20%,transparent_58%)]">
-        <CircuitTraces />
-      </div>
-    </div>
-  );
-}
-
-/** Fond de la section contact : nappes seules, encore plus discrètes. */
-export function SoftBackdrop() {
-  return (
-    <div className="backdrop-layer" aria-hidden="true">
-      <Aurora intensity={0.7} />
     </div>
   );
 }

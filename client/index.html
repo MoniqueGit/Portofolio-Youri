@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#fbfbfd" />
+    <meta name="theme-color" content="#F3F5F6" />
 
     <title>Youri Figuié — Systèmes embarqués & électronique | BUT GEII</title>
     <meta name="description" content="Étudiant en BUT GEII à l'IUT de Montpellier, réserviste au 3e RPIMa. Systèmes embarqués, STM32, électronique. Recherche une alternance 2026–2028." />
@@ -22,16 +22,35 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
 
-    <!-- Inter seule : l'axe optique (opsz) gère l'équivalent SF Pro Text / SF Pro Display -->
+    <!-- Archivo : variable à deux axes. La chasse (wdth 62–125) porte le
+         registre typographique, la graisse (wght) la hiérarchie. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
 
     <!-- Analytics — dashboard privé : https://youri-portfolio.goatcounter.com -->
     <script data-goatcounter="https://youri-portfolio.goatcounter.com/count"
             async src="//gc.zgo.at/count.js"></script>
   </head>
   <body>
+    <script>
+      // Pendant de client/public/404.html : GitHub Pages ne sert pas les routes
+      // profondes, 404.html les réécrit en « ?p=chemin », on les restaure ici
+      // avant que l'application ne démarre.
+      (function () {
+        var q = window.location.search;
+        if (q.indexOf('?p=') !== 0) return;
+        var parts = q.slice(1).split('&');
+        var route = decodeURIComponent(parts.shift().slice(2)).replace(/~and~/g, '&');
+        var rest = parts.join('&').replace(/^q=/, '').replace(/~and~/g, '&');
+        window.history.replaceState(
+          null,
+          '',
+          window.location.pathname.replace(/\/$/, '') + '/' + route +
+            (rest ? '?' + rest : '') + window.location.hash
+        );
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
