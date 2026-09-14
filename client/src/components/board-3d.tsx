@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Carte électronique filaire, en 3D réelle.
@@ -61,13 +61,8 @@ const FOCALE = 1.9;
 /** Inclinaison fixe : on regarde la carte de trois quarts, par le dessus. */
 const ASSIETTE = -0.62;
 
-export function Board3D({
-  tone = "clair",
-  className = "",
-}: {
-  tone?: "clair" | "panneau";
-  className?: string;
-}) {
+/** Rendu effectif. Monté uniquement quand le décor approche de l'écran. */
+function Toile({ tone }: { tone: "clair" | "panneau" }) {
   const toile = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -182,7 +177,10 @@ export function Board3D({
     const boucle = () => {
       if (!actif || !visible) { frame = 0; return; }
       alterne = (alterne + 1) % 2;
-      // Une image sur deux : la rotation est lente, la moitié suffit.
+      /* Une image sur deux. Descendre à une sur trois et baisser la densité de
+         pixels a été essayé le 15/09/2026 : aucun gain mesurable (55,5 contre
+         55,7), pour un tracé moins net et un mouvement plus saccadé. Le coût
+         résiduel n'est pas le dessin, c'est la couche de composition. */
       if (alterne === 0) {
         angle += 0.0034;
         px += (visePx - px) * 0.05;
@@ -234,5 +232,45 @@ export function Board3D({
     return () => window.removeEventListener("resize", onTaille);
   }, [tone]);
 
-  return <canvas ref={toile} aria-hidden="true" className={className} />;
+  return <canvas ref={toile} className="h-full w-full" />;
+}
+
+/**
+ * Enveloppe du décor.
+ *
+ * Le canvas n'est MONTÉ que lorsqu'il approche de l'écran, et démonté sinon.
+ *
+ * Ce n'est pas la même chose qu'arrêter la boucle de dessin : un canvas existant
+ * reste une couche de composition que le navigateur doit déplacer à chaque image
+ * de défilement, qu'on y dessine ou non. Mesuré le 15/09/2026 : sept décors
+ * simplement PRÉSENTS faisaient tomber l'accueil de 60 à 42 images/s, alors
+ * qu'un seul ou deux étaient visibles. En ne montant que ceux qui approchent,
+ * il n'existe jamais plus de deux couches à la fois.
+ */
+export function Board3D({
+  tone = "clair",
+  className = "",
+}: {
+  tone?: "clair" | "panneau";
+  className?: string;
+}) {
+  const hote = useRef<HTMLDivElement>(null);
+  const [proche, setProche] = useState(false);
+
+  useEffect(() => {
+    const el = hote.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => setProche(e.isIntersecting), {
+      // Marge généreuse : le décor est prêt avant d'entrer dans le cadre.
+      rootMargin: "400px 0px",
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div ref={hote} aria-hidden="true" className={className}>
+      {proche && <Toile tone={tone} />}
+    </div>
+  );
 }

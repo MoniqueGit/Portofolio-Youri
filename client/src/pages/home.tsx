@@ -11,6 +11,7 @@ import { useAimant } from "@/components/cursor";
 import { Parallax, EASE } from "@/components/motion";
 import { ProjectCard, ProjectDossier, ProjectStack } from "@/components/project-card";
 import { HeroBackdrop } from "@/components/backdrop";
+import { Board3D } from "@/components/board-3d";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,17 +39,34 @@ const contactSchema = z.object({
  * de position, comme les cotes en marge d'un plan. C'est une information de
  * structure, pas une décoration.
  */
+/**
+ * `decor` pose une carte 3D dans la section, cantonnée aux zones sans texte :
+ * à DROITE, elle tient dans la gouttière libre à côté de l'en-tête (celui-ci
+ * est limité à `max-w-3xl`) ; à GAUCHE, elle est repoussée dans la marge de
+ * page et sous le contenu — une première version débordait derrière le
+ * libellé « Savoir-être », ce que la règle de vidéoprojection interdit. Elle déborde du cadre — d'où `overflow-x-clip`, choisi
+ * plutôt que `overflow-hidden` : `clip` ne crée PAS de conteneur de
+ * défilement, donc la pile de projets en `position: sticky` continue de coller.
+ */
 function Section({
   id,
   children,
   className = "",
+  decor,
 }: {
   id?: string;
   children: React.ReactNode;
   className?: string;
+  decor?: "droite" | "gauche";
 }) {
   return (
-    <section id={id} className={`relative scroll-mt-20 px-5 sm:px-8 ${className}`}>
+    <section id={id} className={`relative scroll-mt-20 overflow-x-clip px-5 sm:px-8 ${className}`}>
+      {decor === "droite" && (
+        <Board3D className="pointer-events-none absolute -right-52 -top-12 hidden h-[32rem] w-[32rem] opacity-[0.55] lg:block" />
+      )}
+      {decor === "gauche" && (
+        <Board3D className="pointer-events-none absolute -bottom-72 -left-[23rem] hidden h-[34rem] w-[34rem] opacity-[0.55] lg:block" />
+      )}
       <div className="mx-auto max-w-6xl">
         <div className="relative border-t border-border py-20 sm:py-28">
           <span className="absolute left-0 top-0 h-[3px] w-10 bg-[hsl(var(--efis))]" aria-hidden="true" />
@@ -273,7 +291,7 @@ function Highlights() {
 
 function About() {
   return (
-    <Section id="profil">
+    <Section id="profil" decor="droite">
       <SectionHeader title="Apprendre en faisant, pas seulement en écoutant." lead={about.intro} />
 
       <div className="mt-14 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
@@ -299,7 +317,7 @@ function About() {
 
 function CollinsTeaser() {
   return (
-    <Section id="collins">
+    <Section id="collins" decor="gauche">
       <SectionHeader
         title="Mon alternance chez Collins Aerospace."
         lead={collins.intro}
@@ -337,7 +355,7 @@ function CollinsTeaser() {
 
 function Journey() {
   return (
-    <Section id="parcours" className="bg-surface">
+    <Section id="parcours" className="bg-surface" decor="droite">
       <SectionHeader
         title="Expériences"
         lead="Des environnements très différents, un même fil conducteur : faire ce qui est demandé, correctement, avec l'équipe."
@@ -422,7 +440,7 @@ function Journey() {
 
 function Skills() {
   return (
-    <Section id="competences">
+    <Section id="competences" decor="gauche">
       <SectionHeader
         title="Ce que je sais faire aujourd'hui."
         lead="Des acquis de BUT, complétés par ce que j'explore de mon côté et par ce que j'apprends en entreprise. Ni plus, ni moins."
@@ -461,7 +479,7 @@ function Projects() {
   const [openProject, setOpenProject] = useState<Project | null>(null);
 
   return (
-    <Section id="projets" className="bg-surface">
+    <Section id="projets" className="bg-surface" decor="droite">
       <SectionHeader
         title="Ce que j'ai conçu, soudé et débogué."
         lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype. Ouvrez un dossier pour le détail."
@@ -530,7 +548,7 @@ function Contact() {
     "radius-field h-12 border-border bg-surface text-[1.0625rem] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-[hsl(var(--efis))]/40";
 
   return (
-    <Section id="contact">
+    <Section id="contact" decor="gauche">
       <div className="grid gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
         <div>
           <SectionHeader

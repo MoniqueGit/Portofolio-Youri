@@ -167,7 +167,8 @@ banc (Playwright + compteur de frames + désactivation d'un coupable à la fois)
 | Flou `backdrop-filter` sur une barre collante | −4 fps |
 | Impulsions SVG en `stroke-dashoffset` | négligeable, mais tournaient en continu |
 | `mix-blend-mode` sur le réticule | −2,3 fps (mesuré le 15/09/2026, retiré) |
-| Carte 3D en canvas, une image sur deux | −0,6 fps (mesuré le 15/09/2026, gardé) |
+| Carte 3D en canvas, une image sur deux | −0,6 fps par décor visible (gardé) |
+| Sept canvas PRÉSENTS mais non dessinés | −18 fps (corrigé par le montage à la demande) |
 
 **La règle, non négociable** : seules `transform` et `opacity` s'animent sur le
 compositeur. Tout le reste — `font-stretch`, `letter-spacing`, `clip-path`,
@@ -200,17 +201,41 @@ la scène tient en quelques dizaines d'arêtes, donc la matrice de rotation et l
 division par la profondeur font ~3 ko. Coût mesuré le 15/09/2026 : **0,6 image/s**
 (59,2 contre 59,8, processeur ×4). Ne pas remplacer par une bibliothèque.
 
+**Le décor est réparti sur tout le site** (demande de Youri du 15/09/2026) : hero,
+chaque section de l'accueil via la propriété `decor` de `Section`, et page Collins.
+
+⚠ **Un canvas non dessiné coûte quand même.** Avec sept décors simplement PRÉSENTS
+dans le DOM, l'accueil tombait de 60 à **42 images/s**, alors qu'un ou deux seulement
+étaient visibles et que la boucle de dessin des autres était bien arrêtée. Un canvas
+existant reste une couche de composition que le navigateur doit déplacer à chaque
+image de défilement. `Board3D` ne MONTE donc le canvas que lorsqu'il approche de
+l'écran (`IntersectionObserver`, marge 400 px) et le démonte ensuite : jamais plus de
+deux couches à la fois, 2,1 Mo de mémoire au lieu de 8,5, et **58,9 images/s**.
+Arrêter la boucle ne suffit pas — il faut retirer le canvas.
+
+Réglage inutile, déjà tenté le 15/09/2026, à ne pas refaire : descendre à une image
+sur trois et plafonner la densité à 1,15 ne gagne rien (55,5 contre 55,7) et dégrade
+la netteté du tracé. Le coût résiduel est la composition, pas le dessin.
+
 Trois garde-fous dans le composant, à ne pas retirer :
 - rendu **une image sur deux** (la rotation est lente, personne ne voit la différence) ;
 - boucle **arrêtée** quand l'onglet est caché ou le décor hors écran
   (`IntersectionObserver` + `visibilitychange`) ;
 - densité de pixels **plafonnée à 1,4** — au-delà on quadruple le coût de remplissage.
 
-**Où la placer.** Jamais derrière du texte : la règle de vidéoprojection prime. Le
-hero de l'accueil est dense (grand nom + portrait + trois boutons), la carte y est
-donc reléguée en BAS À GAUCHE, coupée par le bord — une première tentative à droite
-la rendait invisible derrière le portrait. Sur `/collins`, la marge droite est libre :
-elle y est grande et en cyan EFIS.
+**Où la placer.** Jamais derrière du texte : la règle de vidéoprojection prime.
+- Hero : en BAS À GAUCHE, coupée par le bord. Une première tentative à droite la
+  rendait invisible derrière le portrait.
+- Sections de l'accueil : `decor="droite"` la pose dans la gouttière libre à côté de
+  l'en-tête (celui-ci est limité à `max-w-3xl`, il reste donc ~380 px libres à
+  droite) ; `decor="gauche"` la repousse dans la marge de page, sous le contenu.
+  Une première version à gauche passait derrière le libellé « Savoir-être ».
+- `/collins` : la marge droite est libre sur toute la hauteur, la carte y est grande
+  et en cyan EFIS.
+
+⚠ `Section` porte `overflow-x-clip` et non `overflow-hidden` : `clip` ne crée PAS de
+conteneur de défilement, donc la pile de projets en `position: sticky` continue de
+fonctionner. `overflow-hidden` la casserait.
 
 ### Hébergement : Vercel ne change rien aux animations
 Question posée par Youri le 15/09/2026, à ressortir si elle revient. GSAP, Three.js,
