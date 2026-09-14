@@ -59,6 +59,18 @@
 - **Animations** : une seule courbe `EASE = cubic-bezier(0.16, 1, 0.3, 1)`.
   Apparitions au scroll courtes (24 px + léger flou), parallaxe faible, hero qui recule au scroll.
   Tout est désactivé sous `prefers-reduced-motion`.
+- **Arrière-plans animés** (`client/src/components/backdrop.tsx`) : réseau de pistes de
+  circuit imprimé parcouru par des impulsions (`CircuitTraces`) + nappes de couleur en
+  dérive lente (`Aurora`). Posés sur le hero, le bandeau sombre et la section contact.
+  Keyframes CSS uniquement, `aria-hidden`, `pointer-events: none`.
+  **Règle non négociable** : le motif est masqué dans la bande occupée par le texte
+  (voir `.backdrop-fade`). Un fond animé ne doit jamais passer derrière un titre.
+
+### Lisibilité en vidéoprojection (contrainte explicite de Youri)
+- Corps de texte : 17 px, graisse 420, interlignage 1,6.
+- Gris secondaire `hsl(240 5% 31%)` ≈ 9:1 de contraste — ne pas l'éclaircir.
+- Petits textes : 15 px minimum, puces et badges 13 px minimum. Pas de texte sous 13 px.
+- Toute nouvelle couleur de texte doit tenir au moins 7:1 sur le fond clair.
 
 ### Règles de design
 - Une seule couleur d'accent. Pas de dégradé voyant, pas de lueur, pas d'icône qui flotte en boucle.

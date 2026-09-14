@@ -62,7 +62,7 @@
   --secondary-foreground: 240 6% 20%;
 
   --muted: 240 12% 96%;
-  --muted-foreground: 240 4% 42%; /* #68686f — contraste AA sur fond clair */
+  --muted-foreground: 240 5% 31%; /* #4a4a52 — ~10:1, lisible en vidéoprojection */
 
   --accent: 214 95% 43%;
   --accent-foreground: 0 0% 100%;
@@ -74,7 +74,7 @@
   --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 240 8% 88%;
+  --border: 240 8% 84%;
   --input: 240 8% 86%;
   --ring: 214 95% 43%;
 }
@@ -91,6 +91,10 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    font-weight: 420;
+    letter-spacing: 0.004em;
     font-optical-sizing: auto;
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
@@ -133,26 +137,26 @@
   }
 
   .type-heading {
-    font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+    font-size: clamp(1.45rem, 2.35vw, 1.9rem);
     line-height: 1.2;
     letter-spacing: -0.025em;
     font-weight: 600;
   }
 
   .type-lead {
-    font-size: clamp(1.0625rem, 1.6vw, 1.375rem);
-    line-height: 1.55;
+    font-size: clamp(1.1875rem, 1.75vw, 1.5rem);
+    line-height: 1.52;
     letter-spacing: -0.012em;
-    font-weight: 400;
+    font-weight: 420;
   }
 
   /* Petite étiquette de section — remplace l'ancien libellé « mono militaire » */
   .type-eyebrow {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     line-height: 1;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 650;
   }
 
   /* Surface carte standard de la DA */
@@ -210,6 +214,112 @@
       transparent
     );
   }
+}
+
+
+/* ── Arrière-plans animés ─────────────────────────────────────────────────────
+ * Trois règles tenues partout : lent (10–60 s), très peu contrasté, et masqué
+ * là où il y a du texte. Un fond qui se remarque est un fond raté — surtout
+ * sur un vidéoprojecteur, où chaque point de contraste gagné compte.
+ * Tout est en keyframes CSS : aucune boucle JS, aucun repaint par frame.
+ * ------------------------------------------------------------------------- */
+
+/* Pistes : le tracé statique reste visible même animation coupée. */
+.trace-static {
+  fill: none;
+  stroke: hsl(var(--primary) / 0.13);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Impulsion : un court segment qui parcourt la piste, comme un signal. */
+.trace-pulse {
+  fill: none;
+  stroke: hsl(var(--primary) / 0.4);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 64 2400;
+  animation: trace-run 14s linear infinite;
+}
+
+@keyframes trace-run {
+  from { stroke-dashoffset: 2464; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Pastilles de connexion : respiration très lente. */
+.trace-pad {
+  fill: hsl(var(--primary) / 0.22);
+  animation: pad-breathe 6s ease-in-out infinite;
+}
+
+@keyframes pad-breathe {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+
+/* Variante sur fond sombre. */
+.on-ink .trace-static { stroke: hsl(0 0% 100% / 0.1); }
+.on-ink .trace-pulse  { stroke: hsl(214 95% 68% / 0.5); }
+.on-ink .trace-pad    { fill: hsl(214 95% 68% / 0.45); }
+
+/* Nappes de couleur qui dérivent : la profondeur, sans dégradé voyant. */
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  will-change: transform;
+}
+
+@keyframes drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(5%, -4%, 0) scale(1.12); }
+}
+
+@keyframes drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.06); }
+  50%      { transform: translate3d(-6%, 5%, 0) scale(1); }
+}
+
+@keyframes drift-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(3%, 6%, 0) scale(1.1); }
+}
+
+/*
+ * Masque du hero. Le point important : les pistes sont EFFACÉES dans la bande
+ * horizontale qu'occupe le texte (≈ 28 % à 68 % de la hauteur). Elles ne vivent
+ * que dans le bandeau haut et la zone vide sous les boutons. Un fond animé qui
+ * traverse un titre coûte plus en lisibilité qu'il ne rapporte en allure.
+ * Second dégradé : atténuation vers la gauche, la colonne de texte.
+ */
+.backdrop-fade {
+  -webkit-mask-image:
+    linear-gradient(to bottom, black 0%, black 15%, transparent 28%, transparent 68%, black 84%, black 100%),
+    linear-gradient(to right, hsl(0 0% 0% / 0.4) 0%, hsl(0 0% 0% / 0.62) 34%, black 66%);
+  mask-image:
+    linear-gradient(to bottom, black 0%, black 15%, transparent 28%, transparent 68%, black 84%, black 100%),
+    linear-gradient(to right, hsl(0 0% 0% / 0.4) 0%, hsl(0 0% 0% / 0.62) 34%, black 66%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+/* Un fond animé ne doit jamais capter le clic ni le lecteur d'écran. */
+.backdrop-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Animation coupée : on fige les impulsions hors du tracé plutôt que de les
+   laisser gelées au milieu d'une piste, ce qui ressemblerait à un bug. */
+@media (prefers-reduced-motion: reduce) {
+  .trace-pulse { display: none; }
+  .trace-pad   { opacity: 0.6; }
 }
 
 /* ── Accessibilité : on coupe tout le mouvement si l'utilisateur le demande ── */

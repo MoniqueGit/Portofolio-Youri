@@ -11,6 +11,7 @@ import {
 import { Layout } from "@/components/layout";
 import { Reveal, RevealGroup, RevealItem, Parallax, EASE } from "@/components/motion";
 import { ProjectCard, ProjectDossier } from "@/components/project-card";
+import { HeroBackdrop, InkBackdrop, SoftBackdrop } from "@/components/backdrop";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,21 +58,28 @@ function Section({
   id,
   children,
   className = "",
+  backdrop,
 }: {
   id?: string;
   children: React.ReactNode;
   className?: string;
+  /** Couche d'arrière-plan animée, posée sous le contenu. */
+  backdrop?: React.ReactNode;
 }) {
   return (
-    <section id={id} className={`scroll-mt-20 px-5 py-24 sm:px-8 sm:py-32 lg:py-40 ${className}`}>
-      <div className="mx-auto max-w-6xl">{children}</div>
+    <section
+      id={id}
+      className={`relative scroll-mt-20 overflow-hidden px-5 py-24 sm:px-8 sm:py-32 lg:py-40 ${className}`}
+    >
+      {backdrop}
+      <div className="relative z-10 mx-auto max-w-6xl">{children}</div>
     </section>
   );
 }
 
 function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
+    <span className="rounded-full border border-border bg-background px-3 py-1 text-[0.8125rem] text-muted-foreground">
       {children}
     </span>
   );
@@ -95,7 +103,7 @@ function PillLink({
 }) {
   const reduced = useReducedMotion();
   const base =
-    "group inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-medium transition-colors duration-300";
+    "group inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-[1rem] font-medium transition-colors duration-300 sm:px-6 sm:py-3.5 sm:text-[1.0625rem]";
   const styles =
     variant === "primary"
       ? "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -136,9 +144,11 @@ function Hero() {
     <section
       id="top"
       ref={ref}
-      className="bg-halo relative flex min-h-[92svh] items-center px-5 pb-20 pt-28 sm:px-8 sm:pt-32"
+      className="relative flex min-h-[92svh] items-center overflow-hidden px-5 pb-20 pt-28 sm:px-8 sm:pt-32"
     >
-      <motion.div className="mx-auto w-full max-w-6xl" style={style}>
+      <HeroBackdrop />
+
+      <motion.div className="relative z-10 mx-auto w-full max-w-6xl" style={style}>
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16">
           <div>
             <motion.p
@@ -217,7 +227,7 @@ function Hero() {
 
         <motion.a
           href="#profil"
-          className="mt-16 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="mt-16 inline-flex items-center gap-2 text-[0.9375rem] text-muted-foreground transition-colors hover:text-foreground"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.7 }}
@@ -244,7 +254,7 @@ function Highlights() {
         {highlights.map((h) => (
           <RevealItem key={h.label} className="bg-surface px-5 py-8 sm:px-6 sm:py-10">
             <p className="text-lg font-semibold tracking-[-0.02em] sm:text-xl">{h.value}</p>
-            <p className="mt-1.5 text-sm text-muted-foreground">{h.label}</p>
+            <p className="mt-1.5 text-[0.9375rem] text-muted-foreground">{h.label}</p>
           </RevealItem>
         ))}
       </RevealGroup>
@@ -268,7 +278,7 @@ function About() {
             <p className="type-eyebrow text-muted-foreground">{fact.label}</p>
             <ul className="mt-4 space-y-2.5">
               {fact.items.map((item) => (
-                <li key={item} className="flex items-start gap-2.5 text-[15px] leading-snug">
+                <li key={item} className="flex items-start gap-2.5 text-[1.0625rem] leading-snug">
                   <span className="mt-[0.55rem] h-1 w-1 shrink-0 rounded-full bg-primary" />
                   {item}
                 </li>
@@ -296,13 +306,13 @@ function Journey() {
         {experiences.map((exp, i) => (
           <Reveal key={exp.role} delay={i * 0.05}>
             <article className="group grid gap-6 border-t border-border py-10 lg:grid-cols-[10rem_minmax(0,1fr)] lg:gap-12">
-              <p className="text-sm text-muted-foreground lg:pt-1">{exp.period}</p>
+              <p className="text-[0.9375rem] text-muted-foreground lg:pt-1">{exp.period}</p>
               <div>
                 <h3 className="type-heading">{exp.role}</h3>
-                <p className="mt-1.5 text-[15px] text-primary">{exp.company}</p>
+                <p className="mt-1.5 text-[1.0625rem] text-primary">{exp.company}</p>
                 <ul className="mt-6 space-y-3">
                   {exp.bullets.map((bullet) => (
-                    <li key={bullet} className="flex gap-3 text-[15px] leading-relaxed text-muted-foreground">
+                    <li key={bullet} className="flex gap-3 text-[1.0625rem] leading-relaxed text-muted-foreground">
                       <span className="mt-[0.6rem] h-1 w-1 shrink-0 rounded-full bg-border" />
                       <span className="text-pretty">{bullet}</span>
                     </li>
@@ -324,17 +334,17 @@ function Journey() {
       <RevealGroup className="mt-12 grid gap-4 lg:grid-cols-2">
         {education.map((edu) => (
           <RevealItem key={edu.degree} className="surface-card surface-card-hover p-8 hover:-translate-y-1">
-            <p className="text-sm text-muted-foreground">{edu.period}</p>
+            <p className="text-[0.9375rem] text-muted-foreground">{edu.period}</p>
             <h3 className="type-heading mt-2 text-balance">{edu.degree}</h3>
-            <p className="mt-2 text-[15px] text-primary">{edu.school}</p>
-            <p className="mt-4 text-[15px] text-muted-foreground">{edu.detail}</p>
+            <p className="mt-2 text-[1.0625rem] text-primary">{edu.school}</p>
+            <p className="mt-4 text-[1.0625rem] text-muted-foreground">{edu.detail}</p>
             {edu.modules.length > 0 && (
               <>
                 <div className="my-6 h-px w-full bg-border" />
                 <p className="type-eyebrow text-muted-foreground">Matières clés</p>
                 <ul className="mt-4 grid gap-2 sm:grid-cols-2">
                   {edu.modules.map((m) => (
-                    <li key={m} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <li key={m} className="flex items-start gap-2 text-[0.9375rem] text-muted-foreground">
                       <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                       {m}
                     </li>
@@ -373,8 +383,8 @@ function Skills() {
             <ul className="mt-5 space-y-4">
               {group.skills.map((s) => (
                 <li key={s.name}>
-                  <p className="text-[15px] font-medium leading-snug">{s.name}</p>
-                  <p className="mt-0.5 text-sm leading-snug text-muted-foreground">{s.desc}</p>
+                  <p className="text-[1.0625rem] font-medium leading-snug">{s.name}</p>
+                  <p className="mt-0.5 text-[0.9375rem] leading-snug text-muted-foreground">{s.desc}</p>
                 </li>
               ))}
             </ul>
@@ -443,7 +453,7 @@ function Alternance() {
         {alternance.arguments.map((arg) => (
           <RevealItem key={arg.title} className="surface-card surface-card-hover p-8 hover:-translate-y-1">
             <h3 className="type-heading text-balance">{arg.title}</h3>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground text-pretty">{arg.text}</p>
+            <p className="mt-4 text-[1.0625rem] leading-relaxed text-muted-foreground text-pretty">{arg.text}</p>
           </RevealItem>
         ))}
       </RevealGroup>
@@ -468,8 +478,11 @@ function WhyMe() {
   return (
     <section className="px-5 pb-24 sm:px-8 sm:pb-32">
       <Reveal className="mx-auto max-w-6xl">
-        <div className="rounded-[2rem] bg-ink px-6 py-20 text-ink-foreground sm:px-12 lg:px-16 lg:py-28">
-          <p className="type-eyebrow text-primary-foreground/60">Pourquoi me choisir</p>
+        <div className="relative overflow-hidden rounded-[2rem] bg-ink px-6 py-20 text-ink-foreground sm:px-12 lg:px-16 lg:py-28">
+          <InkBackdrop />
+
+          <div className="relative z-10">
+          <p className="type-eyebrow text-primary-foreground/75">Pourquoi me choisir</p>
           <h2 className="type-title mt-4 max-w-2xl text-balance">
             Quatre raisons, et aucune n'est du remplissage.
           </h2>
@@ -477,12 +490,13 @@ function WhyMe() {
           <RevealGroup className="mt-14 grid gap-x-12 gap-y-12 sm:grid-cols-2">
             {whyMe.map((item) => (
               <RevealItem key={item.num}>
-                <p className="text-sm tabular-nums text-ink-foreground/45">{item.num}</p>
+                <p className="text-[0.9375rem] tabular-nums text-ink-foreground/60">{item.num}</p>
                 <h3 className="mt-3 text-xl font-semibold tracking-[-0.025em] text-balance">{item.title}</h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-ink-foreground/65 text-pretty">{item.desc}</p>
+                <p className="mt-3 text-[1.0625rem] leading-relaxed text-ink-foreground/78 text-pretty">{item.desc}</p>
               </RevealItem>
             ))}
           </RevealGroup>
+          </div>
         </div>
       </Reveal>
     </section>
@@ -525,10 +539,10 @@ function Contact() {
   }
 
   const fieldClass =
-    "h-12 rounded-xl border-border bg-surface text-[15px] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary/30";
+    "h-12 rounded-xl border-border bg-surface text-[1.0625rem] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary/30";
 
   return (
-    <Section id="contact" className="bg-surface border-t border-border">
+    <Section id="contact" className="bg-surface border-t border-border" backdrop={<SoftBackdrop />}>
       <div className="grid gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
         <div>
           <SectionHeader
@@ -543,7 +557,7 @@ function Contact() {
               const content = (
                 <>
                   <Icon className="h-4 w-4 shrink-0 text-primary" />
-                  <span className="text-[15px]">{link.label}</span>
+                  <span className="text-[1.0625rem]">{link.label}</span>
                   {link.external && <ArrowUpRight className="ml-auto h-4 w-4 text-muted-foreground" />}
                 </>
               );
@@ -580,13 +594,13 @@ function Contact() {
                   <Check className="h-5 w-5" />
                 </span>
                 <p className="type-heading">Message envoyé</p>
-                <p className="max-w-xs text-[15px] text-muted-foreground">
+                <p className="max-w-xs text-[1.0625rem] text-muted-foreground">
                   Merci, je reviens vers vous sous 48 h.
                 </p>
                 <button
                   type="button"
                   onClick={() => setSubmitted(false)}
-                  className="mt-2 text-sm text-primary underline-offset-4 hover:underline"
+                  className="mt-2 text-[0.9375rem] text-primary underline-offset-4 hover:underline"
                 >
                   Écrire un autre message
                 </button>
@@ -600,7 +614,7 @@ function Contact() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Nom</FormLabel>
+                          <FormLabel className="text-[0.9375rem] font-medium">Nom</FormLabel>
                           <FormControl>
                             <Input placeholder="Votre nom" autoComplete="name" className={fieldClass} {...field} />
                           </FormControl>
@@ -613,7 +627,7 @@ function Contact() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Email</FormLabel>
+                          <FormLabel className="text-[0.9375rem] font-medium">Email</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
@@ -633,11 +647,11 @@ function Contact() {
                     name="message"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium">Message</FormLabel>
+                        <FormLabel className="text-[0.9375rem] font-medium">Message</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Votre message…"
-                            className="min-h-40 resize-none rounded-xl border-border bg-surface text-[15px] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary/30"
+                            className="min-h-40 resize-none rounded-xl border-border bg-surface text-[1.0625rem] placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary/30"
                             {...field}
                           />
                         </FormControl>
@@ -648,7 +662,7 @@ function Contact() {
                   <motion.button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-medium text-primary-foreground transition-colors duration-300 hover:bg-primary/90 disabled:opacity-60"
+                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-[1.0625rem] font-medium text-primary-foreground transition-colors duration-300 hover:bg-primary/90 disabled:opacity-60"
                     whileTap={{ scale: 0.99 }}
                     transition={{ duration: 0.2, ease: EASE }}
                   >

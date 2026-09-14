@@ -16,7 +16,7 @@ function Chip({ children, tone = "default" }: { children: React.ReactNode; tone?
     tone === "solid"
       ? "border-transparent bg-foreground/85 text-background backdrop-blur"
       : "border-border bg-background text-muted-foreground";
-  return <span className={`rounded-full border px-3 py-1 text-xs ${styles}`}>{children}</span>;
+  return <span className={`rounded-full border px-3 py-1 text-[0.8125rem] ${styles}`}>{children}</span>;
 }
 
 /**
@@ -82,8 +82,8 @@ export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () 
 
         <div className="flex flex-1 flex-col p-6">
           <h3 className="type-heading text-balance">{project.title}</h3>
-          <p className="mt-2 text-[15px] font-medium text-primary">{project.summary}</p>
-          <p className="mt-3 line-clamp-3 flex-1 text-[15px] leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-[1.0625rem] font-medium text-primary">{project.summary}</p>
+          <p className="mt-3 line-clamp-3 flex-1 text-[1.0625rem] leading-relaxed text-muted-foreground">
             {project.desc}
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
@@ -94,7 +94,7 @@ export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () 
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-border px-6 py-4 text-sm font-medium">
+        <div className="flex items-center justify-between border-t border-border px-6 py-4 text-[0.9375rem] font-medium">
           <span className="transition-colors duration-300 group-hover:text-primary">Voir le dossier</span>
           <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 group-hover:text-primary" />
         </div>
@@ -134,16 +134,16 @@ export function ProjectDossier({
               <DialogTitle className="type-title text-balance !text-[clamp(1.6rem,3vw,2.25rem)]">
                 {project.title}
               </DialogTitle>
-              <p className="mt-3 text-[15px] text-muted-foreground">{project.context}</p>
+              <p className="mt-3 text-[1.0625rem] text-muted-foreground">{project.context}</p>
 
-              <p className="mt-6 text-[15px] leading-relaxed text-pretty">{project.desc}</p>
+              <p className="mt-6 text-[1.0625rem] leading-relaxed text-pretty">{project.desc}</p>
 
               <div className="my-8 h-px w-full bg-border" />
 
               <p className="type-eyebrow text-muted-foreground">Ce que j'ai fait</p>
               <ul className="mt-4 space-y-2.5">
                 {project.highlights.map((h) => (
-                  <li key={h} className="flex gap-3 text-[15px] leading-relaxed text-muted-foreground">
+                  <li key={h} className="flex gap-3 text-[1.0625rem] leading-relaxed text-muted-foreground">
                     <Check className="mt-1 h-4 w-4 shrink-0 text-primary" />
                     <span className="text-pretty">{h}</span>
                   </li>
@@ -177,7 +177,7 @@ export function ProjectDossier({
               )}
 
               {!project.cover && (
-                <p className="mt-8 flex items-center gap-2 rounded-xl bg-subtle px-4 py-3 text-sm text-muted-foreground">
+                <p className="mt-8 flex items-center gap-2 rounded-xl bg-subtle px-4 py-3 text-[0.9375rem] text-muted-foreground">
                   <ImageIcon className="h-4 w-4 shrink-0" />
                   Photos du projet à venir.
                 </p>

@@ -74,7 +74,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       <a
         href="#contenu"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-foreground focus:px-4 focus:py-2 focus:text-sm focus:text-background"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-foreground focus:px-4 focus:py-2 focus:text-[0.9375rem] focus:text-background"
       >
         Aller au contenu
       </a>
@@ -92,7 +92,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <a
             href="#top"
             onClick={(e) => goTo(e, "#top")}
-            className="shrink-0 text-[15px] font-semibold tracking-[-0.02em]"
+            className="shrink-0 text-[1.0625rem] font-semibold tracking-[-0.02em]"
           >
             {profile.firstName} {profile.lastName}
           </a>
@@ -107,7 +107,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   onClick={(e) => goTo(e, item.href)}
                   aria-current={active ? "true" : undefined}
                   className={cn(
-                    "relative rounded-full px-3 py-1.5 text-[13px] transition-colors duration-300",
+                    "relative rounded-full px-3 py-1.5 text-[0.9375rem] transition-colors duration-300",
                     active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -129,7 +129,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <a
               href={`${b}${profile.cvFile}`}
               download="CV_Youri_Figuie.pdf"
-              className="hidden rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-medium text-foreground transition-colors duration-300 hover:bg-subtle sm:inline-flex"
+              className="hidden rounded-full border border-border bg-surface px-4 py-2 text-[0.9375rem] font-medium text-foreground transition-colors duration-300 hover:bg-subtle sm:inline-flex"
             >
               Mon CV
             </a>
@@ -202,11 +202,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <p className="text-xl font-semibold tracking-[-0.025em]">
                 {profile.firstName} {profile.lastName}
               </p>
-              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+              <p className="mt-1 max-w-sm text-[0.9375rem] text-muted-foreground">
                 BUT GEII · IUT de Montpellier — en recherche d'alternance 2026 — 2028.
               </p>
             </div>
-            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-[0.9375rem]">
               <a
                 href={`mailto:${profile.email}`}
                 className="text-muted-foreground transition-colors hover:text-foreground"
@@ -230,7 +230,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </a>
             </div>
           </div>
-          <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:justify-between">
+          <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-[0.8125rem] text-muted-foreground sm:flex-row sm:justify-between">
             <span>© {new Date().getFullYear()} {profile.firstName} {profile.lastName}</span>
             <span>{profile.location}</span>
           </div>
