@@ -150,13 +150,19 @@
     font-weight: 420;
   }
 
-  /* Petite étiquette de section — remplace l'ancien libellé « mono militaire » */
+  /*
+   * Libellé court au-dessus d'une liste (« Qualités », « Matières clés »).
+   * Volontairement PAS en capitales espacées : c'est le tic le plus reconnaissable
+   * des pages générées, et ça dégrade la lisibilité en projection par-dessus le
+   * marché — l'œil lit les mots par leur silhouette, que les capitales effacent.
+   * Réservé aux libellés qui portent une information ; jamais au-dessus d'un titre
+   * de section, où il ne ferait que répéter la navigation.
+   */
   .type-eyebrow {
-    font-size: 0.8125rem;
-    line-height: 1;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    font-weight: 650;
+    font-size: 0.9375rem;
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    font-weight: 600;
   }
 
   /* Surface carte standard de la DA */

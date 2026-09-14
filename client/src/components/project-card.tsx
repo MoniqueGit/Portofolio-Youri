@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Check, ImageIcon } from "lucide-react";
+import { Check, ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { RevealItem } from "@/components/motion";
 import type { Project } from "@/content/profile";
@@ -94,9 +94,12 @@ export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () 
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-border px-6 py-4 text-[0.9375rem] font-medium">
-          <span className="transition-colors duration-300 group-hover:text-primary">Voir le dossier</span>
-          <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 group-hover:text-primary" />
+        {/* Pas de flèche accolée au libellé : la carte entière est cliquable,
+            le soulignement au survol suffit à l'annoncer. */}
+        <div className="border-t border-border px-6 py-4 text-[0.9375rem] font-medium">
+          <span className="underline-offset-4 transition-colors duration-300 group-hover:text-primary group-hover:underline">
+            Voir le dossier
+          </span>
         </div>
       </button>
     </RevealItem>

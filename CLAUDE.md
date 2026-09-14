@@ -77,6 +77,31 @@
 - Toute nouvelle animation réutilise `EASE` et les composants de `motion.tsx`.
 - Ne pas réintroduire le vert tactique, Space Grotesk, JetBrains Mono ni les libellés monospace.
 
+### Tics à ne pas réintroduire (audit du 14/09/2026 via le skill `frontend-design`)
+Ces huit motifs avaient été repérés sur le site et retirés. Ce sont les marqueurs les
+plus reconnaissables d'une page générée : ils reviennent tout seuls si on n'y pense pas.
+1. **Étiquette en CAPITALES espacées au-dessus d'un titre de section.** La navigation
+   nomme déjà la section. `.type-eyebrow` existe encore, mais en casse normale et
+   uniquement pour un libellé qui annonce une liste (« Qualités », « Matières clés »).
+2. **Marqueurs numérotés 01/02/03** sur du contenu qui n'est pas une séquence.
+   Les quatre arguments de « Pourquoi me choisir » ne sont pas quatre étapes.
+3. **Méta-infos jointes par des points médians** (`A · B · C`). Écrire une phrase.
+4. **Libellés `MOT — fragment`** au tiret cadratin. Le tiret cadratin reste
+   légitime comme ponctuation dans une phrase, pas comme colle à étiquettes.
+   Les plages de dates s'écrivent `2026–2028` (demi-cadratin, sans espaces)
+   ou « Depuis 2025 ».
+5. **`→` accolé au texte d'un bouton ou d'un lien.** Le libellé dit déjà l'action.
+   Une flèche reste justifiée quand elle porte une information : `ArrowUpRight` sur
+   un lien externe, `ArrowDown` sur une invitation à défiler.
+6. **Cartes toutes identiques** : même rayon, même ombre, quel que soit le niveau
+   hiérarchique.
+7. **Apparition fondu-glissé sur chaque section.**
+8. **Survol animé sur chaque carte.**
+
+Les points 6 à 8 n'ont PAS été corrigés : Youri a choisi une correction limitée aux
+tics d'écriture le 14/09/2026, pour ne pas toucher à la mise en page. À reprendre si
+la question revient.
+
 ---
 
 ## Git

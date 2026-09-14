@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
-import { Menu, X, ArrowUpRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navItems, profile } from "@/content/profile";
 import { EASE } from "@/components/motion";
@@ -168,13 +168,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   onClick={(e) => goTo(e, item.href)}
-                  className="flex items-baseline justify-between border-b border-border/70 py-5 text-3xl font-semibold tracking-[-0.03em]"
+                  className="border-b border-border/70 py-5 text-3xl font-semibold tracking-[-0.03em]"
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 + i * 0.05, duration: 0.5, ease: EASE }}
                 >
                   {item.label}
-                  <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
                 </motion.a>
               ))}
               <motion.a
@@ -203,7 +202,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {profile.firstName} {profile.lastName}
               </p>
               <p className="mt-1 max-w-sm text-[0.9375rem] text-muted-foreground">
-                BUT GEII · IUT de Montpellier — en recherche d'alternance 2026 — 2028.
+                BUT GEII à l'IUT de Montpellier. En recherche d'alternance pour 2026 à 2028.
               </p>
             </div>
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-[0.9375rem]">

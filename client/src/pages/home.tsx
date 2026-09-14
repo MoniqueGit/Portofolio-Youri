@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  ArrowDown, ArrowRight, ArrowUpRight, Check, Download,
+  ArrowDown, ArrowUpRight, Check, Download,
   Linkedin, Loader2, type LucideIcon,
 } from "lucide-react";
 
@@ -34,21 +34,23 @@ const contactSchema = z.object({
 
 /* ── Briques de mise en page ──────────────────────────────────────────────── */
 
+/*
+ * Titre de section. Pas d'étiquette au-dessus : la navigation nomme déjà la
+ * section, et un libellé qui répète le titre n'apporte rien. Le titre et son
+ * chapô doivent se suffire.
+ */
 function SectionHeader({
-  eyebrow,
   title,
   lead,
   className = "",
 }: {
-  eyebrow: string;
   title: string;
   lead?: string;
   className?: string;
 }) {
   return (
     <Reveal className={`max-w-3xl ${className}`}>
-      <p className="type-eyebrow text-primary">{eyebrow}</p>
-      <h2 className="type-title mt-4 text-balance">{title}</h2>
+      <h2 className="type-title text-balance">{title}</h2>
       {lead && <p className="type-lead mt-5 text-muted-foreground text-pretty">{lead}</p>}
     </Reveal>
   );
@@ -151,17 +153,8 @@ function Hero() {
       <motion.div className="relative z-10 mx-auto w-full max-w-6xl" style={style}>
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16">
           <div>
-            <motion.p
-              className="type-eyebrow text-balance text-primary"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: EASE, delay: 0.05 }}
-            >
-              Systèmes embarqués · Électronique · Défense
-            </motion.p>
-
             <motion.h1
-              className="type-display mt-5"
+              className="type-display"
               initial={{ opacity: 0, y: 26, filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 1, ease: EASE, delay: 0.1 }}
@@ -186,9 +179,7 @@ function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: EASE, delay: 0.38 }}
             >
-              <PillLink href="#contact" icon={ArrowRight}>
-                Me contacter
-              </PillLink>
+              <PillLink href="#contact">Me contacter</PillLink>
               <PillLink
                 href={`${b}${profile.cvFile}`}
                 download="CV_Youri_Figuie.pdf"
@@ -267,7 +258,7 @@ function Highlights() {
 function About() {
   return (
     <Section id="profil">
-      <SectionHeader eyebrow="Profil" title="Apprendre en faisant, pas seulement en écoutant." lead={about.intro} />
+      <SectionHeader title="Apprendre en faisant, pas seulement en écoutant." lead={about.intro} />
 
       <RevealGroup className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {about.facts.map((fact) => (
@@ -297,7 +288,6 @@ function Journey() {
   return (
     <Section id="parcours" className="bg-surface border-y border-border">
       <SectionHeader
-        eyebrow="Parcours"
         title="Expériences"
         lead="Trois environnements très différents, un même fil conducteur : faire ce qui est demandé, correctement, avec l'équipe."
       />
@@ -329,7 +319,7 @@ function Journey() {
         ))}
       </div>
 
-      <SectionHeader eyebrow="Formation" title="Diplômes" className="mt-24 sm:mt-32" />
+      <SectionHeader title="Formation" className="mt-24 sm:mt-32" />
 
       <RevealGroup className="mt-12 grid gap-4 lg:grid-cols-2">
         {education.map((edu) => (
@@ -365,7 +355,6 @@ function Skills() {
   return (
     <Section id="competences">
       <SectionHeader
-        eyebrow="Compétences"
         title="Ce que je sais faire aujourd'hui."
         lead="Des acquis de première année de BUT, complétés par ce que j'explore de mon côté. Ni plus, ni moins."
       />
@@ -413,7 +402,6 @@ function Projects() {
   return (
     <Section id="projets" className="bg-surface border-y border-border">
       <SectionHeader
-        eyebrow="Projets académiques"
         title="Ce que j'ai conçu, soudé et débogué."
         lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype. Ouvrez un dossier pour le détail."
       />
@@ -425,7 +413,6 @@ function Projects() {
       </RevealGroup>
 
       <SectionHeader
-        eyebrow="Projets personnels"
         title="Et ce que je fais en dehors des cours."
         lead="Des projets lancés de ma propre initiative, parce que la curiosité ne s'arrête pas à la fin du TD."
         className="mt-24 sm:mt-32"
@@ -447,7 +434,7 @@ function Projects() {
 function Alternance() {
   return (
     <Section id="alternance">
-      <SectionHeader eyebrow="Alternance 2026 — 2028" title="Pourquoi je cherche une alternance." lead={alternance.intro} />
+      <SectionHeader title="Pourquoi je cherche une alternance de 2026 à 2028." lead={alternance.intro} />
 
       <RevealGroup className="mt-14 grid gap-4 lg:grid-cols-2">
         {alternance.arguments.map((arg) => (
@@ -460,7 +447,7 @@ function Alternance() {
 
       <Reveal className="mt-4">
         <div className="surface-card p-8">
-          <p className="type-eyebrow text-muted-foreground">Missions visées — technicien supérieur</p>
+          <p className="type-eyebrow text-muted-foreground">Missions visées comme technicien supérieur</p>
           <div className="mt-5 flex flex-wrap gap-2">
             {alternance.missions.map((m) => (
               <Tag key={m}>{m}</Tag>
@@ -482,16 +469,14 @@ function WhyMe() {
           <InkBackdrop />
 
           <div className="relative z-10">
-          <p className="type-eyebrow text-primary-foreground/75">Pourquoi me choisir</p>
-          <h2 className="type-title mt-4 max-w-2xl text-balance">
+          <h2 className="type-title max-w-2xl text-balance">
             Quatre raisons, et aucune n'est du remplissage.
           </h2>
 
           <RevealGroup className="mt-14 grid gap-x-12 gap-y-12 sm:grid-cols-2">
             {whyMe.map((item) => (
-              <RevealItem key={item.num}>
-                <p className="text-[0.9375rem] tabular-nums text-ink-foreground/60">{item.num}</p>
-                <h3 className="mt-3 text-xl font-semibold tracking-[-0.025em] text-balance">{item.title}</h3>
+              <RevealItem key={item.title}>
+                <h3 className="text-xl font-semibold tracking-[-0.025em] text-balance">{item.title}</h3>
                 <p className="mt-3 text-[1.0625rem] leading-relaxed text-ink-foreground/78 text-pretty">{item.desc}</p>
               </RevealItem>
             ))}
@@ -546,7 +531,6 @@ function Contact() {
       <div className="grid gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
         <div>
           <SectionHeader
-            eyebrow="Contact"
             title="Parlons de votre alternance."
             lead="Une question, une offre, un besoin de précisions sur mon profil ? Je réponds sous 48 h."
           />
@@ -672,10 +656,7 @@ function Contact() {
                         Envoi en cours…
                       </>
                     ) : (
-                      <>
-                        Envoyer le message
-                        <ArrowRight className="h-4 w-4" />
-                      </>
+                      "Envoyer le message"
                     )}
                   </motion.button>
                 </form>

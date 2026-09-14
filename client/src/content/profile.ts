@@ -12,7 +12,7 @@ import {
 export const profile = {
   firstName: "Youri",
   lastName: "Figuié",
-  title: "Étudiant en BUT GEII — systèmes embarqués & électronique",
+  title: "Étudiant en BUT GEII, spécialité systèmes embarqués et électronique",
   tagline:
     "Je conçois, soude et teste des cartes électroniques. Je cherche une alternance de 2026 à 2028 pour mettre cette pratique au service d'une vraie équipe.",
   email: "youri.figuie@etu.umontpellier.fr",
@@ -28,9 +28,9 @@ export const profile = {
 /** Bandeau de caractéristiques sous le hero — lecture en 3 secondes. */
 export const highlights: { value: string; label: string }[] = [
   { value: "BUT GEII", label: "IUT de Montpellier" },
-  { value: "2026 — 2028", label: "Alternance recherchée" },
-  { value: "Montpellier", label: "Mobilité · Permis B" },
-  { value: "Réserviste", label: "3ᵉ RPIMa · Armée de Terre" },
+  { value: "2026–2028", label: "Alternance recherchée" },
+  { value: "Montpellier", label: "Mobile, permis B" },
+  { value: "Réserviste", label: "Armée de Terre, 3ᵉ RPIMa" },
 ];
 
 export const about = {
@@ -38,9 +38,9 @@ export const about = {
     "Technicien supérieur en formation en Génie Électrique et Informatique Industrielle à l'IUT de Montpellier, je me spécialise dans les systèmes embarqués. Je recherche une alternance pour confronter la théorie à la réalité d'une entreprise.",
   facts: [
     { label: "Qualités", items: ["Rigoureux et curieux", "En quête d'apprentissage constant"] },
-    { label: "Langues", items: ["Français — natif", "Anglais — B2 technique"] },
+    { label: "Langues", items: ["Français, langue maternelle", "Anglais, niveau B2 technique"] },
     { label: "Centres d'intérêt", items: ["Bivouac et randonnée", "Musculation", "Nouvelles technologies"] },
-    { label: "Informations", items: ["Prades-Le-Lez (34)", "19 ans · Permis B", "Alternance 2026 — 2028"] },
+    { label: "Informations", items: ["Prades-Le-Lez (34)", "19 ans, permis B", "Alternance de 2026 à 2028"] },
   ],
 };
 
@@ -78,8 +78,8 @@ export type Experience = {
 export const experiences: Experience[] = [
   {
     role: "Réserviste opérationnel",
-    company: "Armée de Terre — 3ᵉ RPIMa, Carcassonne",
-    period: "2025 — Présent",
+    company: "Armée de Terre, 3ᵉ RPIMa, Carcassonne",
+    period: "Depuis 2025",
     tags: ["Défense", "Discipline", "Engagement"],
     bullets: [
       "Engagement opérationnel au sein du 3ᵉ RPIMa, avec application stricte des procédures et protocoles militaires.",
@@ -90,8 +90,8 @@ export const experiences: Experience[] = [
   },
   {
     role: "Figurant",
-    company: "France Télévisions — « Karma, trop jeunes pour se taire »",
-    period: "2025 — 2026",
+    company: "France Télévisions, « Karma, trop jeunes pour se taire »",
+    period: "2025 à 2026",
     tags: ["Travail en équipe", "Adaptabilité", "Cadre professionnel"],
     bullets: [
       "Participation à un tournage professionnel long format, aux côtés d'équipes techniques et artistiques structurées.",
@@ -124,7 +124,7 @@ export const education: Education[] = [
   {
     degree: "BUT Génie Électrique et Informatique Industrielle",
     school: "IUT de Montpellier",
-    period: "2025 — Présent",
+    period: "Depuis 2025",
     detail: "Spécialisation systèmes embarqués et électronique industrielle.",
     modules: [
       "Programmation systèmes (C / Python)",
@@ -134,9 +134,9 @@ export const education: Education[] = [
     ],
   },
   {
-    degree: "Baccalauréat général — Mathématiques & NSI",
+    degree: "Baccalauréat général, spécialités mathématiques et NSI",
     school: "Lycée Jean Jaurès",
-    period: "2022 — 2025",
+    period: "2022 à 2025",
     detail: "Mention Assez Bien.",
     modules: [],
   },
@@ -231,7 +231,7 @@ export const academicProjects: Project[] = [
     summary: "Du schéma au prototype fonctionnel.",
     desc: "Conception d'un circuit électronique complet : intégration des composants, tests de fonctionnement et correction des bugs électroniques.",
     tags: ["Électronique", "PCB", "Hardware"],
-    context: "Projet mené en BUT GEII — IUT de Montpellier.",
+    context: "Projet mené en BUT GEII, à l'IUT de Montpellier.",
     highlights: [
       "Conception du circuit électronique complet.",
       "Intégration des composants sur la carte.",
@@ -247,7 +247,7 @@ export const academicProjects: Project[] = [
     summary: "Soudure fine et validation logicielle.",
     desc: "Assemblage et soudure d'une carte STM32, contrôle des connexions et validation du fonctionnement en langage C (STMicroelectronics).",
     tags: ["STM32", "C", "Embarqué", "Soudure"],
-    context: "Projet mené en BUT GEII — IUT de Montpellier, sur matériel STMicroelectronics.",
+    context: "Projet mené en BUT GEII, à l'IUT de Montpellier, sur matériel STMicroelectronics.",
     highlights: [
       "Assemblage et soudure des composants de la carte.",
       "Contrôle des connexions avant mise sous tension.",
@@ -262,7 +262,7 @@ export const academicProjects: Project[] = [
     summary: "Zéro microcontrôleur, tout en analogique.",
     desc: "Conception d'un robot analogique avec capteurs de ligne, réglages électroniques fins et tests prototype jusqu'à la validation finale.",
     tags: ["Robotique", "Capteurs", "Analogique"],
-    context: "Projet mené en BUT GEII — IUT de Montpellier.",
+    context: "Projet mené en BUT GEII, à l'IUT de Montpellier.",
     highlights: [
       "Conception d'un robot entièrement analogique.",
       "Intégration et câblage des capteurs de ligne.",
@@ -308,7 +308,7 @@ export const personalProjects: Project[] = [
   },
   {
     slug: "nlmb-collection",
-    title: "NLMB — Collection",
+    title: "Collection NLMB",
     icon: Shirt,
     origin: "Projet perso",
     status: "Réalisé",
@@ -325,24 +325,21 @@ export const personalProjects: Project[] = [
   },
 ];
 
+/* Quatre arguments, pas quatre étapes : volontairement non numérotés. */
 export const whyMe = [
   {
-    num: "01",
     title: "Des bases concrètes, dès la première année",
     desc: "En BUT GEII, j'ai déjà conçu des circuits, soudé des cartes STM32 et fabriqué un robot suiveur de ligne. J'arrive avec de la pratique réelle, pas uniquement de la théorie.",
   },
   {
-    num: "02",
     title: "De l'engagement et de la rigueur acquis sur le terrain",
     desc: "Réserviste au 3ᵉ RPIMa, j'ai appris à respecter les procédures, rester calme sous pression et être fiable dans un cadre exigeant. Des réflexes qui s'appliquent partout.",
   },
   {
-    num: "03",
     title: "Une curiosité qui ne s'arrête pas au cours",
     desc: "Système RFID en C++, automatisation n8n, tableau de bord Atlas : j'explore en dehors des cours, parce que ça m'intéresse vraiment. L'apprentissage est un moteur, pas une contrainte.",
   },
   {
-    num: "04",
     title: "Un cap défini, une motivation sincère",
     desc: "Je sais dans quelle direction je veux aller : les systèmes embarqués, l'électronique, la défense. C'est une orientation claire que j'assume et que je construis chaque jour.",
   },

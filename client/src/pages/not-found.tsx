@@ -6,8 +6,7 @@ export default function NotFound() {
   return (
     <div className="bg-halo flex min-h-screen w-full items-center justify-center px-6">
       <div className="max-w-md text-center">
-        <p className="type-eyebrow text-primary">Erreur 404</p>
-        <h1 className="type-title mt-4 text-balance">Cette page n'existe pas.</h1>
+        <h1 className="type-title text-balance">Cette page n'existe pas.</h1>
         <p className="mt-5 text-[1.0625rem] text-muted-foreground">
           Le lien est peut-être erroné ou la page a été déplacée.
         </p>
