@@ -53,6 +53,8 @@
     (Readout, Parallax, `useInclinaison`, EASE)
   - `client/src/components/cursor.tsx` — réticule de visée et `useAimant`
     (aimantation des commandes). Désactivés au doigt et en mouvement réduit.
+  - `client/src/components/board-3d.tsx` — carte électronique filaire en 3D
+    réelle (rotation + projection perspective écrites à la main, ~3 ko)
   - `client/src/index.css` — tokens de couleur, échelle typographique, utilitaires
   - `client/index.html` — métadonnées SEO, import Google Fonts
 
@@ -141,6 +143,8 @@ contredisent donc pas la règle du moment orchestré unique.
 | Inclinaison 3D des vignettes | `useInclinaison`, ±5,5° | idem |
 | Pile de cartes au défilement | `ProjectStack`, projets académiques | **CSS pur** (`position: sticky`), zéro JS au scroll |
 | Fondu entre les pages | `App.tsx` | `opacity` seule, 0,22 s |
+| Carte 3D en arrière-plan | hero (bas-gauche) et page Collins | **0,6 img/s** mesurées |
+| Titres de section révélés | `SectionHeader`, cache `.po-ligne` | `transform` seule, une fois |
 
 Trois règles à ne pas défaire :
 - **La course de l'aimantation est bornée.** Sans butée, un bouton large se décalait
@@ -163,6 +167,7 @@ banc (Playwright + compteur de frames + désactivation d'un coupable à la fois)
 | Flou `backdrop-filter` sur une barre collante | −4 fps |
 | Impulsions SVG en `stroke-dashoffset` | négligeable, mais tournaient en continu |
 | `mix-blend-mode` sur le réticule | −2,3 fps (mesuré le 15/09/2026, retiré) |
+| Carte 3D en canvas, une image sur deux | −0,6 fps (mesuré le 15/09/2026, gardé) |
 
 **La règle, non négociable** : seules `transform` et `opacity` s'animent sur le
 compositeur. Tout le reste — `font-stretch`, `letter-spacing`, `clip-path`,
@@ -185,6 +190,33 @@ Conséquences appliquées, à ne pas défaire :
 **Avant de pousser une animation** : mesurer. Le script de banc est reproductible —
 compter les images rendues pendant un scroll scripté, avec `Emulation.setCPUThrottlingRate`
 à 4. Cible : 60 fps sur les deux pages, en mobile comme en bureau.
+
+### L'arrière-plan 3D
+`board-3d.tsx` dessine une carte électronique filaire avec ses composants en volume :
+rotation lente, projection perspective, opacité décroissante avec la profondeur.
+
+**Écrit à la main, sans Three.js.** Une bibliothèque 3D pèse ~600 ko pour un décor ;
+la scène tient en quelques dizaines d'arêtes, donc la matrice de rotation et la
+division par la profondeur font ~3 ko. Coût mesuré le 15/09/2026 : **0,6 image/s**
+(59,2 contre 59,8, processeur ×4). Ne pas remplacer par une bibliothèque.
+
+Trois garde-fous dans le composant, à ne pas retirer :
+- rendu **une image sur deux** (la rotation est lente, personne ne voit la différence) ;
+- boucle **arrêtée** quand l'onglet est caché ou le décor hors écran
+  (`IntersectionObserver` + `visibilitychange`) ;
+- densité de pixels **plafonnée à 1,4** — au-delà on quadruple le coût de remplissage.
+
+**Où la placer.** Jamais derrière du texte : la règle de vidéoprojection prime. Le
+hero de l'accueil est dense (grand nom + portrait + trois boutons), la carte y est
+donc reléguée en BAS À GAUCHE, coupée par le bord — une première tentative à droite
+la rendait invisible derrière le portrait. Sur `/collins`, la marge droite est libre :
+elle y est grande et en cyan EFIS.
+
+### Hébergement : Vercel ne change rien aux animations
+Question posée par Youri le 15/09/2026, à ressortir si elle revient. GSAP, Three.js,
+WebGL et toute la 3D s'exécutent dans le NAVIGATEUR du visiteur. GitHub Pages et
+Vercel servent les mêmes fichiers statiques. Changer d'hébergeur n'ouvre aucune
+possibilité d'animation — ça ne ferait que déplacer le déploiement.
 
 ### Briefs externes : ce qui a été refusé
 Youri transmet parfois des prompts produits par un autre modèle. Ils décrivent
@@ -221,7 +253,10 @@ dans la stack existante et sur la DA claire.
 5. `→` accolé au texte d'un bouton. Une flèche reste justifiée quand elle porte
    une information : lien externe, changement de page, retour.
 6. Cartes toutes identiques, même rayon, même ombre.
-7. Apparition fondu-glissé sur chaque section.
+7. Apparition fondu-glissé sur chaque section — ⚠ nuance depuis le 15/09/2026 :
+   les TITRES de section montent derrière un cache (`.po-ligne`, le même geste que
+   le nom du hero), une seule fois. Le texte courant, lui, est présent d'emblée :
+   il doit pouvoir être lu et projeté sans attendre une animation.
 8. Survol animé sur chaque carte — ⚠ exception assumée depuis le 15/09/2026 :
    Youri a explicitement demandé des micro-interactions au survol. L'inclinaison 3D
    est donc autorisée, parce qu'elle RÉPOND au pointeur au lieu de rejouer une

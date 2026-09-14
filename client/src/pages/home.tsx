@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Link } from "wouter";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useInView, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -59,10 +59,30 @@ function Section({
   );
 }
 
+/**
+ * En-tête de section. Le titre MONTE derrière un cache à l'arrivée à l'écran —
+ * le même geste que le nom dans le hero, pas un fondu-glissé générique. Une
+ * seule fois, et seulement sur le titre : le texte courant, lui, est là tout
+ * de suite, parce qu'il doit pouvoir être lu et projeté sans attendre.
+ */
 function SectionHeader({ title, lead }: { title: string; lead?: string }) {
+  const hote = useRef<HTMLDivElement>(null);
+  const vu = useInView(hote, { once: true, margin: "0px 0px -14% 0px" });
+
   return (
-    <div className="max-w-3xl">
-      <h2 className="type-title text-balance">{title}</h2>
+    <div ref={hote} className="max-w-3xl">
+      <h2 className="type-title text-balance">
+        <span className="po-ligne">
+          <span
+            style={{
+              animation: vu ? "po-monte .95s var(--ease-out-expo) both" : "none",
+              transform: vu ? undefined : "translateY(110%)",
+            }}
+          >
+            {title}
+          </span>
+        </span>
+      </h2>
       {lead && <p className="type-lead mt-5 text-muted-foreground text-pretty">{lead}</p>}
     </div>
   );

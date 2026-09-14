@@ -1,4 +1,5 @@
 import { type CSSProperties } from "react";
+import { Board3D } from "@/components/board-3d";
 
 /**
  * Arrière-plan : réseau de pistes de circuit imprimé.
@@ -70,14 +71,20 @@ export function CircuitTraces({ className = "" }: { className?: string }) {
 }
 
 /**
- * Fond du hero. Statique : aucun masque, aucune parallaxe, aucun écouteur de
- * scroll. Masqué sous 1024 px — sur un téléphone, un décor de fond est la
- * première chose à couper, et c'est là que la fluidité compte le plus.
+ * Fond du hero : les pistes plates, plus la même carte vue en volume.
+ *
+ * Toujours aucun masque ni parallaxe ici — la leçon du 14/09 tient. La carte
+ * 3D est volontairement débordante à droite : un objet coupé par le bord se
+ * lit comme un cadrage, là où un objet entier et centré ferait vignette.
+ *
+ * Masqué sous 1024 px : sur un téléphone, un décor est la première chose à
+ * couper, et c'est là que la fluidité compte le plus.
  */
 export function HeroBackdrop() {
   return (
     <div className="backdrop-layer hidden lg:block" aria-hidden="true">
       <CircuitTraces />
+      <Board3D className="absolute -bottom-[22rem] -left-[18rem] h-[46rem] w-[46rem]" />
     </div>
   );
 }

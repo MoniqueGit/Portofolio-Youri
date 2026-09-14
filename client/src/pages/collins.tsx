@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Readout } from "@/components/motion";
 import { CircuitTraces } from "@/components/backdrop";
+import { Board3D } from "@/components/board-3d";
 import { collins, alternance } from "@/content/collins";
 import { profile } from "@/content/profile";
 
@@ -73,6 +74,10 @@ export default function Collins() {
           aria-hidden="true"
         >
           <CircuitTraces />
+          {/* Le panneau sombre est le seul endroit du site où un décor peut
+              vraiment respirer : la marge droite y est libre sur toute la
+              hauteur du bandeau d'ouverture. */}
+          <Board3D tone="panneau" className="absolute -right-40 top-0 h-[42rem] w-[42rem]" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-5xl px-5 py-20 sm:px-8 sm:py-28">
