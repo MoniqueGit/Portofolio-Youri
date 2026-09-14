@@ -96,15 +96,15 @@ export const collins = {
 /**
  * Ce que Youri fait chez Collins.
  *
- * ⚠ À COMPLÉTER PAR YOURI. Je n'invente pas un poste, un site ni des missions :
- * un tuteur d'alternance lit ce genre de page. Tant que `missions` est vide, la
- * page affiche une ligne honnête au lieu d'un contenu fabriqué.
+ * Poste et site renseignés par Youri le 14/09/2026.
+ * ⚠ `missions` et `takeaways` restent À COMPLÉTER PAR LUI. Je n'invente pas des
+ * missions : un tuteur d'alternance lit ce genre de page. Tant que la liste est
+ * vide, la page affiche le poste et s'arrête là, sans contenu fabriqué.
  */
 export const alternance = {
-  role: "Alternant",
+  role: "Technicien de maintenance électronique",
   start: "2026",
-  /** Ex. : "Blagnac", "Toulouse". Laisser vide si non renseigné. */
-  location: "",
+  location: "Blagnac",
   /** Ex. : "Bureau d'études avionique". Laisser vide si non renseigné. */
   team: "",
   /** Trois à cinq missions concrètes, à la première personne. */

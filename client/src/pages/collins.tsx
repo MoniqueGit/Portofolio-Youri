@@ -166,13 +166,14 @@ export default function Collins() {
           <section className="mt-20 sm:mt-28">
             <h2 className="type-heading">Ce que j'y fais</h2>
 
+            <p className="mt-5 text-[1.0625rem] text-white/60">
+              <span className="font-semibold text-white">{alternance.role}</span>
+              {alternance.team && `, ${alternance.team}`}
+              {alternance.location && `, site de ${alternance.location}`}. Depuis {alternance.start}.
+            </p>
+
             {renseignee ? (
               <>
-                <p className="type-data mt-4 text-[1.0625rem] text-white/55">
-                  {alternance.role}
-                  {alternance.team && `, ${alternance.team}`}
-                  {alternance.location && `, ${alternance.location}`} — depuis {alternance.start}
-                </p>
                 <ul className="mt-8 space-y-0">
                   {alternance.missions.map((m) => (
                     <li key={m} className="border-t border-white/12 py-5">
@@ -195,10 +196,9 @@ export default function Collins() {
                 )}
               </>
             ) : (
-              /* Pas de contenu fabriqué : un tuteur d'alternance lit cette page. */
-              <p className="mt-6 max-w-2xl border-l-2 border-[hsl(var(--caution))] pl-5 text-white/68">
-                Section en cours de rédaction. Mon alternance a démarré en {alternance.start} dans le
-                cadre du BUT GEII.
+              /* Pas de missions fabriquées : un tuteur d'alternance lit cette page. */
+              <p className="mt-8 max-w-2xl border-l-2 border-[hsl(var(--caution))] pl-5 text-white/68">
+                Le détail de mes missions arrive prochainement.
               </p>
             )}
           </section>

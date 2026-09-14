@@ -12,9 +12,9 @@ import {
 export const profile = {
   firstName: "Youri",
   lastName: "Figuié",
-  title: "Alternant chez Collins Aerospace, étudiant en BUT GEII",
+  title: "Technicien de maintenance électronique en alternance chez Collins Aerospace",
   tagline:
-    "Je conçois, soude et teste des cartes électroniques. Depuis 2026, je le fais en alternance chez Collins Aerospace, l'un des plus gros équipementiers aéronautiques au monde.",
+    "Technicien de maintenance électronique en alternance chez Collins Aerospace, sur le site de Blagnac. Le reste du temps, étudiant en BUT GEII à Montpellier.",
   email: "youri.figuie@etu.umontpellier.fr",
   phone: "06 47 20 91 58",
   phoneHref: "tel:+33647209158",
@@ -27,15 +27,15 @@ export const profile = {
 
 /** Bandeau de caractéristiques sous le hero — lecture en 3 secondes. */
 export const highlights: { value: string; label: string }[] = [
-  { value: "Collins Aerospace", label: "Alternant depuis 2026" },
+  { value: "Collins Aerospace", label: "Maintenance électronique, Blagnac" },
   { value: "BUT GEII", label: "IUT de Montpellier" },
+  { value: "Depuis 2026", label: "En alternance" },
   { value: "Réserviste", label: "Armée de Terre, 3ᵉ RPIMa" },
-  { value: "Montpellier", label: "Mobile, permis B" },
 ];
 
 export const about = {
   intro:
-    "Technicien supérieur en formation en Génie Électrique et Informatique Industrielle à l'IUT de Montpellier, je me spécialise dans les systèmes embarqués. Depuis 2026, je partage mon temps entre l'IUT et Collins Aerospace.",
+    "Technicien supérieur en formation en Génie Électrique et Informatique Industrielle à l'IUT de Montpellier, je me spécialise dans les systèmes embarqués. Depuis 2026, je partage mon temps entre l'IUT et le site Collins Aerospace de Blagnac, comme technicien de maintenance électronique.",
   facts: [
     { label: "Qualités", items: ["Rigoureux et curieux", "En quête d'apprentissage constant"] },
     { label: "Langues", items: ["Français, langue maternelle", "Anglais, niveau B2 technique"] },
@@ -86,10 +86,10 @@ export type Experience = {
 
 export const experiences: Experience[] = [
   {
-    role: "Alternant",
-    company: "Collins Aerospace",
+    role: "Technicien de maintenance électronique",
+    company: "Collins Aerospace, Blagnac",
     period: "Depuis 2026",
-    tags: ["Aéronautique", "Systèmes embarqués", "BUT GEII"],
+    tags: ["Alternance", "Aéronautique", "Maintenance électronique"],
     // Missions volontairement non listées ici : elles vivent sur la page dédiée,
     // et restent à renseigner par Youri dans content/collins.ts.
     bullets: [],

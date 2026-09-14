@@ -6,7 +6,7 @@
 - **Tél** : 06 47 20 91 58
 - **LinkedIn** : linkedin.com/in/youri-fg/
 - **GitHub** : github.com/MoniqueGit/Portofolio-Youri
-- **Lieu** : Prades-Le-Lez (34730)
+- **Lieu** : Prades-Le-Lez (34730) · travaille à Blagnac (31)
 - **Âge** : 19 ans · Permis B
 
 ## Formation
@@ -16,9 +16,10 @@
   candidature mais une vitrine : décision de Youri du 14/09/2026)
 
 ## Expériences réelles
-1. **Alternant — Collins Aerospace — depuis 2026** (poste actuel). Poste exact, site,
-   équipe et missions : À RENSEIGNER par Youri dans `client/src/content/collins.ts`.
-   Ne rien inventer, un tuteur d'alternance lit cette page.
+1. **Technicien de maintenance électronique — Collins Aerospace, site de Blagnac —
+   depuis 2026** (poste actuel). Équipe et **missions détaillées** restent à
+   renseigner par Youri dans `client/src/content/collins.ts`. Ne rien inventer :
+   un tuteur d'alternance lit cette page.
 2. Réserviste Opérationnel — Armée de Terre, 3e RPIMa, Carcassonne — 2025/Présent
 3. Figurant — France Télévisions, "Karma - Trop jeunes pour se taire" — 2025-2026
 4. Hôte de caisse polyvalent — Log'in Solutions, Prades-Le-Lez — 2024
