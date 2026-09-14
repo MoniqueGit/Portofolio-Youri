@@ -49,7 +49,10 @@
   - `client/src/pages/home.tsx` — assemblage des sections (mise en forme uniquement)
   - `client/src/pages/collins.tsx` — page dédiée `/collins`, seul panneau sombre
   - `client/src/components/layout.tsx` — header / menu mobile / footer
-  - `client/src/components/motion.tsx` — primitives d'animation partagées (Reveal, Parallax, EASE)
+  - `client/src/components/motion.tsx` — primitives d'animation partagées
+    (Readout, Parallax, `useInclinaison`, EASE)
+  - `client/src/components/cursor.tsx` — réticule de visée et `useAimant`
+    (aimantation des commandes). Désactivés au doigt et en mouvement réduit.
   - `client/src/index.css` — tokens de couleur, échelle typographique, utilitaires
   - `client/index.html` — métadonnées SEO, import Google Fonts
 
@@ -116,17 +119,39 @@ un rectangle blanc. Bug constaté le 14/09/2026. Ne jamais renommer `.bloc` en `
 ### Motion design — UN seul moment orchestré
 `client/src/index.css`, classes `po-*`. À l'ouverture, la page joue un **auto-test
 d'allumage** (~1,8 s, jamais rejoué) : la réglette s'allume de haut en bas, la ligne
-d'horizon se trace, le nom **s'élargit** de 62 % à 112 % de chasse pendant qu'il
-apparaît (effet permis par l'axe variable — sans la police, il ne reste qu'un fondu),
-puis le reste se pose.
+d'horizon se trace, le nom **monte derrière un cache**, ligne après ligne, pendant
+que l'ensemble **s'élargit** (`transform: scaleX`), puis le reste se pose.
 
 Partout ailleurs, le mouvement **répond à une action** de l'utilisateur. Exceptions
 assumées : les relevés chiffrés de la page Collins qui se stabilisent à l'entrée à
 l'écran (`Readout` — le mouvement MONTRE la valeur qui arrive), et les impulsions des
 pistes de circuit en arrière-plan.
 
-**Interdit** : apparition fondu-glissé sur chaque section, survol animé sur chaque
-carte. C'est le défaut générique, retiré volontairement.
+**Interdit** : apparition fondu-glissé sur chaque section. C'est le défaut générique,
+retiré volontairement.
+
+### Interactions au pointeur (demande de Youri du 15/09/2026)
+Toutes RÉPONDENT à une action — elles ne rejouent pas une apparition, et ne
+contredisent donc pas la règle du moment orchestré unique.
+
+| Effet | Où | Coût |
+|---|---|---|
+| Réticule de visée | tout le site, `cursor.tsx` | une `transform`, boucle arrêtée à l'arrêt |
+| Aimantation des boutons | `PillLink`, course bornée à 14 px | rectangle mesuré à l'entrée, pas par image |
+| Inclinaison 3D des vignettes | `useInclinaison`, ±5,5° | idem |
+| Pile de cartes au défilement | `ProjectStack`, projets académiques | **CSS pur** (`position: sticky`), zéro JS au scroll |
+| Fondu entre les pages | `App.tsx` | `opacity` seule, 0,22 s |
+
+Trois règles à ne pas défaire :
+- **La course de l'aimantation est bornée.** Sans butée, un bouton large se décalait
+  de 41 px au survol de son bord : il fuyait le pointeur au lieu de venir à lui.
+- **Le réticule n'utilise PAS `mix-blend-mode`.** En différence, l'anneau virait au
+  rouge sur le bouton cyan — sur une planche de bord, le rouge est une alarme. Et il
+  coûtait 2,3 images/s. La couleur est explicite et bascule en blanc sur `/collins`
+  via `data-panneau`, posé par le routeur.
+- **La pile a besoin d'une réserve en bas de son parent**, sinon `sticky` lâche et la
+  dernière carte ne se fige jamais. Réserve courte (12 vh) : au-delà, elle se voit
+  comme un grand vide.
 
 ### Performance des animations — règles issues d'une mesure, pas d'une intuition
 Le 14/09/2026, le site tournait à **27 images/s au scroll**. Diagnostic mesuré au
@@ -137,6 +162,7 @@ banc (Playwright + compteur de frames + désactivation d'un coupable à la fois)
 | Masque CSS (`mask-composite`) sur une couche déplacée en parallaxe | **−33 fps** |
 | Flou `backdrop-filter` sur une barre collante | −4 fps |
 | Impulsions SVG en `stroke-dashoffset` | négligeable, mais tournaient en continu |
+| `mix-blend-mode` sur le réticule | −2,3 fps (mesuré le 15/09/2026, retiré) |
 
 **La règle, non négociable** : seules `transform` et `opacity` s'animent sur le
 compositeur. Tout le reste — `font-stretch`, `letter-spacing`, `clip-path`,
@@ -160,6 +186,24 @@ Conséquences appliquées, à ne pas défaire :
 compter les images rendues pendant un scroll scripté, avec `Emulation.setCPUThrottlingRate`
 à 4. Cible : 60 fps sur les deux pages, en mobile comme en bureau.
 
+### Briefs externes : ce qui a été refusé
+Youri transmet parfois des prompts produits par un autre modèle. Ils décrivent
+systématiquement le même site générique. Ce qui a été refusé, et pourquoi :
+
+| Demandé | Refusé parce que |
+|---|---|
+| Migration vers **Next.js** | Le site est déployé en statique sur GitHub Pages : Next.js n'apporte rien et coûte une réécriture complète |
+| **Lenis** (défilement « lissé ») | Détourne le défilement natif — c'est exactement la sensation de latence dont Youri s'était plaint le 14/09 |
+| **GSAP + ScrollTrigger** | Framer Motion est déjà là ; et l'effet de pile se fait en `position: sticky`, sans JavaScript du tout |
+| **Three.js / React Three Fiber** | Aucun modèle 3D n'existe, pour ~1 Mo de bundle |
+| Fond charbon `#0D0D0D`, néons, glassmorphism, grain | Annule la lisibilité en vidéoprojection, contrainte n°1 de Youri |
+| Space Grotesk / Syne / Monument, JetBrains Mono | Polices déjà écartées (voir Règles de design) |
+| **Défilement horizontal** d'une galerie | Avec trois projets, il ne défile presque pas ; et il capture le geste de l'utilisateur, ce qui relance le procès du « ça lag » |
+
+Ce qui EST repris de ces briefs : les intentions d'interaction (révélation du titre,
+curseur, aimantation, pile de cartes, inclinaison, transitions de page), réalisées
+dans la stack existante et sur la DA claire.
+
 ### Lisibilité en vidéoprojection (contrainte explicite de Youri)
 - Corps de texte 17 px, graisse 440, interlignage 1,6.
 - Textes secondaires 15 px minimum, badges 13 px minimum. Rien sous 13 px.
@@ -178,7 +222,10 @@ compter les images rendues pendant un scroll scripté, avec `Emulation.setCPUThr
    une information : lien externe, changement de page, retour.
 6. Cartes toutes identiques, même rayon, même ombre.
 7. Apparition fondu-glissé sur chaque section.
-8. Survol animé sur chaque carte.
+8. Survol animé sur chaque carte — ⚠ exception assumée depuis le 15/09/2026 :
+   Youri a explicitement demandé des micro-interactions au survol. L'inclinaison 3D
+   est donc autorisée, parce qu'elle RÉPOND au pointeur au lieu de rejouer une
+   apparition. Le fondu-glissé au survol, lui, reste proscrit.
 
 ### Règles de design
 - Une seule couleur d'accent, déclinée clair/sombre selon le fond.

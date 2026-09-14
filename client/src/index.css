@@ -285,7 +285,8 @@
 
 /*
  * Le nom ne fait pas un fondu-glissé : il s'ÉLARGIT, comme une valeur qui se
- * fixe sur un cadran.
+ * fixe sur un cadran. L'apparition elle-même est confiée au cache de `.po-ligne`
+ * (le nom MONTE derrière un cache) : deux fondus superposés se brouillaient.
  *
  * La première version animait `font-stretch` et `letter-spacing`. Les deux
  * recalculent la mise en page à CHAQUE image, sur le plus gros texte de la
@@ -293,8 +294,8 @@
  * le compositeur s'en charge seul, sans jamais toucher au fil principal.
  */
 @keyframes po-resolve {
-  from { opacity: 0; transform: scaleX(0.74); }
-  to   { opacity: 1; transform: scaleX(1); }
+  from { transform: scaleX(0.74); }
+  to   { transform: scaleX(1); }
 }
 
 @keyframes po-fade {
@@ -369,4 +370,104 @@
   }
 
   .trace-pad   { opacity: 0.6; }
+}
+
+/* ═══ Réticule de visée ══════════════════════════════════════════════════════
+ * Le pointeur du site.
+ *
+ * La première version utilisait `mix-blend-mode: difference` (demandé par le
+ * brief). Deux raisons de l'avoir retiré, dans cet ordre :
+ *   1. En différence, l'anneau virait au ROUGE sur le bouton cyan. Sur une
+ *      planche de bord, le rouge est une alarme : c'est le contresens absolu
+ *      sur la commande principale. La couleur ne doit pas dépendre du fond.
+ *   2. Il coûtait 2,3 images/s mesurées (57,9 contre 60,2, processeur ×4) :
+ *      le fondu force une couche de composition pour toute la page.
+ * La couleur est donc explicite, et bascule en blanc sur le panneau sombre.
+ *
+ * Tout est animé en `transform` — jamais en largeur/hauteur, qui recalculent
+ * la mise en page à chaque image.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.reticule {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  will-change: transform;
+}
+
+.reticule[data-vu] { opacity: 1; }
+
+.reticule-anneau {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid hsl(var(--foreground));
+  border-radius: 9999px;
+  transition: transform 0.3s var(--ease-out-expo), border-color 0.2s ease;
+}
+
+.reticule-point {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: hsl(var(--foreground));
+  transition: opacity 0.2s ease, transform 0.3s var(--ease-out-expo), background-color 0.2s ease;
+}
+
+/* Sur la page Collins, le fond est sombre : le réticule passe en blanc.
+   L'attribut est posé par le routeur, le réticule vivant hors de la page. */
+[data-panneau] .reticule-anneau { border-color: #fff; }
+[data-panneau] .reticule-point  { background: #fff; }
+
+/* Survol d'une commande : l'anneau s'ouvre, le point de visée s'efface. */
+.reticule[data-vise] .reticule-anneau { transform: scale(1.8); }
+.reticule[data-vise] .reticule-point  { opacity: 0; transform: scale(3); }
+/* Appui : l'anneau se resserre, comme un bouton qui s'enfonce. */
+.reticule[data-presse] .reticule-anneau { transform: scale(1.35); }
+
+/* Le pointeur natif s'efface — sauf là où sa forme porte une information,
+   c'est-à-dire dans les champs de saisie. */
+@media (pointer: fine) {
+  .reticule-actif,
+  .reticule-actif * { cursor: none !important; }
+
+  .reticule-actif input,
+  .reticule-actif textarea,
+  .reticule-actif [contenteditable] { cursor: text !important; }
+}
+
+/* ═══ Révélation par ligne ═══════════════════════════════════════════════════
+ * Le titre ne se contente plus d'apparaître : chaque ligne MONTE derrière un
+ * cache, comme une valeur qui défile sur un compteur mécanique. C'est une
+ * `transform` sur la ligne intérieure — le cache, lui, ne bouge jamais.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes po-monte {
+  from { transform: translateY(110%); }
+  to   { transform: translateY(0); }
+}
+
+.po-ligne {
+  display: block;
+  overflow: hidden;
+  /* Sans cette marge, le cache rogne les jambages (le « g » de Figuié). */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.po-ligne > span {
+  display: block;
+  animation: po-monte 1.05s var(--ease-out-expo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reticule { display: none; }
+  .po-ligne > span { animation: none; }
 }

@@ -114,3 +114,63 @@ export function Parallax({
     </div>
   );
 }
+
+/**
+ * Inclinaison 3D au survol : la carte s'oriente vers le pointeur.
+ *
+ * Le rectangle est mesuré à l'ENTRÉE du pointeur et gardé en mémoire : le
+ * relire à chaque mouvement forcerait un recalcul de mise en page par image.
+ * L'angle est volontairement faible — au-delà de ~8°, l'effet cesse d'être une
+ * réaction et devient un tour de passe-passe.
+ */
+export function useInclinaison<T extends HTMLElement>(angle = 5.5) {
+  const ref = useRef<T>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let boite: DOMRect | null = null;
+    let tx = 0, ty = 0, cx = 0, cy = 0, frame = 0;
+
+    const boucle = () => {
+      const dx = tx - cx;
+      const dy = ty - cy;
+      cx += dx * 0.16;
+      cy += dy * 0.16;
+      el.style.transform = `perspective(900px) rotateY(${cx.toFixed(2)}deg) rotateX(${cy.toFixed(2)}deg)`;
+      frame = Math.abs(dx) > 0.02 || Math.abs(dy) > 0.02 ? requestAnimationFrame(boucle) : 0;
+    };
+    const relancer = () => {
+      if (!frame) frame = requestAnimationFrame(boucle);
+    };
+
+    const onEnter = () => { boite = el.getBoundingClientRect(); };
+    const onMove = (e: PointerEvent) => {
+      if (!boite) boite = el.getBoundingClientRect();
+      tx = ((e.clientX - boite.left) / boite.width - 0.5) * 2 * angle;
+      ty = -((e.clientY - boite.top) / boite.height - 0.5) * 2 * angle;
+      relancer();
+    };
+    const onLeave = () => {
+      boite = null;
+      tx = 0;
+      ty = 0;
+      relancer();
+    };
+
+    el.addEventListener("pointerenter", onEnter);
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      cancelAnimationFrame(frame);
+      el.removeEventListener("pointerenter", onEnter);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, [angle]);
+
+  return ref;
+}

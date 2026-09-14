@@ -7,8 +7,9 @@ import { z } from "zod";
 import { ArrowRight, ArrowUpRight, Check, Download, Linkedin, Loader2 } from "lucide-react";
 
 import { Layout } from "@/components/layout";
+import { useAimant } from "@/components/cursor";
 import { Parallax, EASE } from "@/components/motion";
-import { ProjectCard, ProjectDossier } from "@/components/project-card";
+import { ProjectCard, ProjectDossier, ProjectStack } from "@/components/project-card";
 import { HeroBackdrop } from "@/components/backdrop";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -103,6 +104,9 @@ function PillLink({
       : "border border-border bg-surface text-foreground hover:border-primary/50";
 
   const cls = `radius-control inline-flex items-center justify-center gap-2 px-5 py-3 text-[1rem] font-semibold transition-colors duration-300 sm:px-6 sm:py-3.5 sm:text-[1.0625rem] ${styles}`;
+  /* Le bouton vient au-devant du pointeur quand il l'approche. L'aimantation
+     porte sur une enveloppe, pas sur le lien : wouter ne transmet pas de ref. */
+  const aimant = useAimant<HTMLSpanElement>();
   const inner = (
     <>
       {Icon && <Icon className="h-4 w-4" />}
@@ -112,22 +116,26 @@ function PillLink({
 
   if (internal) {
     return (
-      <Link href={href} className={cls}>
-        {inner}
-      </Link>
+      <span ref={aimant} className="inline-flex">
+        <Link href={href} className={cls}>
+          {inner}
+        </Link>
+      </span>
     );
   }
 
   return (
-    <a
-      href={href}
-      download={download}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      className={cls}
-    >
-      {inner}
-    </a>
+    <span ref={aimant} className="inline-flex">
+      <a
+        href={href}
+        download={download}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
+        className={cls}
+      >
+        {inner}
+      </a>
+    </span>
   );
 }
 
@@ -160,10 +168,16 @@ function Hero() {
               aria-hidden="true"
             />
 
+            {/* Les deux lignes du nom montent l'une après l'autre derrière un
+                cache, pendant que l'ensemble s'élargit. Le décalage fait lire
+                « Youri » avant « Figuié » au lieu d'un bloc qui surgit. */}
             <h1 className="type-display po-resolve">
-              {profile.firstName}
-              <br />
-              {profile.lastName}
+              <span className="po-ligne">
+                <span>{profile.firstName}</span>
+              </span>
+              <span className="po-ligne">
+                <span style={{ animationDelay: "0.11s" }}>{profile.lastName}</span>
+              </span>
             </h1>
 
             {/* Ligne d'horizon : elle se trace, comme à la mise sous tension */}
@@ -433,7 +447,9 @@ function Projects() {
         lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype. Ouvrez un dossier pour le détail."
       />
 
-      <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3">
+      <ProjectStack projects={academicProjects} onOpen={setOpenProject} />
+
+      <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3 lg:hidden">
         {academicProjects.map((p) => (
           <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
         ))}

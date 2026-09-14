@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, ImageIcon } from "lucide-react";
+import { useInclinaison } from "@/components/motion";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Project } from "@/content/profile";
 
@@ -57,9 +58,14 @@ function ProjectMedia({ project, rounded = false }: { project: Project; rounded?
 
 export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () => void }) {
   const extra = project.tags.length - VISIBLE_TAGS;
+  /* La carte s'oriente vers le pointeur. Le survol « animé sur chaque carte »
+     était écarté comme tic générique ; ici c'est une demande explicite de
+     Youri (15/09/2026), et l'inclinaison RÉPOND au pointeur au lieu de
+     rejouer une apparition. */
+  const incline = useInclinaison<HTMLDivElement>();
 
   return (
-    <div className="h-full">
+    <div ref={incline} className="h-full [transform-style:preserve-3d]">
       {/* Toute la carte est le bouton : une seule cible, cohérente au clavier. */}
       <button
         type="button"
@@ -189,5 +195,82 @@ export function ProjectDossier({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ── Pile de cartes ───────────────────────────────────────────────────────── */
+
+/**
+ * Les projets se superposent au défilement, la carte suivante recouvrant la
+ * précédente.
+ *
+ * TOUT EST EN CSS : `position: sticky` avec un `top` qui descend d'un cran à
+ * chaque carte. Aucun JavaScript ne tourne pendant le défilement — là où une
+ * bibliothèque de « pin » recalcule des positions à chaque image. C'est la
+ * version la moins chère de l'effet, et la seule qui tienne 60 images/s.
+ *
+ * Réservé aux grands écrans : empiler des cartes hautes sur un téléphone
+ * revient à cacher le contenu. En dessous, la grille reprend la main.
+ */
+export function ProjectStack({
+  projects,
+  onOpen,
+}: {
+  projects: Project[];
+  onOpen: (p: Project) => void;
+}) {
+  return (
+    <div className="mt-14 hidden lg:block">
+      {projects.map((project, i) => (
+        <div
+          key={project.slug}
+          className="sticky"
+          style={{
+            top: `${76 + i * 26}px`,
+            zIndex: i + 1,
+            marginBottom: i === projects.length - 1 ? 0 : "30vh",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => onOpen(project)}
+            aria-label={`Ouvrir le dossier du projet ${project.title}`}
+            className="bloc group grid w-full grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] overflow-hidden text-left shadow-[0_-10px_28px_-20px_rgba(16,23,26,0.35)] transition-[border-color,box-shadow] duration-300 hover:border-primary/45"
+          >
+            <div className="relative aspect-[4/3] w-full border-r border-border">
+              <ProjectMedia project={project} />
+              <span className="absolute left-4 top-4">
+                <Chip tone="solid">{project.origin}</Chip>
+              </span>
+            </div>
+
+            <div className="flex flex-col justify-center p-9 xl:p-11">
+              <h3 className="type-heading text-balance">{project.title}</h3>
+              <p className="mt-2.5 text-[1.0625rem] font-medium text-primary">{project.summary}</p>
+              <p className="mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-muted-foreground text-pretty">
+                {project.desc}
+              </p>
+
+              <div className="mt-7 flex flex-wrap gap-2">
+                {project.tags.map((t) => (
+                  <Chip key={t}>{t}</Chip>
+                ))}
+              </div>
+
+              <span className="mt-8 text-[0.9375rem] font-medium underline-offset-4 transition-colors duration-300 group-hover:text-primary group-hover:underline">
+                Voir le dossier
+              </span>
+            </div>
+          </button>
+        </div>
+      ))}
+
+      {/*
+        `sticky` cesse d'agir au bas du parent : sans réserve, la dernière carte
+        arriverait sans jamais se figer. Réserve volontairement COURTE — au-delà,
+        elle se voit comme un grand vide entre la pile et la section suivante.
+      */}
+      <div className="h-[12vh]" aria-hidden="true" />
+    </div>
   );
 }
