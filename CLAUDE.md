@@ -72,11 +72,45 @@ d'être interchangeable avec celui de n'importe quel étudiant.
 |---|---|---|
 | `--background` | `#F3F5F6` | papier calque froid, lisible en vidéoprojection |
 | `--foreground` | `#10171A` | texte |
-| `--primary` | `#04607A` | cyan **profond** : texte d'accent sur fond clair (7,2:1) |
+| `--primary` | `#04607A` | cyan **profond** : texte d'accent sur fond clair (6,5:1 sur le papier, 7,1:1 sur le blanc) |
 | `--efis` | `#00A9CE` | cyan EFIS pur : panneau sombre et éléments NON textuels |
 | `--caution` | `#E8A33D` | ambre *caution*, uniquement pour un vrai état d'attention |
 | `--panel` | `#0E1A1F` | panneau d'instruments (page Collins uniquement) |
-| `--muted-foreground` | `#45555A` | texte secondaire, 8:1 |
+| `--actif` | `#99005C` | magenta : **ce qui est en cours** (7,7:1) |
+| `--acquis` | `#0B5C2E` | vert : **ce qui est terminé, validé** (7,4:1) |
+| `--muted-foreground` | `#45555A` | texte secondaire, 7,1:1 |
+
+### Le code couleur vient des afficheurs, pas du goût
+Ajouté le 15/09/2026 avec le skill `frontend-design`. Sur un afficheur de cockpit
+certifié, les couleurs sont normalisées : cyan pour les valeurs sélectionnées,
+**magenta pour la cible suivie** (le tronçon actif du plan de vol), **vert pour ce
+qui est engagé et validé**, ambre pour l'attention, rouge pour l'alarme. Le site
+utilisait déjà le cyan et l'ambre ; le magenta et le vert complètent le code, et
+chacun ENCODE une information que les données portaient déjà sans l'afficher :
+
+| Où | Magenta = en cours | Vert = terminé |
+|---|---|---|
+| Parcours et Formation | périodes commençant par « Depuis » | — (le gris suffit, ne pas surcharger) |
+| Étiquettes de projet | « En développement » | « Réalisé » |
+| Page Collins | « Depuis 2026 » | — |
+
+**Le rouge reste dehors** : il signifie alarme, et rien n'est alarmant sur un
+portfolio. C'est la même raison qui avait fait retirer le `mix-blend-mode` du
+réticule, qui virait au rouge sur le bouton principal.
+
+Le statut n'est pas une donnée à saisir : il se déduit de `period.startsWith("Depuis")`.
+Rien à maintenir en double dans `profile.ts`.
+
+⚠ Les jetons sont **redéfinis dans la portée `.panel`** (valeurs claires :
+`#F58FD0` et `#5FE39B`). Un composant écrit `text-[hsl(var(--actif))]` et la bonne
+valeur s'applique selon le fond, sans qu'il ait à savoir où il se trouve. Ne pas
+remplacer par deux jeux de classes conditionnelles.
+
+Contrastes relevés DANS LE NAVIGATEUR, pas calculés à la main : « Depuis 2026 »
+8,37:1, « Réalisé » 7,54:1, « En développement » 7,67:1, et 8,01:1 sur le panneau
+sombre. Méthode reproductible : lire `getComputedStyle().color` et remonter au
+premier fond opaque, puis appliquer la formule WCAG (vérifiée sur les références
+noir/blanc 21:1 et #767676 4,54:1).
 
 **Règle de contraste** : le cyan EFIS n'a que 2,9:1 sur fond clair. Il ne sert JAMAIS
 de couleur de texte sur le papier — filets, graduations et puces seulement.

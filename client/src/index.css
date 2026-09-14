@@ -43,6 +43,8 @@
   --color-panel-foreground: hsl(var(--panel-foreground));
   --color-efis: hsl(var(--efis));
   --color-caution: hsl(var(--caution));
+  --color-actif: hsl(var(--actif));
+  --color-acquis: hsl(var(--acquis));
 
   --font-sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
@@ -73,6 +75,21 @@
   /* Cyan EFIS pur : panneau sombre et éléments non textuels uniquement */
   --efis: 191 100% 40%;           /* #00A9CE */
   --caution: 35 79% 57%;          /* #E8A33D */
+
+  /*
+   * Le code couleur des afficheurs de cockpit, complété.
+   *
+   * Ces deux-là ne sont pas choisies au goût : sur un afficheur certifié, le
+   * MAGENTA désigne la cible suivie — le tronçon actif du plan de vol — et le
+   * VERT ce qui est engagé et validé. Le site s'en sert exactement pour ça :
+   * magenta = en cours, vert = terminé. Le rouge reste dehors, il signifie
+   * alarme et rien n'est alarmant sur un portfolio.
+   *
+   * Contrastes mesurés sur le papier #F3F5F6, au-dessus du seuil de 7:1 :
+   * magenta 7,65:1, vert 7,43:1.
+   */
+  --actif: 324 100% 30%;          /* #99005C */
+  --acquis: 146 79% 20%;          /* #0B5C2E */
 
   --secondary: 195 14% 93%;
   --secondary-foreground: 200 20% 18%;
@@ -202,6 +219,14 @@
   .panel {
     background: hsl(var(--panel));
     color: hsl(var(--panel-foreground));
+
+    /* Mêmes rôles, valeurs claires : sur le panneau sombre, le magenta et le
+       vert du papier deviendraient illisibles. Les jetons sont redéfinis dans
+       la portée, donc `text-[hsl(var(--actif))]` marche sur les deux fonds
+       sans qu'aucun composant n'ait à savoir où il se trouve.
+       Contrastes sur #0E1A1F : magenta 8,2:1, vert 10,9:1. */
+    --actif: 322 84% 76%;         /* #F58FD0 */
+    --acquis: 147 65% 57%;        /* #5FE39B */
   }
 
   /*

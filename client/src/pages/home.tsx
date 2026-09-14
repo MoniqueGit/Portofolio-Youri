@@ -353,6 +353,13 @@ function CollinsTeaser() {
 
 /* ── Parcours ─────────────────────────────────────────────────────────────── */
 
+/**
+ * « Depuis » est la seule chose à lire pour savoir si c'est en cours : la
+ * donnée porte déjà l'information, la couleur ne fait que la rendre visible
+ * d'un coup d'œil, y compris au fond d'une salle.
+ */
+const enCours = (periode: string) => periode.trimStart().startsWith("Depuis");
+
 function Journey() {
   return (
     <Section id="parcours" className="bg-surface" decor="droite">
@@ -367,7 +374,15 @@ function Journey() {
             key={exp.role + exp.company}
             className="grid gap-6 border-t border-border py-10 lg:grid-cols-[11rem_minmax(0,1fr)] lg:gap-12"
           >
-            <p className="type-data text-[0.9375rem] text-muted-foreground lg:pt-1.5">{exp.period}</p>
+            <p
+              className={`type-data text-[0.9375rem] lg:pt-1.5 ${
+                enCours(exp.period)
+                  ? "font-semibold text-[hsl(var(--actif))]"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {exp.period}
+            </p>
             <div>
               <h3 className="type-heading">{exp.role}</h3>
               <p className="type-data mt-1.5 text-[1.0625rem] text-primary">{exp.company}</p>
@@ -408,7 +423,15 @@ function Journey() {
       <div className="mt-12 grid gap-px bg-border lg:grid-cols-2">
         {education.map((edu) => (
           <div key={edu.degree} className="bg-surface p-8">
-            <p className="type-data text-[0.9375rem] text-muted-foreground">{edu.period}</p>
+            <p
+              className={`type-data text-[0.9375rem] ${
+                enCours(edu.period)
+                  ? "font-semibold text-[hsl(var(--actif))]"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {edu.period}
+            </p>
             <h3 className="type-heading mt-2 text-balance">{edu.degree}</h3>
             <p className="type-data mt-2 text-[1.0625rem] text-primary">{edu.school}</p>
             <p className="mt-4 text-muted-foreground">{edu.detail}</p>

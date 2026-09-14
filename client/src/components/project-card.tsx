@@ -11,13 +11,31 @@ const photo = (file: string) => `${b}projets/${file}`;
 /** Nombre de tags visibles sur la vignette avant le chip « +N ». */
 const VISIBLE_TAGS = 3;
 
-function Chip({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "solid" }) {
-  const styles =
-    tone === "solid"
-      ? "border-transparent bg-foreground/88 text-background backdrop-blur"
-      : "border-border bg-background text-muted-foreground";
+/**
+ * Étiquette. Les tons `actif` et `acquis` reprennent le code des afficheurs :
+ * magenta pour ce qui est en cours, vert pour ce qui est livré. Le fond de ces
+ * deux tons reste OPAQUE — une teinte translucide poserait le texte sur une
+ * couleur imprévisible (la photo du projet, dessous) et ruinerait le contraste.
+ */
+function Chip({
+  children,
+  tone = "default",
+}: {
+  children: React.ReactNode;
+  tone?: "default" | "solid" | "actif" | "acquis";
+}) {
+  const styles = {
+    solid: "border-transparent bg-foreground/88 text-background backdrop-blur",
+    actif: "border-[hsl(var(--actif))]/30 bg-background text-[hsl(var(--actif))]",
+    acquis: "border-[hsl(var(--acquis))]/30 bg-background text-[hsl(var(--acquis))]",
+    default: "border-border bg-background text-muted-foreground",
+  }[tone];
   return <span className={`type-data rounded-[3px] border px-2.5 py-1 text-[0.8125rem] ${styles}`}>{children}</span>;
 }
+
+/** Un projet encore ouvert est une cible suivie ; un projet livré est acquis. */
+const tonDuStatut = (statut: string) =>
+  /en (d\u00e9veloppement|cours)/i.test(statut) ? ("actif" as const) : ("acquis" as const);
 
 /**
  * Visuel de la vignette : la photo si elle existe, sinon un repli propre.
@@ -80,7 +98,7 @@ export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () 
           </span>
           {project.status && (
             <span className="absolute left-4 top-4">
-              <Chip>{project.status}</Chip>
+              <Chip tone={tonDuStatut(project.status)}>{project.status}</Chip>
             </span>
           )}
         </div>
@@ -163,7 +181,7 @@ export function ProjectDossier({
                 {project.tags.map((t) => (
                   <Chip key={t}>{t}</Chip>
                 ))}
-                {project.status && <Chip>{project.status}</Chip>}
+                {project.status && <Chip tone={tonDuStatut(project.status)}>{project.status}</Chip>}
               </div>
 
               {project.gallery && project.gallery.length > 0 && (

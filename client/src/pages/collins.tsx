@@ -174,7 +174,14 @@ export default function Collins() {
             <p className="mt-5 text-[1.0625rem] text-white/60">
               <span className="font-semibold text-white">{alternance.role}</span>
               {alternance.team && `, ${alternance.team}`}
-              {alternance.location && `, site de ${alternance.location}`}. Depuis {alternance.start}.
+              {alternance.location && `, site de ${alternance.location}`}.{" "}
+              {/* Même code que l'accueil : le magenta marque ce qui est en cours.
+                  Le jeton est redéfini dans la portée `.panel`, donc la valeur
+                  claire s'applique ici sans que ce composant ait à le savoir. */}
+              <span className="font-semibold text-[hsl(var(--actif))]">
+                Depuis {alternance.start}
+              </span>
+              .
             </p>
 
             {renseignee ? (
