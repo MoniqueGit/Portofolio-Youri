@@ -187,6 +187,20 @@
       radial-gradient(46rem 30rem at 6% 8%, hsl(240 30% 60% / 0.06), transparent 58%);
   }
 
+  /*
+   * Repli des vignettes projet tant qu'il n'y a pas de photo : une trame
+   * de schéma électronique, assez pâle pour ne jamais concurrencer le texte.
+   */
+  .bg-blueprint {
+    background-color: hsl(var(--surface));
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 22px 22px;
+    background-position: center;
+    mask-image: radial-gradient(70% 70% at 50% 50%, black, transparent 100%);
+  }
+
   .hairline {
     background: linear-gradient(
       to right,

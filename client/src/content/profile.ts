@@ -197,62 +197,131 @@ export const softSkills = [
 ];
 
 export type Project = {
+  /** Identifiant stable, utilisé pour l'ancre du dossier. */
+  slug: string;
   title: string;
+  /** Icône de repli tant qu'aucune photo n'est fournie. */
   icon: LucideIcon;
+  /** Badge affiché en haut de la vignette (cadre du projet). */
+  origin: string;
+  status?: string;
+  /** Une ligne, affichée en accent sur la carte. */
   summary: string;
+  /** Paragraphe : tronqué sur la carte, complet dans le dossier. */
   desc: string;
   tags: string[];
-  status?: string;
+  context: string;
+  /** Ce qui a été fait, point par point. Affiché dans le dossier. */
+  highlights: string[];
+  /**
+   * Photo de couverture — nom de fichier déposé dans `client/public/projets/`.
+   * Tant que la clé est absente, la carte affiche proprement l'icône de repli.
+   */
+  cover?: string;
+  /** Photos supplémentaires du dossier, même dossier que `cover`. */
+  gallery?: string[];
 };
 
 export const academicProjects: Project[] = [
   {
+    slug: "de-electronique",
     title: "Dé électronique",
     icon: Zap,
+    origin: "BUT GEII",
     summary: "Du schéma au prototype fonctionnel.",
     desc: "Conception d'un circuit électronique complet : intégration des composants, tests de fonctionnement et correction des bugs électroniques.",
     tags: ["Électronique", "PCB", "Hardware"],
+    context: "Projet mené en BUT GEII — IUT de Montpellier.",
+    highlights: [
+      "Conception du circuit électronique complet.",
+      "Intégration des composants sur la carte.",
+      "Tests de fonctionnement du montage.",
+      "Identification et correction des bugs électroniques.",
+    ],
   },
   {
+    slug: "carte-stm32",
     title: "Carte STM32",
     icon: CircuitBoard,
+    origin: "BUT GEII",
     summary: "Soudure fine et validation logicielle.",
     desc: "Assemblage et soudure d'une carte STM32, contrôle des connexions et validation du fonctionnement en langage C (STMicroelectronics).",
-    tags: ["STM32", "C", "Embarqué"],
+    tags: ["STM32", "C", "Embarqué", "Soudure"],
+    context: "Projet mené en BUT GEII — IUT de Montpellier, sur matériel STMicroelectronics.",
+    highlights: [
+      "Assemblage et soudure des composants de la carte.",
+      "Contrôle des connexions avant mise sous tension.",
+      "Validation du fonctionnement en langage C.",
+    ],
   },
   {
+    slug: "robot-suiveur-de-ligne",
     title: "Robot suiveur de ligne",
     icon: Bot,
+    origin: "BUT GEII",
     summary: "Zéro microcontrôleur, tout en analogique.",
     desc: "Conception d'un robot analogique avec capteurs de ligne, réglages électroniques fins et tests prototype jusqu'à la validation finale.",
     tags: ["Robotique", "Capteurs", "Analogique"],
+    context: "Projet mené en BUT GEII — IUT de Montpellier.",
+    highlights: [
+      "Conception d'un robot entièrement analogique.",
+      "Intégration et câblage des capteurs de ligne.",
+      "Réglages électroniques fins du suivi de trajectoire.",
+      "Tests sur prototype jusqu'à la validation finale.",
+    ],
   },
 ];
 
 export const personalProjects: Project[] = [
   {
+    slug: "locker-room-rfid",
     title: "Locker Room RFID",
     icon: Nfc,
+    origin: "Projet perso",
     status: "Réalisé",
     summary: "Casier électronique sécurisé par badge.",
     desc: "Système de casier électronique sécurisé par badge RFID, conçu autour d'une ESP32 programmée en C++ : gestion des accès, lecture des tags et retour d'état par LED.",
     tags: ["ESP32", "C++", "RFID", "Électronique"],
+    context: "Projet personnel, hors cursus.",
+    highlights: [
+      "Conception du système autour d'une ESP32.",
+      "Programmation du firmware en C++.",
+      "Lecture des tags RFID et gestion des accès.",
+      "Retour d'état visuel par LED.",
+    ],
   },
   {
+    slug: "atlas",
     title: "Atlas",
     icon: LayoutDashboard,
+    origin: "Projet perso",
     status: "En développement",
     summary: "Automatisation pour gérants de locations.",
     desc: "Solution tout-en-un pour gérants de locations courte durée : automatisation des tâches récurrentes (messages, check-in, calendrier) et tableau de bord centralisé des réservations.",
     tags: ["Automatisation", "Dashboard", "n8n", "Web"],
+    context: "Projet personnel en cours de développement.",
+    highlights: [
+      "Automatisation des messages aux voyageurs.",
+      "Automatisation du check-in et du calendrier.",
+      "Tableau de bord centralisé de suivi des réservations.",
+    ],
   },
   {
+    slug: "nlmb-collection",
     title: "NLMB — Collection",
     icon: Shirt,
+    origin: "Projet perso",
     status: "Réalisé",
     summary: "Collection de t-shirts, du design à la livraison.",
     desc: "Création d'une collection de t-shirts pour mon équipe sous le nom NLMB : conception du design, choix des supports, coordination de la production et distribution.",
     tags: ["Design", "Entrepreneuriat", "Équipe"],
+    context: "Projet personnel mené pour mon équipe.",
+    highlights: [
+      "Conception du design de la collection.",
+      "Choix des supports et des matières.",
+      "Coordination de la production.",
+      "Distribution auprès de l'équipe.",
+    ],
   },
 ];
 

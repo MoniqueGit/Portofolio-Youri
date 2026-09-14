@@ -72,6 +72,14 @@
 - Branche principale : `main`
 - Push : `git push github main`
 
+## Photos de projet
+- Déposer les images dans `client/public/projets/` (JPG ou WebP, format paysage ~16/10,
+  largeur 1200–1600 px, < 300 Ko).
+- Les référencer dans `client/src/content/profile.ts` sur le projet concerné :
+  `cover: "carte-stm32.jpg"` pour la vignette, `gallery: ["...", "..."]` pour le dossier.
+- Sans `cover`, la carte affiche proprement son icône de repli : rien n'est cassé,
+  le dossier indique simplement « Photos du projet à venir ».
+
 ## Dev
 - Lancer le frontend : `npm run dev:client` → http://localhost:5000
 - `npm run dev` ne fonctionne pas sur Windows (syntaxe NODE_ENV Unix)

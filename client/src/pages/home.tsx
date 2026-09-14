@@ -10,6 +10,7 @@ import {
 
 import { Layout } from "@/components/layout";
 import { Reveal, RevealGroup, RevealItem, Parallax, EASE } from "@/components/motion";
+import { ProjectCard, ProjectDossier } from "@/components/project-card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -395,47 +396,21 @@ function Skills() {
 
 /* ── Projets ──────────────────────────────────────────────────────────────── */
 
-function ProjectCard({ project }: { project: Project }) {
-  const Icon = project.icon;
-  return (
-    <RevealItem className="surface-card surface-card-hover group h-full overflow-hidden hover:-translate-y-1.5">
-      <div className="relative flex h-40 items-center justify-center overflow-hidden border-b border-border bg-gradient-to-b from-subtle to-surface">
-        <Icon
-          className="h-10 w-10 text-primary/70 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
-          strokeWidth={1.25}
-        />
-        {project.status && (
-          <span className="absolute right-4 top-4 rounded-full border border-border bg-surface/90 px-2.5 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur">
-            {project.status}
-          </span>
-        )}
-      </div>
-      <div className="p-7">
-        <h3 className="type-heading text-balance">{project.title}</h3>
-        <p className="mt-2 text-[15px] font-medium text-primary">{project.summary}</p>
-        <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground text-pretty">{project.desc}</p>
-        <div className="mt-6 flex flex-wrap gap-2">
-          {project.tags.map((t) => (
-            <Tag key={t}>{t}</Tag>
-          ))}
-        </div>
-      </div>
-    </RevealItem>
-  );
-}
-
 function Projects() {
+  // Un seul dossier ouvert à la fois, partagé par les deux grilles.
+  const [openProject, setOpenProject] = useState<Project | null>(null);
+
   return (
     <Section id="projets" className="bg-surface border-y border-border">
       <SectionHeader
         eyebrow="Projets académiques"
         title="Ce que j'ai conçu, soudé et débogué."
-        lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype."
+        lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype. Ouvrez un dossier pour le détail."
       />
 
-      <RevealGroup className="mt-14 grid gap-5 md:grid-cols-3">
+      <RevealGroup className="mt-14 grid items-stretch gap-5 md:grid-cols-3">
         {academicProjects.map((p) => (
-          <ProjectCard key={p.title} project={p} />
+          <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
         ))}
       </RevealGroup>
 
@@ -446,11 +421,13 @@ function Projects() {
         className="mt-24 sm:mt-32"
       />
 
-      <RevealGroup className="mt-14 grid gap-5 md:grid-cols-3">
+      <RevealGroup className="mt-14 grid items-stretch gap-5 md:grid-cols-3">
         {personalProjects.map((p) => (
-          <ProjectCard key={p.title} project={p} />
+          <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
         ))}
       </RevealGroup>
+
+      <ProjectDossier project={openProject} onClose={() => setOpenProject(null)} />
     </Section>
   );
 }
