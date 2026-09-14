@@ -92,6 +92,14 @@
 - Sans `cover`, la carte affiche proprement son icône de repli : rien n'est cassé,
   le dossier indique simplement « Photos du projet à venir ».
 
+## Skills installés (`.claude/skills/`)
+Repris de https://github.com/anthropics/skills (Apache 2.0), installés le 14/09/2026 :
+- **`frontend-design`** — direction artistique, typographie, et surtout la liste des
+  tics visuels qui trahissent une page générée. À relire avant toute évolution de la DA.
+- **`webapp-testing`** — outillage Playwright pour piloter le site en local
+  (captures, console, découverte d'éléments). `scripts/with_server.py` lance
+  `npm run dev:client` et attend que le port réponde avant de jouer le script.
+
 ## Dev
 - Lancer le frontend : `npm run dev:client` → http://localhost:5000
 - `npm run dev` ne fonctionne pas sur Windows (syntaxe NODE_ENV Unix)
