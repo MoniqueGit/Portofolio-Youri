@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, ImageIcon } from "lucide-react";
 import { useInclinaison } from "@/components/motion";
+import { Board3D } from "@/components/board-3d";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Project } from "@/content/profile";
 
@@ -65,7 +66,7 @@ function ProjectMedia({ project, rounded = false }: { project: Project; rounded?
       className={`bg-blueprint flex h-full w-full flex-col items-center justify-center gap-2 ${rounded ? "rounded-2xl" : ""}`}
     >
       <Icon
-        className="h-10 w-10 text-primary/70 transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+        className="h-14 w-14 text-primary/70 transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
         strokeWidth={1.25}
       />
     </div>
@@ -290,5 +291,73 @@ export function ProjectStack({
       */}
       <div className="h-[12vh]" aria-hidden="true" />
     </div>
+  );
+}
+
+/* ── Dossier technique mis en avant ───────────────────────────────────────── */
+
+/**
+ * Carte détaillée d'un projet, pour celui qu'on veut faire lire en premier.
+ *
+ * Écrite d'après un brief externe (15/09/2026) dont la « charte à respecter
+ * impérativement » n'était pas celle de ce site. Ce qui a été repris : la
+ * STRUCTURE demandée — zone visuelle avec grille technique et deux étiquettes,
+ * puis titre, sous-titre d'accent, paragraphe, tags techniques, bouton pleine
+ * largeur. Ce qui a été remplacé, et pourquoi :
+ *
+ *   Inter                  → Archivo, la famille du site (Inter est proscrite)
+ *   #f1f5f9 / #0f172a      → jetons `--background` / `--foreground`
+ *   teal-700 / blue-700    → `--primary` #04607A, déjà un bleu canard profond
+ *   `rounded-2xl`          → 6 px : ici le rayon encode l'interaction, et une
+ *                            surface de contenu ne se presse pas
+ *   `shadow-sm`            → aucune ombre : la hiérarchie se lit au filet
+ *   badges `text-xs` 12 px → 13 px, plancher de lisibilité en vidéoprojection
+ *   « … complet → »        → sans flèche : elle n'est justifiée que pour un
+ *                            changement de page, or ceci ouvre un panneau
+ *
+ * Le « visuel 3D » demandé n'est pas une image : c'est la carte électronique
+ * filaire du site, qui tourne réellement.
+ */
+export function ProjectFeature({
+  project,
+  onOpen,
+}: {
+  project: Project;
+  onOpen: () => void;
+}) {
+  return (
+    <article className="bloc overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+      <div className="relative aspect-[16/10] border-b border-border lg:aspect-auto lg:min-h-[22rem] lg:border-b-0 lg:border-r">
+        <div className="bg-blueprint absolute inset-0" aria-hidden="true" />
+        <Board3D className="absolute inset-0" />
+        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+          {project.status && <Chip tone={tonDuStatut(project.status)}>{project.status}</Chip>}
+          <Chip tone="solid">{project.origin}</Chip>
+        </div>
+      </div>
+
+      <div className="flex flex-col p-7 sm:p-9">
+        <h3 className="type-title !text-[clamp(1.5rem,2.6vw,2rem)] text-balance">{project.title}</h3>
+        <p className="mt-3 text-[1.0625rem] font-medium text-primary">{project.summary}</p>
+        <p className="mt-4 max-w-xl flex-1 text-[1.0625rem] leading-relaxed text-muted-foreground text-pretty">
+          {project.desc}
+        </p>
+
+        <div className="mt-7 flex flex-wrap gap-2">
+          {project.tags.map((t) => (
+            <Chip key={t}>{t}</Chip>
+          ))}
+        </div>
+
+        {/* Pleine largeur et en pilule : c'est une commande, on la presse. */}
+        <button
+          type="button"
+          onClick={onOpen}
+          className="radius-control mt-8 w-full bg-primary px-6 py-3.5 text-[1.0625rem] font-semibold text-primary-foreground transition-colors duration-300 hover:bg-[hsl(var(--efis))] hover:text-[hsl(var(--panel))]"
+        >
+          Voir le dossier technique
+        </button>
+      </div>
+    </article>
   );
 }

@@ -55,6 +55,9 @@
     (aimantation des commandes). Désactivés au doigt et en mouvement réduit.
   - `client/src/components/board-3d.tsx` — carte électronique filaire en 3D
     réelle (rotation + projection perspective écrites à la main, ~3 ko)
+  - `client/src/components/project-card.tsx` — trois présentations d'un même
+    projet : `ProjectCard` (vignette de grille), `ProjectStack` (pile collante),
+    `ProjectFeature` (dossier technique détaillé, un seul projet mis en avant)
   - `client/src/index.css` — tokens de couleur, échelle typographique, utilitaires
   - `client/index.html` — métadonnées SEO, import Google Fonts
 
@@ -290,10 +293,34 @@ systématiquement le même site générique. Ce qui a été refusé, et pourquoi
 | Fond charbon `#0D0D0D`, néons, glassmorphism, grain | Annule la lisibilité en vidéoprojection, contrainte n°1 de Youri |
 | Space Grotesk / Syne / Monument, JetBrains Mono | Polices déjà écartées (voir Règles de design) |
 | **Défilement horizontal** d'une galerie | Avec trois projets, il ne défile presque pas ; et il capture le geste de l'utilisateur, ce qui relance le procès du « ça lag » |
+| `rounded-2xl` + `shadow-sm` sur les cartes | Le rayon encode l'interaction ici, et une surface de contenu ne se presse pas. L'ombre douce sous chaque carte est le « kit SaaS » relevé par l'audit |
+| Badges en `text-xs` (12 px) | Sous le plancher de 13 px imposé par la vidéoprojection |
+| Composants inventés (PN532, Servo Control, I2C Display sur Locker Room RFID) | **Faux.** La description de Youri dit « retour d'état par LED » : ni servo, ni afficheur. Les ajouter rendrait sa propre carte contradictoire |
+
+⚠ Ces briefs présentent souvent leur palette comme « charte à respecter
+impérativement ». Ce n'est PAS la charte de ce site : c'en est une approximation
+générique, écrite sans l'avoir vu (elle propose `#0f766e`, `#1d4ed8` ET `bg-cyan-800`
+comme accent unique, ce qui suffit à la dater). La charte du site est la table de
+couleurs ci-dessus, et `Inter` reste proscrite.
 
 Ce qui EST repris de ces briefs : les intentions d'interaction (révélation du titre,
 curseur, aimantation, pile de cartes, inclinaison, transitions de page), réalisées
 dans la stack existante et sur la DA claire.
+
+### `ProjectFeature` — le dossier technique mis en avant
+Ajouté le 15/09/2026 d'après un brief externe. Un SEUL projet le porte (le premier
+de `personalProjects`) : la carte détaillée perd tout son sens si les trois la
+prennent. Les autres gardent la vignette, en grille à deux colonnes.
+
+Sa zone visuelle empile la grille technique (`.bg-blueprint`) et la carte 3D. Le
+« visuel 3D » demandé n'est donc pas une image : c'est le composant qui tourne
+réellement. Coût vérifié : aucun effet mesurable sur les images par seconde, le
+masque de `.bg-blueprint` étant statique (c'est un masque sur une couche ANIMÉE qui
+avait coûté 33 fps le 14/09, pas un masque en soi).
+
+Le bouton est en pilule et pleine largeur — c'est une commande, on la presse — et
+SANS flèche : elle n'est justifiée que pour un changement de page, or il ouvre un
+panneau par-dessus la page.
 
 ### Lisibilité en vidéoprojection (contrainte explicite de Youri)
 - Corps de texte 17 px, graisse 440, interlignage 1,6.

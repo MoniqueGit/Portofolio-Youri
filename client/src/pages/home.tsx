@@ -9,7 +9,7 @@ import { ArrowRight, ArrowUpRight, Check, Download, Linkedin, Loader2 } from "lu
 import { Layout } from "@/components/layout";
 import { useAimant } from "@/components/cursor";
 import { Parallax, EASE } from "@/components/motion";
-import { ProjectCard, ProjectDossier, ProjectStack } from "@/components/project-card";
+import { ProjectCard, ProjectDossier, ProjectFeature, ProjectStack } from "@/components/project-card";
 import { HeroBackdrop } from "@/components/backdrop";
 import { Board3D } from "@/components/board-3d";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -500,6 +500,7 @@ function Skills() {
 
 function Projects() {
   const [openProject, setOpenProject] = useState<Project | null>(null);
+  const [vedette, ...autresProjets] = personalProjects;
 
   return (
     <Section id="projets" className="bg-surface" decor="droite">
@@ -521,8 +522,16 @@ function Projects() {
         Des projets lancés de ma propre initiative, parce que la curiosité ne s'arrête pas à la fin du TD.
       </p>
 
-      <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3">
-        {personalProjects.map((p) => (
+      {/* Un seul projet mis en avant — la carte détaillée perd tout son sens
+          si les trois la portent. Les deux autres gardent la vignette. */}
+      {vedette && (
+        <div className="mt-14">
+          <ProjectFeature project={vedette} onOpen={() => setOpenProject(vedette)} />
+        </div>
+      )}
+
+      <div className="mt-5 grid items-stretch gap-5 md:grid-cols-2">
+        {autresProjets.map((p) => (
           <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
         ))}
       </div>
