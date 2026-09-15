@@ -8,7 +8,7 @@ import { ArrowRight, ArrowUpRight, Check, Download, Linkedin, Loader2 } from "lu
 
 import { Layout } from "@/components/layout";
 import { useAimant } from "@/components/cursor";
-import { Parallax, EASE } from "@/components/motion";
+import { Parallax, Readout, EASE } from "@/components/motion";
 import { ProjectCard, ProjectDossier, ProjectFeature, ProjectStack, ProjectTile } from "@/components/project-card";
 import { HeroBackdrop } from "@/components/backdrop";
 import { EngagementCard } from "@/components/engagement-card";
@@ -327,11 +327,13 @@ function CollinsTeaser() {
       <div className="mt-12 grid gap-px bg-border sm:grid-cols-3">
         {collins.figures.map((f) => (
           <div key={f.label} className="bg-background px-1 py-7 sm:px-6">
+            {/* Les chiffres se stabilisent à l'arrivée à l'écran, comme sur la
+                page dédiée : le mouvement MONTRE la valeur qui arrive. Ils
+                étaient statiques ici, ce qui rompait la cohérence entre les
+                deux pages. `Readout` gère seul le mouvement réduit et annonce
+                la valeur finale aux lecteurs d'écran. */}
             <p className="type-readout text-primary">
-              {f.value.toLocaleString("fr-FR", {
-                minimumFractionDigits: f.decimals,
-                maximumFractionDigits: f.decimals,
-              })}
+              <Readout value={f.value} decimals={f.decimals} />
               <span className="ml-1 text-[0.5em] align-baseline">{f.unit}</span>
             </p>
             <p className="type-data mt-3 text-[0.9375rem] text-muted-foreground">{f.label}</p>

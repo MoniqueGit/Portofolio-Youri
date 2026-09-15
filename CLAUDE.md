@@ -178,6 +178,8 @@ contredisent donc pas la règle du moment orchestré unique.
 
 | Effet | Où | Coût |
 |---|---|---|
+| Halo qui suit le pointeur | `useHalo`, cartes et tuiles | une `transform` par événement, pas de boucle |
+| Relief 3D de l'icône au survol | `translateZ`, tuiles et vignettes | `transform` seule |
 | Réticule de visée | tout le site, `cursor.tsx` | une `transform`, boucle arrêtée à l'arrêt |
 | Aimantation des boutons | `PillLink`, course bornée à 14 px | rectangle mesuré à l'entrée, pas par image |
 | Inclinaison 3D des vignettes | `useInclinaison`, ±5,5° | idem |
@@ -187,6 +189,14 @@ contredisent donc pas la règle du moment orchestré unique.
 | Titres de section révélés | `SectionHeader`, cache `.po-ligne` | `transform` seule, une fois |
 
 Trois règles à ne pas défaire :
+- **Le halo se déplace en `transform`, jamais en `background-position`.** Une
+  position de fond se repeint à chaque image sur le fil principal ; une translation
+  est prise en charge par le compositeur. Et PAS de `will-change` dessus : il
+  créerait une couche permanente sur chaque carte de la page — l'erreur qui avait
+  coûté 18 images/s avec les canvas.
+- **Le relief `translateZ` n'a d'effet que si la chaîne de parents est en
+  `preserve-3d`** et qu'un ancêtre porte une perspective (`useInclinaison`). Retirer
+  `[transform-style:preserve-3d]` d'un bouton aplatit l'effet sans erreur visible.
 - **La course de l'aimantation est bornée.** Sans butée, un bouton large se décalait
   de 41 px au survol de son bord : il fuyait le pointeur au lieu de venir à lui.
 - **Le réticule n'utilise PAS `mix-blend-mode`.** En différence, l'anneau virait au
@@ -318,6 +328,11 @@ systématiquement le même site générique. Ce qui a été refusé, et pourquoi
 | Logo / insigne d'unité, emblème de l'Armée de Terre | Ne s'affiche pas sans autorisation, et aucun visuel de ce genre n'existe dans le projet |
 | « Voir les certifications » | Aucune certification n'existe dans les données. Remplacé par deux actions réelles : contact et téléchargement du CV |
 | **« Refondre le portfolio en React + Vite + Tailwind + Framer Motion + Lucide »** (15/09/2026) | **C'est déjà exactement la stack du site** : React 19.2, Vite 7.1, Tailwind 4.1, Framer Motion 12.23, Lucide 0.545. Le brief demandait de reconstruire l'existant, en `.jsx` (régression sur TypeScript 5.6) et sur une charte générique. L'exécuter à la lettre aurait effacé la DA et deux jours de travail. Seule idée neuve retenue : la grille bento |
+| Réseau de particules / nœuds flottants en Three.js (15/09/2026) | Le site a DÉJÀ une 3D d'arrière-plan, écrite à la main et réactive à la souris — et c'est une carte électronique, le métier de Youri, plutôt que le réseau de particules qu'on voit sur tous les sites « tech » |
+| Flux de données en `stroke-dashoffset` sur des connecteurs SVG | `stroke-dashoffset` est sur la liste mesurée des propriétés qui passent par le fil principal. Exactement ce qui a été RETIRÉ du site le 14/09 |
+| Canvas d'oscilloscope avec sinusoïde sur la carte RFID | Une sinusoïde décorative n'a aucun rapport avec un casier à badge : ce serait de la fausse donnée. La tuile porte déjà la carte 3D |
+| `fade-up` + `staggerChildren` sur chaque section et chaque carte | C'est le tic n°7, et il contredit la règle de vidéoprojection : le texte courant doit être lisible d'emblée, sans attendre une animation. Une version nuancée existe déjà sur les TITRES seuls |
+| `backdrop-blur-md` (12 px) sur le header | Le flou du header est à 3 px VOLONTAIREMENT : il coûtait 4 images/s en version large |
 
 ⚠ Ces briefs présentent souvent leur palette comme « charte à respecter
 impérativement ». Ce n'est PAS la charte de ce site : c'en est une approximation
@@ -343,6 +358,17 @@ avait coûté 33 fps le 14/09, pas un masque en soi).
 Le bouton est en pilule et pleine largeur — c'est une commande, on la presse — et
 SANS flèche : elle n'est justifiée que pour un changement de page, or il ouvre un
 panneau par-dessus la page.
+
+### Ce qui a été ajouté au survol le 15/09/2026
+Trois choses seulement, extraites d'un brief dont le reste existait déjà :
+- **Halo** qui suit le pointeur dans les cartes (`useHalo` dans `cursor.tsx`).
+- **Relief** : l'icône se décolle en `translateZ` au survol.
+- **Compteurs animés sur l'accueil** : les chiffres Collins de la section d'aperçu
+  étaient STATIQUES alors que la page dédiée les animait depuis le début. Ils
+  utilisent désormais le même `Readout`, qui gère seul le mouvement réduit et
+  annonce la valeur finale aux lecteurs d'écran.
+
+Mesuré après ajout : 59,8 images/s à processeur ralenti ×4, soit aucune régression.
 
 ### La grille bento des projets personnels
 Ajoutée le 15/09/2026, d'après un brief et une image de référence envoyés par Youri.

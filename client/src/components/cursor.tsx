@@ -165,3 +165,49 @@ export function useAimant<T extends HTMLElement>(force = 0.25, course = 14) {
 
   return ref;
 }
+
+/**
+ * Halo qui suit le pointeur à l'intérieur d'une carte.
+ *
+ * Demandé le 15/09/2026. Implémenté en `transform` sur un calque enfant, et
+ * NON en déplaçant un `background-position` ou en réécrivant un dégradé : une
+ * position de fond se repeint à chaque image sur le fil principal, alors qu'une
+ * translation est prise en charge par le compositeur.
+ *
+ * Pas de boucle d'animation non plus — `pointermove` ne déclenche au plus qu'un
+ * événement par image, et on n'y fait qu'une seule écriture.
+ */
+export function useHalo<T extends HTMLElement>() {
+  const hote = useRef<T>(null);
+  const halo = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const el = hote.current;
+    const h = halo.current;
+    if (!el || !h) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    // Rectangle mesuré à l'entrée, pas à chaque mouvement : un
+    // `getBoundingClientRect()` par image force un recalcul de mise en page.
+    let boite: DOMRect | null = null;
+
+    const onEnter = () => { boite = el.getBoundingClientRect(); };
+    const onMove = (e: PointerEvent) => {
+      if (!boite) boite = el.getBoundingClientRect();
+      h.style.transform = `translate3d(${Math.round(e.clientX - boite.left)}px, ${Math.round(e.clientY - boite.top)}px, 0)`;
+    };
+    const onLeave = () => { boite = null; };
+
+    el.addEventListener("pointerenter", onEnter);
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      el.removeEventListener("pointerenter", onEnter);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, []);
+
+  return { hote, halo };
+}

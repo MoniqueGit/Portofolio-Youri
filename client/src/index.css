@@ -512,3 +512,32 @@
 .on-panel .trame-points {
   background-image: radial-gradient(hsl(var(--efis) / 0.28) 1.2px, transparent 1.2px);
 }
+
+/* ═══ Halo de survol ═════════════════════════════════════════════════════════
+ * Cercle lumineux qui suit le pointeur dans une carte. Il est CENTRÉ sur le
+ * point par ses marges négatives, et déplacé en `transform` — jamais en
+ * `background-position`, qui se repeint à chaque image.
+ *
+ * Pas de `will-change` : il créerait une couche de composition permanente sur
+ * CHAQUE carte de la page. C'est l'erreur qui avait coûté 18 images/s avec les
+ * canvas. Le navigateur promeut le calque tout seul, le temps du survol.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.halo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20rem;
+  height: 20rem;
+  margin: -10rem 0 0 -10rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: radial-gradient(circle closest-side, hsl(var(--efis) / 0.18), transparent);
+}
+
+.group:hover .halo { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .halo { display: none; }
+}

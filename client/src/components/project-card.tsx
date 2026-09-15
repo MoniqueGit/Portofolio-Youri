@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, ImageIcon } from "lucide-react";
 import { useInclinaison } from "@/components/motion";
+import { useHalo } from "@/components/cursor";
 import { Board3D } from "@/components/board-3d";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Project } from "@/content/profile";
@@ -66,7 +67,10 @@ function ProjectMedia({ project, rounded = false }: { project: Project; rounded?
       className={`bg-blueprint flex h-full w-full flex-col items-center justify-center gap-2 ${rounded ? "rounded-2xl" : ""}`}
     >
       <Icon
-        className="h-14 w-14 text-primary/70 transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+        /* Relief : l'icône se décolle vers l'avant. `translateZ` n'a d'effet
+           que parce que la carte porte déjà une perspective (useInclinaison)
+           et que la chaîne de parents est en `preserve-3d`. */
+        className="h-14 w-14 text-primary/70 transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:[transform:translateZ(30px)_scale(1.08)]"
         strokeWidth={1.25}
       />
     </div>
@@ -82,16 +86,19 @@ export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () 
      Youri (15/09/2026), et l'inclinaison RÉPOND au pointeur au lieu de
      rejouer une apparition. */
   const incline = useInclinaison<HTMLDivElement>();
+  const { hote, halo } = useHalo<HTMLButtonElement>();
 
   return (
     <div ref={incline} className="h-full [transform-style:preserve-3d]">
       {/* Toute la carte est le bouton : une seule cible, cohérente au clavier. */}
       <button
+        ref={hote}
         type="button"
         onClick={onOpen}
         aria-label={`Ouvrir le dossier du projet ${project.title}`}
-        className="bloc group flex h-full w-full flex-col overflow-hidden text-left transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]"
+        className="bloc group relative flex h-full w-full flex-col overflow-hidden text-left [transform-style:preserve-3d] transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]"
       >
+        <span ref={halo} className="halo" aria-hidden="true" />
         <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden border-b border-border">
           <ProjectMedia project={project} />
           <span className="absolute right-4 top-4">
@@ -395,18 +402,21 @@ export function ProjectFeature({
 export function ProjectTile({ project, onOpen }: { project: Project; onOpen: () => void }) {
   const Icon = project.icon;
   const incline = useInclinaison<HTMLDivElement>();
+  const { hote, halo } = useHalo<HTMLButtonElement>();
 
   return (
-    <div ref={incline} className="h-full">
+    <div ref={incline} className="h-full [transform-style:preserve-3d]">
       <button
+        ref={hote}
         type="button"
         onClick={onOpen}
         aria-label={`Ouvrir le dossier du projet ${project.title}`}
-        className="bloc group relative flex h-full w-full flex-col overflow-hidden p-7 text-left transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]"
+        className="bloc group relative flex h-full w-full flex-col overflow-hidden p-7 text-left [transform-style:preserve-3d] transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]"
       >
+        <span ref={halo} className="halo" aria-hidden="true" />
         <span className="trame-points pointer-events-none absolute right-6 top-7 h-12 w-12" aria-hidden="true" />
 
-        <span className="radius-field inline-flex w-fit border border-border bg-subtle p-3">
+        <span className="radius-field inline-flex w-fit border border-border bg-subtle p-3 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:[transform:translateZ(26px)]">
           <Icon className="h-6 w-6 text-primary" strokeWidth={1.5} />
         </span>
 
