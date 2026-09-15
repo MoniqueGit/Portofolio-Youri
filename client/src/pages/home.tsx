@@ -9,7 +9,7 @@ import { ArrowRight, ArrowUpRight, Check, Download, Linkedin, Loader2 } from "lu
 import { Layout } from "@/components/layout";
 import { useAimant } from "@/components/cursor";
 import { Parallax, EASE } from "@/components/motion";
-import { ProjectCard, ProjectDossier, ProjectFeature, ProjectStack } from "@/components/project-card";
+import { ProjectCard, ProjectDossier, ProjectFeature, ProjectStack, ProjectTile } from "@/components/project-card";
 import { HeroBackdrop } from "@/components/backdrop";
 import { EngagementCard } from "@/components/engagement-card";
 import { Board3D } from "@/components/board-3d";
@@ -525,17 +525,22 @@ function Projects() {
         Des projets lancés de ma propre initiative, parce que la curiosité ne s'arrête pas à la fin du TD.
       </p>
 
-      {/* Un seul projet mis en avant — la carte détaillée perd tout son sens
-          si les trois la portent. Les deux autres gardent la vignette. */}
-      {vedette && (
-        <div className="mt-14">
-          <ProjectFeature project={vedette} onOpen={() => setOpenProject(vedette)} />
-        </div>
-      )}
-
-      <div className="mt-5 grid items-stretch gap-5 md:grid-cols-2">
+      {/*
+        Grille bento : une grande tuile et deux petites, au lieu de trois cartes
+        identiques. La taille encode l'importance — c'est ce qui justifie le
+        format, pas l'effet de mode. Le projet mis en avant occupe la colonne
+        gauche sur toute la hauteur ; les deux autres s'empilent à droite.
+        Sous `lg`, tout retombe en une colonne : un bento à trois tuiles n'a
+        aucun sens sur un téléphone.
+      */}
+      <div className="mt-14 grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        {vedette && (
+          <div className="lg:row-span-2">
+            <ProjectFeature project={vedette} vertical onOpen={() => setOpenProject(vedette)} />
+          </div>
+        )}
         {autresProjets.map((p) => (
-          <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
+          <ProjectTile key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
         ))}
       </div>
 

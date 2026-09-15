@@ -317,6 +317,7 @@ systématiquement le même site générique. Ce qui a été refusé, et pourquoi
 | « Depuis 2026 » et « Blagnac » sur le réserviste | **Faux.** C'est 2025 et Carcassonne — le brief avait confondu la réserve avec l'alternance Collins |
 | Logo / insigne d'unité, emblème de l'Armée de Terre | Ne s'affiche pas sans autorisation, et aucun visuel de ce genre n'existe dans le projet |
 | « Voir les certifications » | Aucune certification n'existe dans les données. Remplacé par deux actions réelles : contact et téléchargement du CV |
+| **« Refondre le portfolio en React + Vite + Tailwind + Framer Motion + Lucide »** (15/09/2026) | **C'est déjà exactement la stack du site** : React 19.2, Vite 7.1, Tailwind 4.1, Framer Motion 12.23, Lucide 0.545. Le brief demandait de reconstruire l'existant, en `.jsx` (régression sur TypeScript 5.6) et sur une charte générique. L'exécuter à la lettre aurait effacé la DA et deux jours de travail. Seule idée neuve retenue : la grille bento |
 
 ⚠ Ces briefs présentent souvent leur palette comme « charte à respecter
 impérativement ». Ce n'est PAS la charte de ce site : c'en est une approximation
@@ -342,6 +343,30 @@ avait coûté 33 fps le 14/09, pas un masque en soi).
 Le bouton est en pilule et pleine largeur — c'est une commande, on la presse — et
 SANS flèche : elle n'est justifiée que pour un changement de page, or il ouvre un
 panneau par-dessus la page.
+
+### La grille bento des projets personnels
+Ajoutée le 15/09/2026, d'après un brief et une image de référence envoyés par Youri.
+
+**La règle qui fait tenir un bento** : une petite tuile porte MOINS de contenu, pas
+le même contenu en plus petit. `ProjectTile` ne garde donc que l'icône, le titre et
+la promesse d'une ligne ; le paragraphe et les tags vivent dans le dossier. Première
+version ratée : trois cartes identiques, dont la grande faisait 1282 px avec 900 px
+de vide sous le visuel 3D. Après correction : 711 px et deux tuiles de 345 px.
+
+Composition : le projet mis en avant occupe la colonne gauche sur deux rangs
+(`ProjectFeature` avec `vertical`, dont le visuel prend une hauteur FIXE — en
+`flex-1` il absorbait tout le vide). Les deux autres s'empilent à droite. Sous `lg`,
+tout retombe en une colonne : un bento à trois tuiles n'a aucun sens sur un téléphone.
+
+`.trame-points` — petite trame de points en coin de tuile, reprise de l'image de
+référence. Elle a sa place ici parce que c'est le vocabulaire des marques de calage
+d'un plan technique, pas une décoration importée. Statique, sans masque, coût nul.
+
+⚠ **Ce qui n'a PAS été repris de l'image de référence** : ses tuiles ont un rayon
+d'environ 24 px. Le site garde 6 px, parce que le rayon y encode l'interaction (voir
+plus haut) et qu'un rayon uniforme sur tout est le défaut relevé par l'audit. Point
+signalé à Youri le 15/09/2026, en attente de son arbitrage — c'est une bascule d'une
+ligne dans `.bloc` s'il tranche pour le rayon large.
 
 ### `EngagementCard` — la réserve opérationnelle
 Ajoutée le 15/09/2026. Le réserviste a été SORTI de la liste `experiences` et vit

@@ -321,13 +321,30 @@ export function ProjectStack({
 export function ProjectFeature({
   project,
   onOpen,
+  vertical = false,
 }: {
   project: Project;
   onOpen: () => void;
+  /** Tuile haute d'une grille bento : le visuel passe au-dessus et ABSORBE la
+      hauteur restante, pour que la tuile s'aligne sur les deux cartes voisines
+      sans laisser un grand vide sous le texte. */
+  vertical?: boolean;
 }) {
   return (
-    <article className="bloc overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-      <div className="relative aspect-[16/10] border-b border-border lg:aspect-auto lg:min-h-[22rem] lg:border-b-0 lg:border-r">
+    <article
+      className={
+        vertical
+          ? "bloc flex h-full flex-col overflow-hidden"
+          : "bloc overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]"
+      }
+    >
+      <div
+        className={
+          vertical
+            ? "relative h-[20rem] shrink-0 border-b border-border"
+            : "relative aspect-[16/10] border-b border-border lg:aspect-auto lg:min-h-[22rem] lg:border-b-0 lg:border-r"
+        }
+      >
         <div className="bg-blueprint absolute inset-0" aria-hidden="true" />
         <Board3D className="absolute inset-0" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
@@ -359,5 +376,50 @@ export function ProjectFeature({
         </button>
       </div>
     </article>
+  );
+}
+
+/* ── Tuile compacte de bento ──────────────────────────────────────────────── */
+
+/**
+ * Petite case d'une grille bento.
+ *
+ * La règle qui fait tenir un bento : **une petite tuile porte moins de
+ * contenu**, pas le même contenu en plus petit. Celle-ci ne garde donc que
+ * l'icône, le titre et la promesse d'une ligne — le paragraphe et les tags
+ * vivent dans le dossier, qui s'ouvre au clic.
+ *
+ * La trame de points en coin vient de la référence envoyée par Youri : c'est
+ * une marque de calage de plan technique, cohérente avec le reste de la DA.
+ */
+export function ProjectTile({ project, onOpen }: { project: Project; onOpen: () => void }) {
+  const Icon = project.icon;
+  const incline = useInclinaison<HTMLDivElement>();
+
+  return (
+    <div ref={incline} className="h-full">
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Ouvrir le dossier du projet ${project.title}`}
+        className="bloc group relative flex h-full w-full flex-col overflow-hidden p-7 text-left transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]"
+      >
+        <span className="trame-points pointer-events-none absolute right-6 top-7 h-12 w-12" aria-hidden="true" />
+
+        <span className="radius-field inline-flex w-fit border border-border bg-subtle p-3">
+          <Icon className="h-6 w-6 text-primary" strokeWidth={1.5} />
+        </span>
+
+        <h3 className="type-heading mt-auto pt-10 text-balance">{project.title}</h3>
+        <p className="mt-2 text-[1.0625rem] font-medium text-primary text-pretty">{project.summary}</p>
+
+        <span className="mt-6 flex flex-wrap items-center gap-2">
+          {project.status && <Chip tone={tonDuStatut(project.status)}>{project.status}</Chip>}
+          <span className="type-data text-[0.9375rem] underline-offset-4 transition-colors duration-300 group-hover:text-primary group-hover:underline">
+            Voir le dossier
+          </span>
+        </span>
+      </button>
+    </div>
   );
 }

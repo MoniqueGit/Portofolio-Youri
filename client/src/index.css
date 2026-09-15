@@ -496,3 +496,19 @@
   .reticule { display: none; }
   .po-ligne > span { animation: none; }
 }
+
+/* ═══ Trame de points ════════════════════════════════════════════════════════
+ * Petit repère de calage, posé en coin de tuile. Vu sur la référence envoyée
+ * par Youri le 15/09/2026, et parfaitement à sa place ici : c'est le vocabulaire
+ * des marques d'alignement d'un plan technique, pas une décoration importée.
+ * Statique et sans masque — elle ne coûte rien.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.trame-points {
+  background-image: radial-gradient(hsl(var(--border)) 1.2px, transparent 1.2px);
+  background-size: 9px 9px;
+}
+
+.on-panel .trame-points {
+  background-image: radial-gradient(hsl(var(--efis) / 0.28) 1.2px, transparent 1.2px);
+}
