@@ -10,6 +10,7 @@ import { Layout } from "@/components/layout";
 import { useAimant } from "@/components/cursor";
 import { Parallax, Readout, EASE } from "@/components/motion";
 import { ProjectCard, ProjectDossier, ProjectFeature, ProjectStack, ProjectTile } from "@/components/project-card";
+import { ChaineTest } from "@/components/chaine-test";
 import { HeroBackdrop } from "@/components/backdrop";
 import { EngagementCard } from "@/components/engagement-card";
 import { Board3D } from "@/components/board-3d";
@@ -520,6 +521,17 @@ function Projects() {
         {academicProjects.map((p) => (
           <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
         ))}
+      </div>
+
+      {/*
+        Schéma de la chaîne de test, placé juste après les projets académiques :
+        il DÉTAILLE l'un d'eux (la carte STM32) et n'a de sens qu'à côté d'eux.
+        Une colonne libre à droite sous `lg` évite d'étirer le schéma sur toute
+        la largeur, où il se lirait comme une frise décorative.
+      */}
+      <div className="mt-14 grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+        <ChaineTest />
+        <div className="hidden lg:block" aria-hidden="true" />
       </div>
 
       <h2 className="type-title mt-24 text-balance sm:mt-28">Et ce que je fais en dehors des cours.</h2>

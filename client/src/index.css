@@ -240,7 +240,16 @@
   .bloc {
     background: hsl(var(--surface));
     border: 1px solid hsl(var(--border));
-    border-radius: 6px;
+    /*
+     * Rayon large, arbitré par Youri le 15/09/2026 après une image de référence
+     * dont les tuiles tournaient autour de 24 px. Ce qu'il faut savoir si la
+     * question revient : ce rayon CONTREDIT la règle qui gouverne le reste du
+     * site, où l'arrondi signale ce qui se presse (`.radius-control`) et le
+     * franc signale ce qui structure. Une surface de contenu ne se presse pas.
+     * La règle tient toujours pour les commandes, les champs et les étiquettes :
+     * c'est ici, et seulement ici, qu'elle a été levée.
+     */
+    border-radius: 16px;
   }
 
   /* Le bloc mis en avant se distingue par un filet cyan en tête, pas par
@@ -366,6 +375,14 @@
 
 .trace-pad {
   fill: hsl(var(--efis) / 0.3);
+  animation: pad-breathe 6s ease-in-out infinite;
+}
+
+/* Même respiration, appliquée à un contour et non à un remplissage : sur la
+   chaîne de test, c'est l'anneau qui pulse pendant que le disque reste opaque.
+   `opacity` seule, comme `pad-breathe` — rien ne passe par le fil principal. */
+circle.trace-pad {
+  fill: none;
   animation: pad-breathe 6s ease-in-out infinite;
 }
 
