@@ -4,13 +4,20 @@ import { motion, useInView, useReducedMotion, useScroll, useTransform } from "fr
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowRight, ArrowUpRight, Check, Download, Linkedin, Loader2 } from "lucide-react";
+import {
+  ArrowRight, ArrowUpRight, Building2, CalendarClock, Check, Download,
+  GraduationCap, Linkedin, Loader2, Shield,
+} from "lucide-react";
 
 import { Layout } from "@/components/layout";
 import { useAimant } from "@/components/cursor";
 import { Parallax, Readout, EASE } from "@/components/motion";
-import { ProjectCard, ProjectDossier, ProjectFeature, ProjectStack, ProjectTile } from "@/components/project-card";
+import { ProjectCard, ProjectDossier, ProjectStack } from "@/components/project-card";
 import { ChaineTest } from "@/components/chaine-test";
+import { HeroMagnetique } from "@/components/hero-magnetique";
+import { Reveal } from "@/components/reveal";
+import { VitrinePerso } from "@/components/vitrine-perso";
+import { CarteExperience } from "@/components/carte-experience";
 import { HeroBackdrop } from "@/components/backdrop";
 import { EngagementCard } from "@/components/engagement-card";
 import { Board3D } from "@/components/board-3d";
@@ -211,14 +218,9 @@ function Hero() {
             {/* Les deux lignes du nom montent l'une après l'autre derrière un
                 cache, pendant que l'ensemble s'élargit. Le décalage fait lire
                 « Youri » avant « Figuié » au lieu d'un bloc qui surgit. */}
-            <h1 className="type-display po-resolve">
-              <span className="po-ligne">
-                <span>{profile.firstName}</span>
-              </span>
-              <span className="po-ligne">
-                <span style={{ animationDelay: "0.11s" }}>{profile.lastName}</span>
-              </span>
-            </h1>
+            {/* Les lettres du nom repondent au pointeur (16/09/2026). La montee
+                derriere un cache est conservee : c'est le geste d'allumage. */}
+            <HeroMagnetique lignes={[profile.firstName, profile.lastName]} />
 
             {/* Ligne d'horizon : elle se trace, comme à la mise sous tension */}
             <div
@@ -272,18 +274,55 @@ function Hero() {
 
 /* ── Bandeau de repères ───────────────────────────────────────────────────── */
 
+/**
+ * Bandeau de reperes, restyle le 16/09/2026 a la demande de Youri : quatre
+ * cases grises identiques, c'etait le tic n°6 de l'audit.
+ *
+ * Chaque case porte maintenant son icone et sa couleur d'etat. La couleur
+ * n'est pas decorative : elle suit le code des afficheurs deja en place sur
+ * le site — MAGENTA pour ce qui est en cours (« Depuis 2026 »), cyan pour le
+ * reste. L'etat se deduit du libelle, rien a saisir en double dans profile.ts.
+ */
+const ICONES_REPERES = [Building2, GraduationCap, CalendarClock, Shield];
+
 function Highlights() {
   return (
-    <section className="border-y border-border bg-surface">
-      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
-        {highlights.map((h) => (
-          <div key={h.label} className="bg-surface px-5 py-8 sm:px-6 sm:py-10">
-            <p className="text-[1.0625rem] font-bold tracking-[-0.02em] [font-stretch:106%] sm:text-xl">
-              {h.value}
-            </p>
-            <p className="type-data mt-1.5 text-[0.9375rem] text-muted-foreground">{h.label}</p>
-          </div>
-        ))}
+    <section className="relative">
+      {/* Trame de calage, comme en marge d'un plan technique. */}
+      <span
+        className="trame-points pointer-events-none absolute right-6 top-4 hidden h-10 w-24 opacity-70 lg:block"
+        aria-hidden="true"
+      />
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-3 px-5 py-6 sm:grid-cols-4 sm:gap-4 sm:px-8">
+        {highlights.map((h, i) => {
+          const Icone = ICONES_REPERES[i] ?? Building2;
+          const enCours = h.value.startsWith("Depuis");
+          const teinte = enCours ? "hsl(var(--actif))" : "hsl(var(--efis))";
+          return (
+            <div
+              key={h.label}
+              className="bloc relief relief-verre group relative overflow-hidden px-5 py-7 sm:px-6 sm:py-8"
+            >
+              {/* Filet de tete : c'est la facon dont ce design system marque
+                  un bloc, plutot qu'une ombre qui enfle. Il se revele au survol. */}
+              <span
+                className="absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100"
+                style={{ background: teinte }}
+                aria-hidden="true"
+              />
+              <Icone
+                className="h-5 w-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-0.5"
+                style={{ color: teinte }}
+                strokeWidth={1.6}
+                aria-hidden="true"
+              />
+              <p className="mt-3.5 text-[1.0625rem] font-bold tracking-[-0.02em] [font-stretch:106%] sm:text-xl">
+                {h.value}
+              </p>
+              <p className="type-data mt-1.5 text-[0.9375rem] text-muted-foreground">{h.label}</p>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -296,9 +335,9 @@ function About() {
     <Section id="profil" decor="droite">
       <SectionHeader title="Apprendre en faisant, pas seulement en écoutant." lead={about.intro} />
 
-      <div className="mt-14 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {about.facts.map((fact) => (
-          <div key={fact.label} className="bg-background p-6">
+          <div key={fact.label} className="bloc relief relief-verre p-6">
             <p className="type-label text-muted-foreground">{fact.label}</p>
             <ul className="mt-4 space-y-2.5">
               {fact.items.map((item) => (
@@ -325,9 +364,9 @@ function CollinsTeaser() {
         lead={collins.intro}
       />
 
-      <div className="mt-12 grid gap-px bg-border sm:grid-cols-3">
+      <div className="mt-12 grid gap-4 sm:grid-cols-3">
         {collins.figures.map((f) => (
-          <div key={f.label} className="bg-background px-1 py-7 sm:px-6">
+          <div key={f.label} className="bloc relief teinte-cyan px-4 py-7 sm:px-6">
             {/* Les chiffres se stabilisent à l'arrivée à l'écran, comme sur la
                 page dédiée : le mouvement MONTRE la valeur qui arrive. Ils
                 étaient statiques ici, ce qui rompait la cohérence entre les
@@ -366,59 +405,15 @@ const enCours = (periode: string) => periode.trimStart().startsWith("Depuis");
 
 function Journey() {
   return (
-    <Section id="parcours" className="bg-surface" decor="droite">
+    <Section id="parcours" className="section-fondue" decor="droite">
       <SectionHeader
         title="Expériences"
         lead="Des environnements très différents, un même fil conducteur : faire ce qui est demandé, correctement, avec l'équipe."
       />
 
-      <div className="mt-14">
+      <div className="mt-14 grid gap-5">
         {experiences.map((exp) => (
-          <article
-            key={exp.role + exp.company}
-            className="grid gap-6 border-t border-border py-10 lg:grid-cols-[11rem_minmax(0,1fr)] lg:gap-12"
-          >
-            <p
-              className={`type-data text-[0.9375rem] lg:pt-1.5 ${
-                enCours(exp.period)
-                  ? "font-semibold text-[hsl(var(--actif))]"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {exp.period}
-            </p>
-            <div>
-              <h3 className="type-heading">{exp.role}</h3>
-              <p className="type-data mt-1.5 text-[1.0625rem] text-primary">{exp.company}</p>
-
-              {exp.bullets.length > 0 && (
-                <ul className="mt-6 space-y-3">
-                  {exp.bullets.map((bullet) => (
-                    <li key={bullet} className="flex gap-3 leading-relaxed text-muted-foreground">
-                      <span className="mt-[0.7rem] h-1 w-1 shrink-0 bg-border" />
-                      <span className="text-pretty">{bullet}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {exp.href && (
-                <Link
-                  href={exp.href}
-                  className="group mt-5 inline-flex items-center gap-2 font-semibold text-primary"
-                >
-                  {exp.hrefLabel}
-                  <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
-                </Link>
-              )}
-
-              <div className="mt-6 flex flex-wrap gap-2">
-                {exp.tags.map((t) => (
-                  <Tag key={t}>{t}</Tag>
-                ))}
-              </div>
-            </div>
-          </article>
+          <CarteExperience key={exp.role + exp.company} exp={exp} />
         ))}
       </div>
 
@@ -426,9 +421,9 @@ function Journey() {
 
       <h2 className="type-title mt-24 text-balance sm:mt-28">Formation</h2>
 
-      <div className="mt-12 grid gap-px bg-border lg:grid-cols-2">
+      <div className="mt-12 grid gap-4 lg:grid-cols-2">
         {education.map((edu) => (
-          <div key={edu.degree} className="bg-surface p-8">
+          <div key={edu.degree} className="bloc relief relief-verre p-8">
             <p
               className={`type-data text-[0.9375rem] ${
                 enCours(edu.period)
@@ -475,9 +470,9 @@ function Skills() {
         lead="Des acquis de BUT, complétés par ce que j'explore de mon côté et par ce que j'apprends en entreprise. Ni plus, ni moins."
       />
 
-      <div className="mt-14 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {skillGroups.map((group) => (
-          <div key={group.label} className="bg-background p-7">
+          <div key={group.label} className="bloc relief teinte-cyan group p-7">
             <group.icon className="h-5 w-5 text-[hsl(var(--efis))]" strokeWidth={1.75} />
             <h3 className="mt-5 text-[1.0625rem] font-bold tracking-[-0.02em]">{group.label}</h3>
             <ul className="mt-5 space-y-4">
@@ -506,10 +501,9 @@ function Skills() {
 
 function Projects() {
   const [openProject, setOpenProject] = useState<Project | null>(null);
-  const [vedette, ...autresProjets] = personalProjects;
 
   return (
-    <Section id="projets" className="bg-surface" decor="droite">
+    <Section id="projets" className="section-fondue" decor="droite">
       <SectionHeader
         title="Ce que j'ai conçu, soudé et débogué."
         lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype. Ouvrez un dossier pour le détail."
@@ -518,8 +512,10 @@ function Projects() {
       <ProjectStack projects={academicProjects} onOpen={setOpenProject} />
 
       <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3 lg:hidden">
-        {academicProjects.map((p) => (
-          <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
+        {academicProjects.map((p, i) => (
+          <Reveal key={p.slug} delai={i * 0.08} className="h-full">
+            <ProjectCard project={p} onOpen={() => setOpenProject(p)} />
+          </Reveal>
         ))}
       </div>
 
@@ -540,23 +536,15 @@ function Projects() {
       </p>
 
       {/*
-        Grille bento : une grande tuile et deux petites, au lieu de trois cartes
-        identiques. La taille encode l'importance — c'est ce qui justifie le
-        format, pas l'effet de mode. Le projet mis en avant occupe la colonne
-        gauche sur toute la hauteur ; les deux autres s'empilent à droite.
-        Sous `lg`, tout retombe en une colonne : un bento à trois tuiles n'a
-        aucun sens sur un téléphone.
+        Vitrine des projets personnels, refaite le 16/09/2026 avec le skill
+        `ui-ux-pro-max` (pattern « Portfolio Grid » : visuels d'abord, filtre
+        par categorie). Elle remplace la grille bento : le bento hierarchisait
+        UN projet au-dessus des deux autres, alors que les trois sont de
+        natures differentes et qu'aucun ne merite d'ecraser les autres.
+
+        La nature se deduit des tags deja presents dans `profile.ts`.
       */}
-      <div className="mt-14 grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        {vedette && (
-          <div className="lg:row-span-2">
-            <ProjectFeature project={vedette} vertical onOpen={() => setOpenProject(vedette)} />
-          </div>
-        )}
-        {autresProjets.map((p) => (
-          <ProjectTile key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
-        ))}
-      </div>
+      <VitrinePerso projects={personalProjects} onOpen={setOpenProject} />
 
       <ProjectDossier project={openProject} onClose={() => setOpenProject(null)} />
     </Section>
@@ -642,7 +630,7 @@ function Contact() {
           </div>
         </div>
 
-        <div className="bloc p-7 sm:p-9">
+        <div className="bloc relief-fort relief-verre p-7 sm:p-9">
           {submitted ? (
             <motion.div
               className="flex flex-col items-center justify-center gap-4 py-16 text-center"

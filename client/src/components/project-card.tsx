@@ -96,7 +96,7 @@ export function ProjectCard({ project, onOpen }: { project: Project; onOpen: () 
         type="button"
         onClick={onOpen}
         aria-label={`Ouvrir le dossier du projet ${project.title}`}
-        className="bloc group relative flex h-full w-full flex-col overflow-hidden text-left [transform-style:preserve-3d] transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]"
+        className="bloc relief group relative flex h-full w-full flex-col overflow-hidden text-left [transform-style:preserve-3d]"
       >
         <span ref={halo} className="halo" aria-hidden="true" />
         <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden border-b border-border">
@@ -261,7 +261,7 @@ export function ProjectStack({
             type="button"
             onClick={() => onOpen(project)}
             aria-label={`Ouvrir le dossier du projet ${project.title}`}
-            className="bloc group grid w-full grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] overflow-hidden text-left shadow-[0_-10px_28px_-20px_rgba(16,23,26,0.35)] transition-[border-color,box-shadow] duration-300 hover:border-primary/45"
+            className="bloc relief-fort group grid w-full grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] overflow-hidden text-left"
           >
             <div className="relative aspect-[4/3] w-full border-r border-border">
               <ProjectMedia project={project} />
@@ -411,7 +411,7 @@ export function ProjectTile({ project, onOpen }: { project: Project; onOpen: () 
         type="button"
         onClick={onOpen}
         aria-label={`Ouvrir le dossier du projet ${project.title}`}
-        className="bloc group relative flex h-full w-full flex-col overflow-hidden p-7 text-left [transform-style:preserve-3d] transition-[border-color,box-shadow] duration-300 hover:border-primary/45 hover:shadow-[inset_0_2px_0_0_hsl(var(--efis))]"
+        className="bloc relief teinte-cyan group relative flex h-full w-full flex-col overflow-hidden p-7 text-left [transform-style:preserve-3d]"
       >
         <span ref={halo} className="halo" aria-hidden="true" />
         <span className="trame-points pointer-events-none absolute right-6 top-7 h-12 w-12" aria-hidden="true" />

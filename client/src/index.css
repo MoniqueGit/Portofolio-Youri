@@ -238,6 +238,17 @@
    * lit au filet et à l'espace, pas à l'empilement d'ombres.
    */
   .bloc {
+    /*
+     * OPAQUE, et ce n'est pas negociable.
+     *
+     * Essayee a 92 % le 16/09/2026 pour laisser deviner le fond vivant : la
+     * pile de projets (`position: sticky`) empile des cartes qui se
+     * CHEVAUCHENT, et le texte de celle du dessous transparaissait derriere
+     * celle du dessus — deux titres superposes, illisibles.
+     *
+     * Le fond vivant se voit entre les cartes et dans les marges, ce qui
+     * suffit largement. Une surface qui porte du texte reste opaque.
+     */
     background: hsl(var(--surface));
     border: 1px solid hsl(var(--border));
     /*
@@ -257,6 +268,104 @@
   .bloc-live {
     box-shadow: inset 0 2px 0 0 hsl(var(--efis));
   }
+
+  /* ═══ Boîtes d'information en relief ═══════════════════════════════════════
+   * Demandé par Youri le 16/09/2026 : « des box avec du contraste, des ombres,
+   * un peu comme Apple ».
+   *
+   * Le compromis tenu ici : l'ombre est COLORÉE et nette, pas le flou gris
+   * générique d'un kit SaaS. Elle emprunte au cyan de l'écran, ce qui la relie
+   * à la DA au lieu de poser un calque d'ombre standard sur tout.
+   *
+   * Trois niveaux, pour que la page garde une hiérarchie :
+   *   .relief        — repos, discret
+   *   .relief-fort   — bloc qu'on veut faire lire en premier
+   *   au survol      — l'ombre s'ouvre et le bloc monte de 2 px
+   *
+   * `box-shadow` ne s'anime PAS ici : seule la `transform` bouge au survol, et
+   * l'ombre bascule d'un état à l'autre en `transition` sur une carte qui ne
+   * se déplace pas par image. Aucun défilement ne la recompose.
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  .relief {
+    box-shadow:
+      0 1px 2px hsl(200 24% 8% / 0.04),
+      0 4px 12px -2px hsl(194 60% 30% / 0.07),
+      0 12px 28px -8px hsl(194 70% 26% / 0.06);
+    transition:
+      box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s ease;
+  }
+
+  .relief-fort {
+    box-shadow:
+      0 2px 4px hsl(200 24% 8% / 0.05),
+      0 8px 20px -4px hsl(194 60% 30% / 0.1),
+      0 22px 44px -12px hsl(194 70% 26% / 0.09);
+    transition:
+      box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s ease;
+  }
+
+  /* Au survol, le bloc se soulève. `translateY` seule — la règle de
+     performance tient même pour un effet décoratif. */
+  .relief:hover,
+  .relief-fort:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 2px 6px hsl(200 24% 8% / 0.06),
+      0 12px 28px -4px hsl(194 65% 28% / 0.14),
+      0 30px 60px -16px hsl(194 70% 26% / 0.12);
+    border-color: hsl(var(--primary) / 0.28);
+  }
+
+  /* Liseré intérieur clair en tête de carte : c'est ce qui donne l'impression
+     de verre sur les interfaces d'Apple, et ça ne coûte rien. */
+  .relief-verre {
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.9),
+      0 1px 2px hsl(200 24% 8% / 0.04),
+      0 6px 16px -3px hsl(194 60% 30% / 0.08),
+      0 16px 36px -10px hsl(194 70% 26% / 0.07);
+    transition:
+      box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* ── Teintes de fond des boîtes d'information ──────────────────────────────
+   * Youri voulait « un peu de couleurs différentes ». Ces trois fonds restent
+   * TRÈS pâles : le texte qui les surmonte doit garder ses 7:1, la contrainte
+   * de vidéoprojection ne bouge pas. Ils teintent, ils ne colorent pas.
+   */
+  /* ═══ Fondu de section ═════════════════════════════════════════════════════
+   * Demandé par Youri le 16/09/2026 : la bascule entre une section blanche et
+   * le fond papier se faisait sur un bord NET, ce qui coupait la page en
+   * tranches.
+   *
+   * La section garde donc son fond, mais il s'éteint en dégradé sur ses deux
+   * bords : le blanc naît du papier et y retourne, au lieu de commencer d'un
+   * coup. Le filet supérieur reste — c'est lui qui marque la section dans ce
+   * design system, pas le changement de fond.
+   *
+   * `background` STATIQUE : le dégradé est peint une fois, jamais animé. Un
+   * dégradé qui se recompose par image coûterait cher, celui-ci ne coûte rien.
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  .section-fondue {
+    background: linear-gradient(
+      to bottom,
+      transparent 0,
+      hsl(var(--surface) / 0.82) 7rem,
+      hsl(var(--surface) / 0.82) calc(100% - 7rem),
+      transparent 100%
+    );
+  }
+
+  .teinte-cyan   { background: linear-gradient(160deg, hsl(191 70% 97%), hsl(0 0% 100%) 62%); }
+  .teinte-actif  { background: linear-gradient(160deg, hsl(324 60% 97.5%), hsl(0 0% 100%) 62%); }
+  .teinte-acquis { background: linear-gradient(160deg, hsl(146 45% 96.5%), hsl(0 0% 100%) 62%); }
 
   /*
    * Le rayon encode l'interaction, il n'est pas décoratif.

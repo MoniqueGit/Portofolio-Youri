@@ -53,7 +53,7 @@ export function ChaineTest() {
     <div ref={incline} className="h-full [transform-style:preserve-3d]">
       <div
         ref={hote}
-        className="bloc group relative flex h-full flex-col overflow-hidden p-7 [transform-style:preserve-3d] transition-[border-color] duration-300 hover:border-primary/45 sm:p-9"
+        className="bloc relief teinte-acquis group relative flex h-full flex-col overflow-hidden p-7 [transform-style:preserve-3d] sm:p-9"
       >
         <span ref={halo} className="halo" aria-hidden="true" />
         <span className="trame-points pointer-events-none absolute right-6 top-7 hidden h-12 w-12 sm:block" aria-hidden="true" />
