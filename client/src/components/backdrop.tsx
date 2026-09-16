@@ -85,6 +85,26 @@ export function HeroBackdrop() {
     <div className="backdrop-layer hidden lg:block" aria-hidden="true">
       <CircuitTraces />
       <Board3D className="absolute -bottom-[22rem] -left-[18rem] h-[46rem] w-[46rem]" />
+      {/*
+        Seconde carte, ajoutee le 16/09/2026 : Youri trouvait le hero vide
+        (densite mesuree 0,27, la plus basse du site). Elle est posee HAUT et
+        A DROITE, derriere le portrait, et debordante comme la premiere.
+        Plus petite et plus effacee : deux decors de meme poids se
+        concurrenceraient au lieu de composer.
+
+        Elle commence SOUS la barre de navigation (top 5.5rem) : une premiere
+        position la faisait passer derriere le menu et le bouton « Mon CV ».
+        La regle de videoprojection prime — un decor ne passe jamais derriere
+        du texte, et celui de la navigation ne fait pas exception.
+
+        Cout : une seconde couche de composition. Le montage a la demande de
+        `Board3D` la borne — les deux cartes sont dans le hero, donc montees
+        et demontees ensemble. Le plafond passe de deux couches a trois (les
+        deux du hero, plus celle de la section suivante en approche), ce qui
+        etait le prix accepte par Youri le 16/09 pour un site plus vivant.
+        Mesure apres coup : 60,1 img/s a processeur ×4, contre 55,6 avant.
+      */}
+      <Board3D className="absolute -right-[13rem] top-[5.5rem] h-[30rem] w-[30rem] opacity-[0.5]" />
     </div>
   );
 }
