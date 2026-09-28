@@ -52,7 +52,7 @@ export function EngagementCard() {
    */
   return (
     <section
-      className="bloc bloc-live relative mt-24 overflow-hidden sm:mt-28"
+      className="bloc bloc-live relief-fort teinte-cyan relative mt-24 overflow-hidden sm:mt-28"
       aria-labelledby="engagement-titre"
     >
       {/* Grille technique STRICTEMENT cantonnée à la marge haute : elle s'arrête

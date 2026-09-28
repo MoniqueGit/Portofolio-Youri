@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } fr
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navItems, profile } from "@/content/profile";
+import { FondVivant } from "@/components/fond-vivant";
 import { EASE } from "@/components/motion";
 
 const b = import.meta.env.BASE_URL;
@@ -72,7 +73,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground">
+      {/* Fond vivant du site : un canvas fixe, sous tout le contenu. Un seul
+          pour toute la page — cent bulles en DOM feraient cent couches. */}
+      <FondVivant />
       <a
         href="#contenu"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-foreground focus:px-4 focus:py-2 focus:text-[0.9375rem] focus:text-background"
@@ -141,7 +145,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
               aria-expanded={menuOpen}
-              className="radius-control flex h-9 w-9 items-center justify-center border border-border text-foreground transition-colors duration-300 hover:border-primary/50 md:hidden"
+              className="radius-control flex h-11 w-11 items-center justify-center border border-border text-foreground transition-colors duration-300 hover:border-primary/50 md:hidden"
             >
               {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
@@ -211,7 +215,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-[0.9375rem]">
               <a
                 href={`mailto:${profile.email}`}
-                className="text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex min-h-[44px] items-center text-muted-foreground transition-colors hover:text-foreground"
               >
                 Email
               </a>
@@ -219,18 +223,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 href={profile.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex min-h-[44px] items-center text-muted-foreground transition-colors hover:text-foreground"
               >
                 LinkedIn
               </a>
               <a
                 href={`${b}${profile.cvFile}`}
                 download="CV_Youri_Figuie.pdf"
-                className="text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex min-h-[44px] items-center text-muted-foreground transition-colors hover:text-foreground"
               >
                 CV (PDF)
               </a>
-              <Link href="/collins" className="text-muted-foreground transition-colors hover:text-foreground">
+              <Link href="/collins" className="inline-flex min-h-[44px] items-center text-muted-foreground transition-colors hover:text-foreground">
                 Collins Aerospace
               </Link>
             </div>

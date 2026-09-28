@@ -177,14 +177,25 @@ function Toile({ tone }: { tone: "clair" | "panneau" }) {
     const boucle = () => {
       if (!actif || !visible) { frame = 0; return; }
       alterne = (alterne + 1) % 2;
-      /* Une image sur deux. Descendre à une sur trois et baisser la densité de
-         pixels a été essayé le 15/09/2026 : aucun gain mesurable (55,5 contre
-         55,7), pour un tracé moins net et un mouvement plus saccadé. Le coût
-         résiduel n'est pas le dessin, c'est la couche de composition. */
-      if (alterne === 0) {
-        angle += 0.0034;
-        px += (visePx - px) * 0.05;
-        py += (visePy - py) * 0.05;
+      /*
+       * Rendu à CHAQUE image depuis le 16/09/2026, sur arbitrage de Youri qui
+       * a accordé une marge de performance pour un site plus vivant.
+       *
+       * Historique, à connaître avant de revenir en arrière : le composant
+       * dessinait une image sur deux depuis le 14/09 par économie. Descendre
+       * encore (une sur trois + densité plafonnée) avait été essayé le 15/09
+       * sans aucun gain mesurable — 55,5 contre 55,7 — parce que le coût
+       * résiduel est la COMPOSITION de la couche, pas le dessin. C'est la
+       * même raison qui rend ce passage au plein régime peu coûteux, et le
+       * mouvement y gagne nettement en fluidité.
+       *
+       * La rotation est divisée par deux pour compenser : à deux fois plus
+       * d'images, le même incrément tournerait deux fois plus vite.
+       */
+      {
+        angle += 0.0017;
+        px += (visePx - px) * 0.025;
+        py += (visePy - py) * 0.025;
         dessiner();
       }
       frame = requestAnimationFrame(boucle);
