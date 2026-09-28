@@ -686,3 +686,18 @@ circle.trace-pad {
 @media (prefers-reduced-motion: reduce) {
   .halo { display: none; }
 }
+
+/* ═══ Nappe de mercure ═══════════════════════════════════════════════════════
+ * Le fond métallique du hero (28/09/2026) s'éteint en dégradé vers le bas :
+ * il naît du papier et y retourne. Sans ça, la jonction avec la section
+ * suivante se voyait comme un bord net qui coupait la page en deux.
+ *
+ * Le masque est STATIQUE et posé sur une couche qui ne se déplace pas — le
+ * masque qui avait coûté 33 images/s le 14/09 était sur une couche ANIMÉE en
+ * parallaxe. Ce n'est pas le masque en soi qui coûte, c'est sa recomposition
+ * à chaque image.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.mercure-fondu {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 94%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 94%);
+}

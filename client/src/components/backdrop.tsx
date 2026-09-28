@@ -1,5 +1,6 @@
 import { type CSSProperties } from "react";
 import { Board3D } from "@/components/board-3d";
+import { Mercure } from "@/components/mercure";
 
 /**
  * Arrière-plan : réseau de pistes de circuit imprimé.
@@ -82,8 +83,26 @@ export function CircuitTraces({ className = "" }: { className?: string }) {
  */
 export function HeroBackdrop() {
   return (
-    <div className="backdrop-layer hidden lg:block" aria-hidden="true">
-      <CircuitTraces />
+    <div className="backdrop-layer" aria-hidden="true">
+      {/*
+        Nappe de mercure (28/09/2026, demande de Youri). Elle remplace le fond
+        papier uni du hero, SOUS les pistes et les cartes : le métal est la
+        matière, le routage reste le dessin technique posé dessus.
+
+        Elle n'est PAS masquée sous 1024 px, contrairement au reste de ce
+        calque : c'est un aplat plein écran dont le coût ne dépend que du
+        nombre de pixels, pas de la complexité de la scène, et le plafond de
+        densité le borne. Les pistes et les cartes, elles, restent coupées sur
+        téléphone — un décor est la première chose à sacrifier sur petit écran.
+
+        `mercure-fondu` l'éteint en dégradé vers le bas : la nappe naît du
+        papier et y retourne, au lieu de s'arrêter sur un bord net à la
+        jonction avec la section suivante.
+      */}
+      <Mercure className="mercure-fondu absolute inset-0" epargne="[data-mercure-epargne]" />
+
+      <div className="hidden lg:block">
+        <CircuitTraces />
       <Board3D className="absolute -bottom-[22rem] -left-[18rem] h-[46rem] w-[46rem]" />
       {/*
         Seconde carte, ajoutee le 16/09/2026 : Youri trouvait le hero vide
@@ -104,7 +123,8 @@ export function HeroBackdrop() {
         etait le prix accepte par Youri le 16/09 pour un site plus vivant.
         Mesure apres coup : 60,1 img/s a processeur ×4, contre 55,6 avant.
       */}
-      <Board3D className="absolute -right-[13rem] top-[5.5rem] h-[30rem] w-[30rem] opacity-[0.5]" />
+        <Board3D className="absolute -right-[13rem] top-[5.5rem] h-[30rem] w-[30rem] opacity-[0.5]" />
+      </div>
     </div>
   );
 }

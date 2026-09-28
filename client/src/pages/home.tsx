@@ -19,7 +19,6 @@ import { Reveal } from "@/components/reveal";
 import { VitrinePerso } from "@/components/vitrine-perso";
 import { CarteExperience } from "@/components/carte-experience";
 import { HeroBackdrop } from "@/components/backdrop";
-import { VantaWaves, vantaDemande } from "@/components/vanta-waves";
 import { EngagementCard } from "@/components/engagement-card";
 import { Board3D } from "@/components/board-3d";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -193,9 +192,6 @@ function PillLink({
 function Hero() {
   const ref = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
-  /* Essai Vanta WAVES (28/09/2026), éteint par défaut : `?vanta=1` l'allume.
-     Lu une seule fois au montage — l'URL ne change pas en cours de route. */
-  const [vanta] = useState(vantaDemande);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const y = useTransform(scrollYProgress, [0, 1], [0, 70]);
@@ -206,17 +202,18 @@ function Hero() {
       ref={ref}
       className="relative flex min-h-[86svh] items-center overflow-hidden px-5 pb-14 pt-24 sm:px-8 sm:pb-20 sm:pt-32 lg:min-h-[92svh]"
     >
-      {/* Pendant l'essai, le fond Vanta REMPLACE le décor maison : les
-          superposer donnerait deux arrière-plans qui se disputent la même
-          surface, et on ne saurait plus lequel on juge. */}
-      {vanta ? <VantaWaves actif /> : <HeroBackdrop />}
+      <HeroBackdrop />
 
       <motion.div
         className="relative z-10 mx-auto w-full max-w-6xl"
         style={reduced ? undefined : { opacity, y }}
       >
         <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-16">
-          <div className="relative">
+          {/* `data-mercure-epargne` : la nappe de métal du fond MESURE ce bloc
+              et s'y éteint. Le repère vit ici, sur le vrai conteneur du texte,
+              plutôt que dans une zone devinée côté shader — une maquette qui
+              bouge emmène la protection avec elle. */}
+          <div className="relative" data-mercure-epargne>
             {/* Réglette de repères : elle s'allume de haut en bas à l'ouverture */}
             <div
               className="rail po-rail absolute -left-6 top-1 hidden h-full w-[5px] lg:block"

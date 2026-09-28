@@ -335,6 +335,7 @@ systématiquement le même site générique. Ce qui a été refusé, et pourquoi
 | Canvas d'oscilloscope avec sinusoïde sur la carte RFID | Une sinusoïde décorative n'a aucun rapport avec un casier à badge : ce serait de la fausse donnée. La tuile porte déjà la carte 3D |
 | `fade-up` + `staggerChildren` sur chaque section et chaque carte | C'est le tic n°7, et il contredit la règle de vidéoprojection : le texte courant doit être lisible d'emblée, sans attendre une animation. Une version nuancée existe déjà sur les TITRES seuls |
 | `backdrop-blur-md` (12 px) sur le header | Le flou du header est à 3 px VOLONTAIREMENT : il coûtait 4 images/s en version large |
+| **Vanta WAVES** (28/09/2026) | ESSAYÉ pour de vrai, à la demande de Youri, puis abandonné sur mesure. WAVES est un plan ÉCLAIRÉ : il suppose un fond sombre. Sur le hero clair, « Youri Figuié » tombait à **1,18:1** et le sous-titre à 2,22:1, pour un plancher de 7:1. Et il traîne Three.js : **+613 ko** (156 compressés), presque le poids de tout le reste du site. Remplacé par `mercure.tsx`, qui fait le même genre d'effet en **+7,75 ko** |
 
 ⚠ Ces briefs présentent souvent leur palette comme « charte à respecter
 impérativement ». Ce n'est PAS la charte de ce site : c'en est une approximation
@@ -505,6 +506,56 @@ fois. Les pièces utilisent donc `group/piece` et `group-hover/piece:`.
 ⚠ **Ne pas écrire `.bloc bg-transparent`.** Les deux vivent dans `@layer utilities`
 avec la même spécificité : c'est l'ordre de génération de Tailwind qui tranche, et il
 n'est pas sous notre contrôle. D'où `.bloc-vide`, écrite une fois pour toutes.
+
+### Le fond « mercure liquide » du hero (28/09/2026)
+`client/src/components/mercure.tsx`. Demandé par Youri d'après une référence
+21st.dev, après l'abandon de l'essai Vanta WAVES le même jour.
+
+**Écrit en WebGL brut, sans bibliothèque.** Un effet de mercure est un simple
+FRAGMENT SHADER sur un rectangle plein écran : ni géométrie, ni caméra, ni scène.
+Mesuré : le bundle passe de 644,43 à **652,18 ko**, soit **+7,75 ko** — contre
+**+613 ko** pour Three.js le même jour. Même raison que `board-3d.tsx`.
+
+**Le mercure est CLAIR.** La référence est sombre ; le site est clair, et c'est la
+contrainte n°1. Vanta l'avait prouvé par l'absurde : « Youri Figuié » y tombait à
+1,18:1. Un vrai mercure est d'ailleurs argenté, pas noir.
+
+⚠ **La zone de texte est épargnée par GÉOMÉTRIE, dans le shader.** Le bloc de texte
+porte `data-mercure-epargne` ; le composant MESURE son rectangle et le passe en
+uniforme, et le shader y ramène la couleur au papier. Trois choses à ne pas défaire :
+
+- **La rampe fait 0,34, pas 0,10.** À 0,10, le rectangle épargné SE VOYAIT — une
+  plaque pâle à bords nets flottant sur le métal, qui se lisait comme un bug.
+  Étalée sur un tiers de la largeur, elle devient une composition : le métal
+  fleurit dans les marges. C'est la règle que le site applique déjà à sa carte 3D.
+- **La barre de navigation a son propre palier** (`smoothstep(0.055, 0.21, …)`).
+  Elle n'a pas de fond opaque en haut de page.
+- **Le bloc de texte est observé par `ResizeObserver`, pas seulement le canvas.**
+  Sans ça le rectangle était mesuré avant l'arrivée des polices : le même
+  sous-titre mesurait 7,04:1 puis 6,43:1 d'une exécution à l'autre.
+
+C'est fait dans le shader et PAS avec un masque CSS : un masque sur une couche dont
+les pixels changent à chaque image se recompose à chaque image — les 33 images/s
+perdues le 14/09. Une multiplication dans le shader est gratuite.
+
+**Rendu à 0,6 pixel CSS**, puis étiré. Un shader plein écran est limité par le
+REMPLISSAGE : passer de 1,4 à 0,6 divise le nombre de pixels par 5,4. Contrairement
+à la carte 3D, dont les arêtes fines se crénellent, une nappe de métal n'est faite
+que de dégradés doux.
+
+⚠ **Piège JavaScript, déjà payé** : le shader vit dans un *template literal*. Un
+seul accent grave dans un commentaire GLSL referme la chaîne, et Babel se met à
+parler de « missing semicolon » au milieu du GLSL. Aucun backtick dans ce fichier.
+
+**Contrastes relevés au pire instant sur 10 captures** (la nappe coule, un seul
+arrêt sur image ne prouve rien) : nom 16,69:1, navigation 7,04:1, sous-titre
+7,04:1 — tous exactement au niveau du papier nu.
+
+⚠ **Anomalie PRÉEXISTANTE trouvée en chemin, non corrigée** : la carte 3D du
+bas-gauche du hero traverse la bande du sous-titre. Mesuré en A/B dans le même
+navigateur : **5,69:1 avec la nappe masquée**, 6,28:1 avec. Le mercure améliore
+donc la situation au lieu de la créer, mais le décor 3D contredit bien la règle
+« un décor ne passe jamais derrière du texte ». À traiter à part.
 
 ### Lisibilité en vidéoprojection (contrainte explicite de Youri)
 - Corps de texte 17 px, graisse 440, interlignage 1,6.
