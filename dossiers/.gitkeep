@@ -1,0 +1,4 @@
+Déposer ici les pièces des dossiers de projet (PDF) :
+cahiers des charges, fiches de mesures, rapports.
+Puis renseigner le nom du fichier dans client/src/content/profile.ts,
+sur le projet concerné, champ `documents` → `fichier`.
