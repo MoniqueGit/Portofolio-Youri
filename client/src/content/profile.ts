@@ -72,6 +72,28 @@ export const alternanceArchive = {
   ],
 };
 
+/**
+ * Ce que Youri fait en dehors de la technique.
+ *
+ * Les trois centres d'intérêt viennent de ses propres données (ils étaient
+ * déjà dans `about.facts`). Le champ `texte` est VIDE : c'est à lui d'écrire
+ * ce qu'il a envie de dire, avec ses mots. Ne rien inventer ici — une
+ * personnalité inventée s'entend immédiatement à l'oral d'un entretien.
+ */
+export const passions = {
+  /** ⚠ À ÉCRIRE PAR YOURI. Vide ⇒ seule la liste s'affiche. */
+  texte: "",
+  centres: [
+    {
+      nom: "Bivouac et randonnée",
+      /** ⚠ À COMPLÉTER : une phrase, la tienne. */
+      detail: "",
+    },
+    { nom: "Musculation", detail: "" },
+    { nom: "Nouvelles technologies", detail: "" },
+  ],
+} as const;
+
 export type Experience = {
   role: string;
   company: string;
@@ -236,6 +258,23 @@ export const softSkills = [
   "Permis B",
 ];
 
+/**
+ * Pièce du dossier technique d'un projet.
+ *
+ * Le document est DÉCLARÉ même quand le fichier n'existe pas encore : la page
+ * montre alors la pièce attendue et l'annonce « à déposer ». C'est ce qui rend
+ * un dossier lisible comme un dossier — on voit ce qu'il contient ET ce qu'il
+ * lui manque, au lieu d'une liste vide.
+ *
+ * Les fichiers se déposent dans `client/public/dossiers/`.
+ */
+export type PieceDossier = {
+  type: "Cahier des charges" | "Fiche de mesures" | "Rapport" | "Schéma" | "Code source";
+  titre: string;
+  /** Nom du fichier dans `client/public/dossiers/`. Vide ⇒ pièce en attente. */
+  fichier: string;
+};
+
 export type Project = {
   /** Identifiant stable, utilisé pour l'ancre du dossier. */
   slug: string;
@@ -260,6 +299,23 @@ export type Project = {
   cover?: string;
   /** Photos supplémentaires du dossier, même dossier que `cover`. */
   gallery?: string[];
+  /**
+   * Année du BUT pendant laquelle le projet a été mené. Sert à regrouper les
+   * projets dans la section Projets.
+   * ⚠ Les trois projets académiques sont datés de BUT 1 par déduction (Youri
+   * est entré en BUT en 2025 et est en BUT 2 en 2026) : À CONFIRMER PAR LUI.
+   */
+  annee?: 1 | 2 | 3;
+  /**
+   * Apprentissages critiques du référentiel ESE couverts par le projet
+   * (codes de `content/competences.ts`).
+   * ⚠ PROPOSITION déduite des descriptions de Youri lui-même, pas une
+   * validation officielle. À faire confirmer par son enseignant avant de
+   * s'en servir comme preuve de compétence.
+   */
+  acs?: string[];
+  /** Pièces du dossier technique, déposées ou attendues. */
+  documents?: PieceDossier[];
 };
 
 export const academicProjects: Project[] = [
@@ -272,6 +328,15 @@ export const academicProjects: Project[] = [
     desc: "Conception d'un circuit électronique complet : intégration des composants, tests de fonctionnement et correction des bugs électroniques.",
     tags: ["Électronique", "PCB", "Hardware"],
     context: "Projet mené en BUT GEII, à l'IUT de Montpellier.",
+    annee: 1,
+    /* Déduits de la description ci-dessus : réalisation d'un prototype, puis
+       identification et description des dysfonctionnements. À faire valider. */
+    acs: ["AC11.02", "AC12.02", "AC12.03"],
+    documents: [
+      { type: "Cahier des charges", titre: "Cahier des charges du projet", fichier: "" },
+      { type: "Fiche de mesures", titre: "Relevés et mesures", fichier: "" },
+      { type: "Rapport", titre: "Rapport de projet", fichier: "" },
+    ],
     highlights: [
       "Conception du circuit électronique complet.",
       "Intégration des composants sur la carte.",
@@ -288,6 +353,15 @@ export const academicProjects: Project[] = [
     desc: "Assemblage et soudure d'une carte STM32, contrôle des connexions et validation du fonctionnement en langage C (STMicroelectronics).",
     tags: ["STM32", "C", "Embarqué", "Soudure"],
     context: "Projet mené en BUT GEII, à l'IUT de Montpellier, sur matériel STMicroelectronics.",
+    annee: 1,
+    /* Réalisation d'un prototype matériel, puis application d'une procédure
+       d'essais (contrôle des connexions, validation en C). À faire valider. */
+    acs: ["AC11.02", "AC12.01"],
+    documents: [
+      { type: "Cahier des charges", titre: "Cahier des charges du projet", fichier: "" },
+      { type: "Fiche de mesures", titre: "Relevés et mesures", fichier: "" },
+      { type: "Rapport", titre: "Rapport de projet", fichier: "" },
+    ],
     highlights: [
       "Assemblage et soudure des composants de la carte.",
       "Contrôle des connexions avant mise sous tension.",
@@ -303,6 +377,15 @@ export const academicProjects: Project[] = [
     desc: "Conception d'un robot analogique avec capteurs de ligne, réglages électroniques fins et tests prototype jusqu'à la validation finale.",
     tags: ["Robotique", "Capteurs", "Analogique"],
     context: "Projet mené en BUT GEII, à l'IUT de Montpellier.",
+    annee: 1,
+    /* Analyse fonctionnelle puis prototype, avec une campagne d'essais menée
+       jusqu'à la validation finale. À faire valider. */
+    acs: ["AC11.01", "AC11.02", "AC12.01"],
+    documents: [
+      { type: "Cahier des charges", titre: "Cahier des charges du projet", fichier: "" },
+      { type: "Fiche de mesures", titre: "Relevés et mesures", fichier: "" },
+      { type: "Rapport", titre: "Rapport de projet", fichier: "" },
+    ],
     highlights: [
       "Conception d'un robot entièrement analogique.",
       "Intégration et câblage des capteurs de ligne.",

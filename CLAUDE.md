@@ -49,6 +49,8 @@
     projets, compétences). Source unique de vérité : pour corriger un texte, c'est ici.
   - `client/src/content/collins.ts` — faits sur Collins Aerospace (chiffres sourcés
     et datés) + la mission de Youri, À COMPLÉTER par lui
+  - `client/src/content/competences.ts` — référentiel officiel du BUT GEII,
+    parcours ESE. **GÉNÉRÉ, ne pas réécrire à la main** (voir plus bas)
   - `client/src/pages/home.tsx` — assemblage des sections (mise en forme uniquement)
   - `client/src/pages/collins.tsx` — page dédiée `/collins`, seul panneau sombre
   - `client/src/components/layout.tsx` — header / menu mobile / footer
@@ -411,6 +413,51 @@ jamais servi.
 ⚠ La grille technique de cette carte est cantonnée à la marge haute (`h-7 sm:h-10`),
 elle s'arrête exactement là où commence le titre. Première version : un bandeau de
 160 px qui passait derrière le titre — interdit par la règle de vidéoprojection.
+
+### Le référentiel de compétences du BUT (28/09/2026)
+`client/src/content/competences.ts` contient les **4 compétences** et les
+**29 apprentissages critiques** du parcours ESE (Électronique et systèmes embarqués) :
+Concevoir · Vérifier · Assurer le MCO · Implanter.
+
+**Le fichier est GÉNÉRÉ par extraction du PDF officiel**, pas recopié. Le PDF fourni
+couvre trois parcours ; seules ses **pages 2 à 5** concernent l'ESE — les pages 7-10
+sont EME et 12-15 AII. Les titres de parcours PRÉCÈDENT leur bloc, et l'ordre réel des
+pages vient de l'arbre `/Kids`, pas du numéro d'objet : s'y fier donne le mauvais
+parcours. Vérification indépendante : la 4ᵉ compétence de l'ESE est « Implanter un
+système **matériel ou logiciel** » (les deux autres parcours ont « Installer … énergie »
+et « Intégrer … procédé industriel »), et ses codes portent le suffixe `ESE`.
+
+Les libellés sont repris mot pour mot : ne pas les reformuler, des enseignants les
+connaissent par cœur.
+
+⚠ **Anomalie du PDF source, laissée telle quelle** : `AC33.03` y apparaît deux fois
+(« Produire une procédure de maintenance » et « Proposer un appui technique… »). Le
+second est vraisemblablement `AC33.04`. À faire confirmer par l'IUT — ce n'est pas au
+site de renuméroter un référentiel officiel.
+
+### Projets : année, compétences et pièces de dossier
+Trois champs ajoutés au type `Project` le 28/09/2026 :
+- `annee` (1 | 2 | 3) — regroupe les projets dans la section Projets. ⚠ Les trois
+  projets académiques sont datés **BUT 1 par déduction** (entrée en BUT en 2025,
+  BUT 2 en 2026) : À CONFIRMER PAR YOURI.
+- `acs` — codes du référentiel travaillés. ⚠ **PROPOSITION** déduite des descriptions
+  que Youri a lui-même écrites, pas une validation. La page l'écrit noir sur blanc :
+  « rapprochement proposé …, à valider avec l'enseignant ». Un site ne valide pas une
+  compétence, un enseignant si. Ne jamais retirer cette mention.
+- `documents` — pièces du dossier (cahier des charges, fiche de mesures, rapport).
+  Les fichiers se déposent dans `client/public/dossiers/`. Une pièce déclarée mais
+  sans fichier s'affiche « à déposer » : on voit ce que le dossier contient ET ce
+  qu'il lui manque, au lieu d'une liste vide.
+
+Dans la section Compétences, le référentiel affiche en cyan les apprentissages déjà
+travaillés (déduits des `acs` des projets) et en gris les autres. Ils sont marqués
+« travaillés en projet », jamais « validés ».
+
+### `passions` — la section personnelle
+`export const passions` dans `profile.ts`, rendu par la section `#passions`. Les trois
+centres d'intérêt viennent des données existantes ; `texte` et chaque `detail` sont
+**vides et à écrire par Youri**. Ne rien inventer : une personnalité inventée se
+dément au premier entretien.
 
 ### Lisibilité en vidéoprojection (contrainte explicite de Youri)
 - Corps de texte 17 px, graisse 440, interlignage 1,6.

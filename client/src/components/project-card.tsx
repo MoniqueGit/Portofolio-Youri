@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Check, ImageIcon } from "lucide-react";
+import { Check, Download, FileText, ImageIcon } from "lucide-react";
 import { useInclinaison } from "@/components/motion";
 import { useHalo } from "@/components/cursor";
 import { Board3D } from "@/components/board-3d";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Project } from "@/content/profile";
+import { acParCode } from "@/content/competences";
 
 const b = import.meta.env.BASE_URL;
 /** Les photos de projet se déposent dans client/public/projets/. */
 const photo = (file: string) => `${b}projets/${file}`;
+/** Les pièces de dossier se déposent dans client/public/dossiers/. */
+const piece = (file: string) => `${b}dossiers/${file}`;
 
 /** Nombre de tags visibles sur la vignette avant le chip « +N ». */
 const VISIBLE_TAGS = 3;
@@ -183,6 +186,69 @@ export function ProjectDossier({
                   </li>
                 ))}
               </ul>
+
+              {/* ── Compétences du référentiel couvertes ─────────────── */}
+              {project.acs && project.acs.length > 0 && (
+                <>
+                  <p className="type-label mt-8 text-muted-foreground">
+                    Compétences du BUT travaillées
+                  </p>
+                  <ul className="mt-4 space-y-2.5">
+                    {project.acs.map((code) => {
+                      const ac = acParCode.get(code);
+                      if (!ac) return null;
+                      return (
+                        <li key={code} className="flex gap-3 text-[1.0625rem] leading-relaxed">
+                          <span className="type-data shrink-0 font-bold text-primary">{ac.code}</span>
+                          <span className="text-pretty text-muted-foreground">
+                            {ac.libelle}
+                            <span className="type-data ml-2 text-[0.9375rem] text-[hsl(var(--efis))]">
+                              {ac.competence.nom}
+                            </span>
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {/* Une compétence ne s'auto-déclare pas : c'est l'enseignant
+                      qui valide. La page le dit, plutôt que de le laisser croire. */}
+                  <p className="type-data mt-3 text-[0.9375rem] text-muted-foreground">
+                    Rapprochement proposé à partir du travail réalisé, à valider avec l'enseignant.
+                  </p>
+                </>
+              )}
+
+              {/* ── Pièces du dossier technique ──────────────────────── */}
+              {project.documents && project.documents.length > 0 && (
+                <>
+                  <p className="type-label mt-8 text-muted-foreground">Pièces du dossier</p>
+                  <ul className="mt-4 grid gap-px bg-border">
+                    {project.documents.map((d) => (
+                      <li key={d.type + d.titre} className="bg-background">
+                        {d.fichier ? (
+                          <a
+                            href={piece(d.fichier)}
+                            download
+                            className="group flex items-center gap-3 py-3.5 transition-colors hover:text-primary"
+                          >
+                            <FileText className="h-4 w-4 shrink-0 text-primary" />
+                            <span className="flex-1 text-[1.0625rem]">{d.titre}</span>
+                            <span className="type-data text-[0.9375rem] text-muted-foreground">{d.type}</span>
+                            <Download className="h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                          </a>
+                        ) : (
+                          <div className="flex items-center gap-3 py-3.5">
+                            <FileText className="h-4 w-4 shrink-0 text-muted-foreground/50" />
+                            <span className="flex-1 text-[1.0625rem] text-muted-foreground">{d.titre}</span>
+                            <span className="type-data text-[0.9375rem] text-muted-foreground">{d.type}</span>
+                            <span className="type-data text-[0.9375rem] text-[hsl(var(--caution))]">à déposer</span>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
 
               <p className="type-label mt-8 text-muted-foreground">Technologies et méthodes</p>
               <div className="mt-4 flex flex-wrap gap-2">

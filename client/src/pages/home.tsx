@@ -4,7 +4,7 @@ import { motion, useInView, useReducedMotion, useScroll, useTransform } from "fr
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowRight, ArrowUpRight, Check, Download, Linkedin, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, Cpu, Download, Dumbbell, Linkedin, Loader2, Tent } from "lucide-react";
 
 import { Layout } from "@/components/layout";
 import { useAimant } from "@/components/cursor";
@@ -18,11 +18,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
-  about, academicProjects, contactLinks, education, experiences,
+  about, academicProjects, contactLinks, education, experiences, passions,
   highlights, personalProjects, profile, skillGroups, softSkills,
   type Project,
 } from "@/content/profile";
 import { collins } from "@/content/collins";
+import { referentiel, parcours, diplome } from "@/content/competences";
 
 const b = import.meta.env.BASE_URL;
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/meelwjkk";
@@ -314,6 +315,46 @@ function About() {
   );
 }
 
+/* ── Ce que je fais en dehors ─────────────────────────────────────────────── */
+
+const ICONES_PASSION = [Tent, Dumbbell, Cpu];
+
+/**
+ * Section personnelle (demande de Youri du 28/09/2026).
+ *
+ * Les trois centres d'intérêt viennent de ses données ; `texte` et `detail`
+ * sont vides tant qu'il ne les a pas écrits, et la section s'affiche alors
+ * proprement sans eux. On n'invente pas une personnalité : elle se dément au
+ * premier entretien.
+ */
+function Passions() {
+  return (
+    <Section id="passions" decor="droite">
+      <SectionHeader
+        title="En dehors de l'électronique."
+        lead={passions.texte || undefined}
+      />
+
+      <div className="mt-14 grid gap-px bg-border sm:grid-cols-3">
+        {passions.centres.map((c, i) => {
+          const Icone = ICONES_PASSION[i] ?? Cpu;
+          return (
+            <div key={c.nom} className="bg-background p-7">
+              <Icone className="h-6 w-6 text-[hsl(var(--efis))]" strokeWidth={1.6} />
+              <h3 className="mt-5 text-[1.0625rem] font-bold tracking-[-0.02em]">{c.nom}</h3>
+              {c.detail && (
+                <p className="mt-2.5 text-[1.0625rem] leading-relaxed text-muted-foreground text-pretty">
+                  {c.detail}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
 /* ── Collins : l'aperçu qui renvoie vers la page dédiée ───────────────────── */
 
 function CollinsTeaser() {
@@ -497,7 +538,73 @@ function Skills() {
           <Tag key={s}>{s}</Tag>
         ))}
       </div>
+
+      <Referentiel />
     </Section>
+  );
+}
+
+/**
+ * Le référentiel officiel du BUT, avec ce qui a déjà été travaillé en projet.
+ *
+ * Un apprentissage critique n'est PAS marqué « validé » : c'est l'enseignant
+ * qui valide, pas le site. Il est marqué « travaillé en projet », ce qui est
+ * une affirmation que les dossiers étayent.
+ */
+function Referentiel() {
+  const travailles = new Set(academicProjects.flatMap((p) => p.acs ?? []));
+
+  return (
+    <div className="mt-24 border-t border-border pt-12 sm:mt-28">
+      <h3 className="type-title text-balance">Le référentiel du diplôme.</h3>
+      <p className="type-lead mt-5 max-w-3xl text-muted-foreground text-pretty">
+        {diplome}, parcours {parcours}. Quatre compétences, déclinées en apprentissages
+        critiques sur les trois années. En cyan, ceux que mes projets ont déjà fait travailler.
+      </p>
+
+      <div className="mt-12 space-y-px bg-border">
+        {referentiel.map((c) => (
+          <section key={c.cle} className="bg-background py-7">
+            <div className="flex items-baseline gap-3">
+              <c.icone className="h-5 w-5 shrink-0 translate-y-1 text-[hsl(var(--efis))]" strokeWidth={1.75} />
+              <h4 className="type-heading">{c.nom}</h4>
+              <p className="type-data text-[0.9375rem] text-muted-foreground">{c.intitule}</p>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-3">
+              {c.annees.map((a) => (
+                <div key={a.annee} className="border-t border-border pt-4">
+                  <p className="type-data text-[0.9375rem] font-bold">BUT {a.annee}</p>
+                  <ul className="mt-3 space-y-2">
+                    {a.acs.map((ac, i) => {
+                      const fait = travailles.has(ac.code);
+                      return (
+                        <li key={ac.code + i} className="flex gap-2.5 text-[0.9375rem] leading-snug">
+                          <span
+                            className={`type-data shrink-0 font-bold ${
+                              fait ? "text-primary" : "text-muted-foreground/60"
+                            }`}
+                          >
+                            {ac.code}
+                          </span>
+                          <span className={fait ? "text-foreground" : "text-muted-foreground"}>
+                            {ac.libelle}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <p className="type-data mt-6 text-[0.9375rem] text-muted-foreground">
+        Source : référentiel de compétences du BUT GEII, parcours {parcours}.
+      </p>
+    </div>
   );
 }
 
@@ -507,6 +614,13 @@ function Projects() {
   const [openProject, setOpenProject] = useState<Project | null>(null);
   const [vedette, ...autresProjets] = personalProjects;
 
+  /* Regroupement par année, dans l'ordre du parcours. Un projet sans année
+     reste visible : il tombe dans un groupe « 1 » par défaut plutôt que de
+     disparaître silencieusement de la page. */
+  const annees = [1, 2, 3]
+    .map((annee) => ({ annee, projets: academicProjects.filter((p) => (p.annee ?? 1) === annee) }))
+    .filter((g) => g.projets.length > 0);
+
   return (
     <Section id="projets" className="bg-surface" decor="droite">
       <SectionHeader
@@ -514,13 +628,34 @@ function Projects() {
         lead="Les projets menés dans le cadre du BUT GEII, de la conception du circuit à la validation du prototype. Ouvrez un dossier pour le détail."
       />
 
-      <ProjectStack projects={academicProjects} onOpen={setOpenProject} />
+      {/*
+        Regroupement par année de BUT (demande de Youri du 28/09/2026). Seules
+        les années qui ont des projets s'affichent : trois en-têtes dont deux
+        vides donneraient l'impression d'un site inachevé. La ligne finale dit
+        la suite du parcours sans faire de promesse datée.
+      */}
+      {annees.map(({ annee, projets }) => (
+        <div key={annee} className="mt-16 first:mt-14">
+          <div className="flex items-baseline gap-4 border-t border-border pt-6">
+            <span className="type-data text-[1.0625rem] font-bold text-primary">BUT {annee}</span>
+            <span className="type-data text-[0.9375rem] text-muted-foreground">
+              {projets.length} projet{projets.length > 1 ? "s" : ""}
+            </span>
+          </div>
 
-      <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3 lg:hidden">
-        {academicProjects.map((p) => (
-          <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
-        ))}
-      </div>
+          <ProjectStack projects={projets} onOpen={setOpenProject} />
+
+          <div className="mt-10 grid items-stretch gap-5 md:grid-cols-3 lg:hidden">
+            {projets.map((p) => (
+              <ProjectCard key={p.slug} project={p} onOpen={() => setOpenProject(p)} />
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <p className="type-data mt-12 text-[0.9375rem] text-muted-foreground">
+        Les projets des années suivantes viendront s'ajouter ici, avec leurs pièces de dossier.
+      </p>
 
       <h2 className="type-title mt-24 text-balance sm:mt-28">Et ce que je fais en dehors des cours.</h2>
       <p className="type-lead mt-5 max-w-3xl text-muted-foreground text-pretty">
@@ -734,6 +869,7 @@ export default function Home() {
       <Hero />
       <Highlights />
       <About />
+      <Passions />
       <CollinsTeaser />
       <Journey />
       <Skills />
