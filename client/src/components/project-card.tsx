@@ -187,10 +187,16 @@ export function ProjectDossier({
                 ))}
               </ul>
 
-              {/* ── Compétences du référentiel couvertes ─────────────── */}
+              {/* ── Compétences du référentiel couvertes ─────────────────
+                  Panneau encadré et teinté, comme les blocs de la refonte du
+                  16/09/2026. Pas de `relief` ici : une ombre portée à
+                  l'INTÉRIEUR d'une surface déjà posée en avant-plan (la
+                  fenêtre du dossier) empile deux plans pour rien. Le cadre et
+                  la teinte suffisent à détacher le panneau, et rien n'y est
+                  cliquable — donc rien n'a à réagir au survol. */}
               {project.acs && project.acs.length > 0 && (
-                <>
-                  <p className="type-label mt-8 text-muted-foreground">
+                <div className="bloc teinte-cyan mt-8 p-5 sm:p-6">
+                  <p className="type-label text-muted-foreground">
                     Compétences du BUT travaillées
                   </p>
                   <ul className="mt-4 space-y-2.5">
@@ -215,29 +221,50 @@ export function ProjectDossier({
                   <p className="type-data mt-3 text-[0.9375rem] text-muted-foreground">
                     Rapprochement proposé à partir du travail réalisé, à valider avec l'enseignant.
                   </p>
-                </>
+                </div>
               )}
 
-              {/* ── Pièces du dossier technique ──────────────────────── */}
+              {/* ── Pièces du dossier technique ──────────────────────────
+                  Ici, à l'inverse du panneau ci-dessus, une pièce DÉPOSÉE se
+                  télécharge : c'est une commande, donc elle réagit au survol
+                  comme les cartes du site — `relief` la fait monter de 2 px et
+                  ouvre son ombre cyan.
+
+                  ⚠ Le groupe est NOMMÉ (`group/piece`). La fenêtre du dossier
+                  porte déjà `group` sur son `<article>` : un `group-hover:`
+                  anonyme remonte jusqu'à lui, et survoler n'importe quel coin
+                  du dossier allumait la flèche de téléchargement des six
+                  pièces à la fois.
+
+                  Une pièce MANQUANTE n'est pas une commande — rien à presser,
+                  rien à survoler. Son cadre est en pointillés : la forme dit
+                  « emplacement vide » avant même qu'on lise l'étiquette, et
+                  l'information ne repose donc pas sur la seule couleur ambre. */}
               {project.documents && project.documents.length > 0 && (
                 <>
                   <p className="type-label mt-8 text-muted-foreground">Pièces du dossier</p>
-                  <ul className="mt-4 grid gap-px bg-border">
+                  <ul className="mt-4 grid gap-2.5">
                     {project.documents.map((d) => (
-                      <li key={d.type + d.titre} className="bg-background">
+                      <li key={d.type + d.titre}>
                         {d.fichier ? (
+                          /* Pas de `transition-colors` sur ce lien : l'utilitaire
+                             Tailwind et `.relief` écrivent tous deux la propriété
+                             `transition`, avec la même spécificité — le gagnant
+                             dépendrait de l'ordre de génération de Tailwind, et le
+                             soulèvement au survol deviendrait instantané un jour
+                             sur deux. `.relief` gère déjà la transition. */
                           <a
                             href={piece(d.fichier)}
                             download
-                            className="group flex items-center gap-3 py-3.5 transition-colors hover:text-primary"
+                            className="bloc relief group/piece flex items-center gap-3 px-4 py-3.5 hover:text-primary"
                           >
                             <FileText className="h-4 w-4 shrink-0 text-primary" />
                             <span className="flex-1 text-[1.0625rem]">{d.titre}</span>
                             <span className="type-data text-[0.9375rem] text-muted-foreground">{d.type}</span>
-                            <Download className="h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                            <Download className="h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover/piece:opacity-100" />
                           </a>
                         ) : (
-                          <div className="flex items-center gap-3 py-3.5">
+                          <div className="bloc-vide flex items-center gap-3 px-4 py-3.5">
                             <FileText className="h-4 w-4 shrink-0 text-muted-foreground/50" />
                             <span className="flex-1 text-[1.0625rem] text-muted-foreground">{d.titre}</span>
                             <span className="type-data text-[0.9375rem] text-muted-foreground">{d.type}</span>

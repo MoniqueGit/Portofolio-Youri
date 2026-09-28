@@ -366,6 +366,15 @@ const ICONES_PASSION = [Tent, Dumbbell, Cpu];
  * sont vides tant qu'il ne les a pas écrits, et la section s'affiche alors
  * proprement sans eux. On n'invente pas une personnalité : elle se dément au
  * premier entretien.
+ *
+ * Boîtes alignées sur la refonte du 16/09/2026 (demande de Youri du 28/09) :
+ * cette section était née avec l'ancien vocabulaire — une grille séparée par
+ * des filets d'un pixel — alors que tout le reste de la page était passé aux
+ * blocs en relief. Elle reprend donc `bloc relief relief-verre`, exactement
+ * comme les fiches de la section « Profil » juste au-dessus : ce sont les
+ * mêmes objets (une tuile d'information qu'on ne clique pas), ils doivent se
+ * ressembler. Le survol vient de `.relief` : le bloc monte de 2 px et son
+ * ombre cyan s'ouvre — aucune règle de plus à écrire.
  */
 function Passions() {
   return (
@@ -375,12 +384,19 @@ function Passions() {
         lead={passions.texte || undefined}
       />
 
-      <div className="mt-14 grid gap-px bg-border sm:grid-cols-3">
+      <div className="mt-14 grid gap-4 sm:grid-cols-3">
         {passions.centres.map((c, i) => {
           const Icone = ICONES_PASSION[i] ?? Cpu;
           return (
-            <div key={c.nom} className="bg-background p-7">
-              <Icone className="h-6 w-6 text-[hsl(var(--efis))]" strokeWidth={1.6} />
+            <div key={c.nom} className="bloc relief relief-verre group p-7">
+              {/* Le relief de l'icône au survol demande une chaîne `preserve-3d`
+                  et une perspective sur un ancêtre : sans elles, `translateZ`
+                  s'aplatit en silence. Ici, pas de perspective — l'icône se
+                  contente donc de monter, ce qui suffit sur une tuile fixe. */}
+              <Icone
+                className="h-6 w-6 text-[hsl(var(--efis))] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-0.5"
+                strokeWidth={1.6}
+              />
               <h3 className="mt-5 text-[1.0625rem] font-bold tracking-[-0.02em]">{c.nom}</h3>
               {c.detail && (
                 <p className="mt-2.5 text-[1.0625rem] leading-relaxed text-muted-foreground text-pretty">
@@ -546,22 +562,45 @@ function Skills() {
  * Un apprentissage critique n'est PAS marqué « validé » : c'est l'enseignant
  * qui valide, pas le site. Il est marqué « travaillé en projet », ce qui est
  * une affirmation que les dossiers étayent.
+ *
+ * Boîtes alignées sur la refonte du 16/09/2026 : les quatre compétences
+ * étaient des bandes séparées par un filet d'un pixel, le vocabulaire d'avant.
+ * Ce sont maintenant quatre blocs en relief. `teinte-cyan` plutôt qu'un fond
+ * blanc : le référentiel est un document de référence, pas une fiche de plus,
+ * et la teinte le dit sans ajouter d'étiquette.
+ *
+ * ⚠ PAS de `Reveal` ici, et c'est délibéré — essayé le 28/09/2026, retiré
+ * après vérification au navigateur. Ces quatre blocs font 29 apprentissages
+ * critiques de texte dense : les faire apparaître en fondu, c'est exactement
+ * le tic n°7 de l'audit, et surtout ça viole la règle de vidéoprojection —
+ * un enseignant qui projette la page doit pouvoir LIRE le référentiel tout de
+ * suite, pas attendre qu'il arrive. La révélation reste pour les cartes de
+ * projet, qui sont des vignettes, pas un document.
  */
 function Referentiel() {
   const travailles = new Set(academicProjects.flatMap((p) => p.acs ?? []));
 
   return (
-    <div className="mt-24 border-t border-border pt-12 sm:mt-28">
+    <div className="relative mt-24 border-t border-border pt-12 sm:mt-28">
+      {/* Même graduation cyan qu'en tête de section : c'est le repère de
+          position du site, et ce bloc en est une sous-section à part entière. */}
+      <span className="absolute left-0 top-0 h-[3px] w-10 bg-[hsl(var(--efis))]" aria-hidden="true" />
+
       <h3 className="type-title text-balance">Le référentiel du diplôme.</h3>
       <p className="type-lead mt-5 max-w-3xl text-muted-foreground text-pretty">
         {diplome}, parcours {parcours}. Quatre compétences, déclinées en apprentissages
         critiques sur les trois années. En cyan, ceux que mes projets ont déjà fait travailler.
       </p>
 
-      <div className="mt-12 space-y-px bg-border">
+      <div className="mt-12 grid gap-4">
         {referentiel.map((c) => (
-          <section key={c.cle} className="bg-background py-7">
+          <section key={c.cle} className="bloc relief teinte-cyan p-7 sm:p-8">
             <div className="flex items-baseline gap-3">
+              {/* Pas de `group-hover:-translate-y-*` sur cette icône : son
+                  `translate-y-1` est un CALAGE optique sur la ligne de base du
+                  titre, pas un état de repos. Les deux écrivent la même
+                  variable Tailwind, et l'icône sautait de 6 px au survol. Le
+                  soulèvement du bloc entier suffit largement. */}
               <c.icone className="h-5 w-5 shrink-0 translate-y-1 text-[hsl(var(--efis))]" strokeWidth={1.75} />
               <h4 className="type-heading">{c.nom}</h4>
               <p className="type-data text-[0.9375rem] text-muted-foreground">{c.intitule}</p>
@@ -631,7 +670,12 @@ function Projects() {
       */}
       {annees.map(({ annee, projets }) => (
         <div key={annee} className="mt-16 first:mt-14">
-          <div className="flex items-baseline gap-4 border-t border-border pt-6">
+          {/* Même filet + graduation cyan qu'en tête de section : l'année de
+              BUT est un repère de position dans le parcours, exactement ce que
+              cette marque signifie ailleurs sur le site. Pas de pastille
+              numérotée — le tic n°2 de l'audit — la date suffit à ordonner. */}
+          <div className="relative flex items-baseline gap-4 border-t border-border pt-6">
+            <span className="absolute left-0 top-0 h-[3px] w-10 bg-[hsl(var(--efis))]" aria-hidden="true" />
             <span className="type-data text-[1.0625rem] font-bold text-primary">BUT {annee}</span>
             <span className="type-data text-[0.9375rem] text-muted-foreground">
               {projets.length} projet{projets.length > 1 ? "s" : ""}

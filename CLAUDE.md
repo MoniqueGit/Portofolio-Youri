@@ -459,6 +459,53 @@ centres d'intérêt viennent des données existantes ; `texte` et chaque `detail
 **vides et à écrire par Youri**. Ne rien inventer : une personnalité inventée se
 dément au premier entretien.
 
+### Le vocabulaire des boîtes et des survols (refonte du 16/09/2026)
+Youri a demandé « des box avec du contraste, des ombres, un peu comme Apple ». La
+refonte a introduit un jeu d'utilitaires que **toute nouvelle section doit reprendre** :
+c'est ce qui empêche le site de ressembler à trois sites cousus ensemble.
+
+| Classe | Quoi | Survol |
+|---|---|---|
+| `.bloc` | surface de contenu : fond opaque, filet 1 px, rayon 16 px | — |
+| `.bloc-live` | filet cyan intérieur en tête, pour le bloc mis en avant | — |
+| `.bloc-vide` | emplacement annoncé mais vide : même géométrie, cadre en **pointillés**, sans fond | — |
+| `.relief` | ombre **cyan** nette, niveau repos | monte de 2 px, l'ombre s'ouvre, le filet vire au primaire |
+| `.relief-fort` | idem, pour le bloc qu'on veut faire lire en premier | idem |
+| `.relief-verre` | + liseré blanc intérieur en tête (l'effet « verre ») | — |
+| `.teinte-cyan` / `.teinte-actif` / `.teinte-acquis` | dégradé **très pâle** vers le blanc | — |
+| `useHalo` + `<span className="halo">` | cercle lumineux qui suit le pointeur | opacité seule |
+| `Reveal` / `RevealGroup` | révélation courte (14 px, 0,5 s, `once`) à l'entrée | — |
+
+**La règle qui décide lequel appliquer** — c'est la même logique que le rayon : ce
+n'est pas décoratif, ça encode ce que l'objet est.
+
+| L'objet est… | Traitement |
+|---|---|
+| une tuile d'information qu'on ne clique pas (Profil, Passions) | `.bloc .relief .relief-verre` |
+| un document de référence (Référentiel, Collins, Engagement) | `.bloc .relief` + `.teinte-cyan` |
+| une commande (carte de projet, pièce téléchargeable) | `.bloc .relief` + halo, et le curseur change |
+| un panneau imbriqué DANS une surface déjà en avant-plan (dossier) | `.bloc` + teinte, **sans** `relief` — deux plans d'ombre empilés ne disent rien |
+| un emplacement vide (pièce « à déposer ») | `.bloc-vide` |
+
+⚠ **Pas de `useInclinaison` sur une carte large.** Mesuré le 16/09/2026 sur la vitrine :
+29,4 contre 59,4 images/s. L'inclinaison reste réservée aux petites vignettes.
+
+⚠ **`Reveal` va sur des vignettes, pas sur un document.** Essayé le 28/09/2026 sur les
+quatre blocs du référentiel, retiré après vérification au navigateur : 29 apprentissages
+critiques de texte dense qui arrivent en fondu, c'est le tic n°7 ET une violation de la
+règle de vidéoprojection — un enseignant qui projette la page doit pouvoir lire le
+référentiel tout de suite. Avant de poser un `Reveal`, se demander : est-ce qu'on
+REGARDE cet élément (vignette, carte) ou est-ce qu'on le LIT (référentiel, dossier) ?
+
+⚠ **Nommer les groupes imbriqués.** `group-hover:` remonte jusqu'à N'IMPORTE QUEL
+ancêtre portant `.group`. La fenêtre de dossier porte `group` sur son `<article>` :
+survoler un coin quelconque allumait la flèche de téléchargement des six pièces à la
+fois. Les pièces utilisent donc `group/piece` et `group-hover/piece:`.
+
+⚠ **Ne pas écrire `.bloc bg-transparent`.** Les deux vivent dans `@layer utilities`
+avec la même spécificité : c'est l'ordre de génération de Tailwind qui tranche, et il
+n'est pas sous notre contrôle. D'où `.bloc-vide`, écrite une fois pour toutes.
+
 ### Lisibilité en vidéoprojection (contrainte explicite de Youri)
 - Corps de texte 17 px, graisse 440, interlignage 1,6.
 - Textes secondaires 15 px minimum, badges 13 px minimum. Rien sous 13 px.

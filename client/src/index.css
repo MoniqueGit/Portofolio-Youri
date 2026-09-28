@@ -269,6 +269,25 @@
     box-shadow: inset 0 2px 0 0 hsl(var(--efis));
   }
 
+  /*
+   * Emplacement vide : même géométrie qu'un `.bloc`, mais en pointillés et
+   * sans fond. Ajouté le 28/09/2026 pour les pièces de dossier annoncées et
+   * pas encore déposées.
+   *
+   * Pourquoi une classe plutôt que `.bloc bg-transparent` : les deux vivent
+   * dans `@layer utilities` avec la même spécificité, donc c'est l'ordre de
+   * génération de Tailwind qui trancherait — un détail hors de notre contrôle
+   * qui rendrait le fond tantôt blanc, tantôt transparent.
+   *
+   * La forme porte l'information AVANT la couleur : un cadre en pointillés se
+   * lit « il manque quelque chose ici » sans avoir à distinguer l'ambre, ce
+   * qui vaut pour un daltonien comme au fond d'une salle en vidéoprojection.
+   */
+  .bloc-vide {
+    border: 1px dashed hsl(var(--border));
+    border-radius: 16px;
+  }
+
   /* ═══ Boîtes d'information en relief ═══════════════════════════════════════
    * Demandé par Youri le 16/09/2026 : « des box avec du contraste, des ombres,
    * un peu comme Apple ».
