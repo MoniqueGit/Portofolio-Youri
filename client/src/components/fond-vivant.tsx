@@ -179,7 +179,23 @@ export function FondVivant() {
         }
       }
 
-      // ── Bulles : elles montent et ondulent doucement ───────────────────────
+      // ── Billes de mercure : elles montent et ondulent doucement ────────────
+      /*
+       * Chromées depuis le 28/09/2026 (demande de Youri : « les anciennes
+       * bulles bleues moches »). C'étaient des disques cyan à plat, avec un
+       * liseré — une tache, pas un volume.
+       *
+       * Ce qui fait lire « bille de métal » plutôt que « rond gris », c'est
+       * l'ÉTAGEMENT vertical, et lui seul : sombre en haut, clair en bas.
+       * Une sphère polie renvoie le ciel par le haut et le sol par le bas ;
+       * l'œil connaît cette signature et reconstruit le volume tout seul. Un
+       * dégradé centré, lui, donnerait une bulle de savon.
+       *
+       * Trois traits suffisent, et aucun ne coûte de filtre :
+       *   1. le dégradé de corps, décalé vers le HAUT ;
+       *   2. un éclat net en haut à gauche — la source de lumière ;
+       *   3. un liseré clair en bas — la lumière rasante qui remonte du sol.
+       */
       for (const b of bulles) {
         b.y -= b.vitesse;
         b.phase += 0.018;
@@ -188,14 +204,50 @@ export function FondVivant() {
           b.x = Math.random() * l;
         }
         const x = b.x + Math.sin(b.phase) * b.derive * 14;
+        /* Opacité doublée par rapport au cyan : le métal est plus pâle, donc
+           à alpha égal il aurait disparu. Le plafond reste bas — la règle de
+           vidéoprojection tient, ces billes ne passent pas devant un texte. */
+        const a = Math.min(b.alpha * 2.1, 0.3);
+
+        /*
+         * ⚠ Le sommet est à rgb(172,188,198) et PAS plus sombre, et ce n'est
+         * pas un réglage à l'œil. Ce canvas est fixe derrière TOUT le site,
+         * texte courant compris. Le plus sombre que ces billes produisent sur
+         * le papier doit donc rester au moins aussi clair que ce que faisaient
+         * les anciennes bulles cyan, sinon on dégrade la lisibilité en croyant
+         * embellir.
+         *
+         * Le calcul : ancien cyan rgb(0,169,206) à 0,16 sur le papier donne
+         * rgb(204,233,240), soit 0,771 de luminance relative. Le sommet chromé
+         * à 0,27 donne rgb(224,230,233), soit 0,783. On est au-dessus.
+         *
+         * Ce que ça coûte en rendu : rien. Une bille se lit comme du métal par
+         * son ÉCART interne et par la finesse de son éclat, pas par sa valeur
+         * absolue — un chrome photographié sur fond blanc est clair lui aussi.
+         */
+        const g = ctx.createLinearGradient(x, b.y - b.r, x, b.y + b.r);
+        g.addColorStop(0, "rgba(172, 188, 198, " + a * 0.9 + ")");    /* haut : le ciel */
+        g.addColorStop(0.45, "rgba(206, 218, 226, " + a * 0.55 + ")");
+        g.addColorStop(0.82, "rgba(252, 254, 255, " + a * 0.9 + ")"); /* bas : le sol, clair */
+        g.addColorStop(1, "rgba(220, 234, 241, " + a * 0.75 + ")");
 
         ctx.beginPath();
         ctx.arc(x, b.y, b.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(" + CYAN + ", " + b.alpha + ")";
+        ctx.fillStyle = g;
         ctx.fill();
-        // Liseré : sans lui, une bulle pâle se lit comme une tache floue.
-        ctx.strokeStyle = "rgba(" + CYAN + ", " + (b.alpha + 0.09) + ")";
-        ctx.lineWidth = 1;
+
+        /* L'éclat. Il est PETIT et franc : un reflet large et doux se lit
+           comme du plastique, un reflet serré comme du métal poli. */
+        ctx.beginPath();
+        ctx.arc(x - b.r * 0.32, b.y - b.r * 0.38, Math.max(b.r * 0.2, 0.9), 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255, 255, 255, " + Math.min(a * 2.6, 0.62) + ")";
+        ctx.fill();
+
+        /* Le retour du sol : un arc clair sur la moitié basse seulement. */
+        ctx.beginPath();
+        ctx.arc(x, b.y, b.r * 0.93, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.strokeStyle = "rgba(255, 255, 255, " + Math.min(a * 1.5, 0.4) + ")";
+        ctx.lineWidth = Math.max(b.r * 0.1, 0.7);
         ctx.stroke();
       }
     };

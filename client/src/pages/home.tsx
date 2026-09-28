@@ -214,11 +214,17 @@ function Hero() {
               plutôt que dans une zone devinée côté shader — une maquette qui
               bouge emmène la protection avec elle. */}
           <div className="relative" data-mercure-epargne>
-            {/* Réglette de repères : elle s'allume de haut en bas à l'ouverture */}
-            <div
-              className="rail po-rail absolute -left-6 top-1 hidden h-full w-[5px] lg:block"
-              aria-hidden="true"
-            />
+            {/*
+              La réglette de repères qui longeait le prénom a été RETIRÉE le
+              28/09/2026 — Youri ne l'aimait pas. Son animation d'allumage
+              (`po-rail`) faisait partie du moment orchestré d'ouverture ; le
+              reste de la séquence — le nom qui monte derrière son cache, la
+              ligne d'horizon qui se trace — tient très bien sans elle, et le
+              nom gagne l'espace à sa gauche.
+
+              Ne pas la remettre « pour équilibrer » : c'est un choix de Youri,
+              pas un oubli.
+            */}
 
             {/* Les deux lignes du nom montent l'une après l'autre derrière un
                 cache, pendant que l'ensemble s'élargit. Le décalage fait lire

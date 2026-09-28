@@ -701,3 +701,41 @@ circle.trace-pad {
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 94%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 94%);
 }
+
+/* ═══ Relief du nom du hero ══════════════════════════════════════════════════
+ * Demandé par Youri le 28/09/2026, en même temps que le retrait de la réglette
+ * qui longeait son prénom.
+ *
+ * Trois couches, et chacune fait un travail précis :
+ *   1. un liseré clair AU-DESSUS des lettres — c'est lui qui fait « soulevé »
+ *      plutôt que « gravé ». Une ombre claire posée en dessous donnerait
+ *      l'effet inverse, le letterpress creusé ;
+ *   2. un contact net juste sous la lettre, qui l'assoit ;
+ *   3. une ombre portée large et CYAN, la même famille que `.relief` sur les
+ *      cartes. Un gris neutre aurait été le kit SaaS ; le cyan rattache le
+ *      nom au reste du design system.
+ *
+ * Volontairement TROIS couches et pas cinq : les lettres se déplacent au
+ * pointeur (`hero-magnetique`), et chaque couche d'ombre est repeinte quand
+ * elles bougent. C'est le seul endroit du site où une ombre suit un mouvement,
+ * donc le seul où leur nombre se paie.
+ *
+ * La couleur du texte ne change pas : le contraste du nom reste à 16,69:1.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+/*
+ * ⚠ Les décalages sont PETITS, et c'est une contrainte de la taille du texte.
+ * Première version à `0 14px 30px / 0.2` : sur des lettres de ~110 px, ça ne
+ * se lisait pas comme un relief mais comme une COPIE GRISE décalée en bas à
+ * droite — le défaut de l'ombre portée des années 2000. Plus le texte est
+ * gros, plus l'ombre doit être serrée pour rester un contact et non un double.
+ */
+.nom-relief {
+  text-shadow:
+    0 -1px 0 hsl(0 0% 100% / 0.9),
+    0 1px 1px hsl(200 24% 8% / 0.16),
+    0 4px 12px hsl(194 64% 26% / 0.13);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Rien à faire ici : l'ombre ne s'anime pas, elle est peinte une fois. */
+}

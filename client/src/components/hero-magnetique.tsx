@@ -157,7 +157,7 @@ export function HeroMagnetique({ lignes }: { lignes: string[] }) {
   });
 
   return (
-    <h1 ref={hote} className="type-display">
+    <h1 ref={hote} className="type-display nom-relief">
       {lignes.map((ligne, i) => (
         /* Le cache de `.po-ligne` reste : la montée à l'allumage est le geste
            signature du site, l'aimantation vient seulement s'y ajouter. */
