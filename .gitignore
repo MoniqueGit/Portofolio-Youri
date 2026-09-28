@@ -4,3 +4,6 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+# Caches Python des scripts de skills
+__pycache__/
+*.pyc
