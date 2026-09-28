@@ -76,6 +76,66 @@ vec2 nappe(vec2 p, float t) {
   return p;
 }
 
+/*
+ * ── Les gouttes qui fusionnent ────────────────────────────────────────────
+ * Demande de Youri du 28/09/2026 : les gouttes de chrome de la référence.
+ *
+ * Ce sont des METABALLS. Chaque goutte émet un champ qui décroît comme
+ * l'inverse du carré de la distance ; on additionne les champs et on prend
+ * la surface où la somme franchit un seuil. Quand deux gouttes approchent,
+ * leurs champs s'additionnent AVANT le seuil : la surface se referme sur
+ * les deux d'un seul tenant. La fusion n'est donc pas un effet qu'on
+ * programme, c'est une conséquence de l'addition — d'où son naturel.
+ *
+ * Six gouttes. La boucle est bornée par une constante parce que GLSL ES 1.0
+ * exige un nombre de tours connu à la compilation ; et six suffisent pour
+ * que des paires se rencontrent sans que le champ devienne une bouillie.
+ *
+ * Les positions sont calculées ICI, à partir du temps, plutôt que passées en
+ * uniformes : deux sinus par goutte coûtent moins qu'un tableau à téléverser
+ * à chaque image, et rien n'a à être tenu à jour côté JavaScript.
+ */
+float gouttes(vec2 p, float t) {
+  float champ = 0.0;
+  for (int i = 0; i < 6; i++) {
+    float f = float(i);
+    /* Dérives volontairement non harmoniques (0,17 / 0,23 …) : avec des
+       vitesses en rapport simple, les gouttes se recroiseraient toujours au
+       même endroit et le motif se mettrait à battre. */
+    /*
+     * Les gouttes vivent dans les DEUX BANDES LIBRES du hero — au-dessus du
+     * contenu et en dessous — et traversent toute la largeur.
+     *
+     * Première version : elles dérivaient au centre, donc les trois quarts
+     * passaient derrière le portrait, qui est opaque. On ne voyait presque
+     * rien. Le décor de ce site occupe les gouttières libres ; les gouttes ne
+     * font pas exception. La garde du bloc de texte les efface de toute façon
+     * à gauche, mais mieux vaut ne pas les y envoyer.
+     */
+    float bande = mix(-0.80, 0.60, step(0.5, mod(f, 2.0)));
+    vec2 c = vec2(
+      sin(t * (0.17 + f * 0.031) + f * 2.4) * 1.45,
+      bande + cos(t * (0.23 - f * 0.024) + f * 1.7) * 0.13
+    );
+    /* La souris pousse les gouttes au lieu de les attirer : une goutte de
+       métal qui fuit le doigt se lit comme de la matière, une qui le suit
+       se lit comme un curseur. */
+    c += uSouris * 0.35;
+    /*
+     * ⚠ Le rayon décide de TOUT, et 0,20 était une erreur : avec six gouttes,
+     * le champ dépassait le seuil sur la quasi-totalité de l'écran et les
+     * gouttes fusionnaient en une seule nappe blanche couvrant le hero. Le
+     * champ décroît en 1/d², donc doubler le rayon quadruple la portée — il
+     * faut rester bien en dessous de la distance qui sépare deux gouttes,
+     * sinon elles sont TOUJOURS fusionnées et on ne voit plus la fusion.
+     */
+    float r = 0.145 + 0.04 * sin(f * 1.9);
+    vec2 d = p - c;
+    champ += (r * r) / (dot(d, d) + 0.0012);
+  }
+  return champ;
+}
+
 void main() {
   vec2 uv01 = gl_FragCoord.xy / uTaille;
   /* Coordonnées centrées et isotropes : la nappe ne doit pas s'étirer avec le
@@ -113,6 +173,67 @@ void main() {
      la DA au lieu d'un gris interchangeable. Très faible — le cyan n'a que
      2,9:1 sur fond clair, il ne porte jamais d'information. */
   couleur = mix(couleur, vec3(0.796, 0.902, 0.937), (1.0 - metal) * 0.3);
+
+  /*
+   * ── Les gouttes, posées SUR la nappe ──────────────────────────────────────
+   * Elles ne sont pas un calque de plus : même canvas, même shader, même
+   * passe. Le hero anime déjà la nappe, deux cartes 3D et les lettres du nom ;
+   * une couche supplémentaire aurait été un cinquième mouvement dans la même
+   * vue, et un canvas de plus coûte des images par seconde même quand il ne
+   * dessine pas — les deux erreurs déjà payées par ce site.
+   */
+  float champ = gouttes(uv, uTemps);
+
+  /*
+   * Le bord et la normale viennent des DÉRIVÉES à l'écran du champ. Elles
+   * donnent un liseré d'épaisseur constante en pixels et une normale gratuite.
+   *
+   * ⚠ fwidth / dFdx ne font PAS partie du socle WebGL 1 : ce sont
+   * OES_standard_derivatives, que le composant demande au contexte. Quand
+   * l'extension manque, la branche de repli échantillonne le champ deux fois
+   * plus loin — deux appels de plus, mais seulement sur les machines qui en
+   * ont besoin, et le rendu reste correct au lieu de refuser de compiler.
+   */
+#ifdef DERIVEES
+  float bord = fwidth(champ) * 1.6;
+  vec2 grad = vec2(dFdx(champ), dFdy(champ));
+#else
+  float e = 1.6 / min(uTaille.x, uTaille.y);
+  float cx = gouttes(uv + vec2(e, 0.0), uTemps);
+  float cy = gouttes(uv + vec2(0.0, e), uTemps);
+  vec2 grad = vec2(cx - champ, cy - champ);
+  float bord = (abs(grad.x) + abs(grad.y)) * 1.6;
+#endif
+  /* Plancher sur la largeur du bord : smoothstep avec ses deux bornes
+     égales n'est pas défini, et le champ est parfaitement plat au centre
+     d'une grosse goutte. */
+  bord = max(bord, 0.004);
+  float dedans = smoothstep(1.0 - bord, 1.0 + bord, champ);
+
+  /* Le gradient du champ pointe vers l'extérieur de la goutte : il sert de
+     normale, et sa composante verticale donne le « haut/bas » du volume. */
+  float pente = clamp(length(grad) * 0.1, 0.0, 1.0);
+  vec2 nrm = normalize(grad + vec2(0.0001));
+
+  /* Sombre en haut, clair en bas : la signature d'une sphère polie, qui
+     renvoie le ciel par le haut et le sol par le bas. Même raisonnement que
+     les billes de fond-vivant.tsx. */
+  /*
+   * L'écart du haut au bas est FRANC — 0,44 contre 0,99. C'est cet écart, et
+   * lui seul, qui fait lire « chrome » plutôt que « rond gris » : une bille
+   * pâle sur fond pâle n'a pas de matière. On peut se le permettre ici parce
+   * que les gouttes vivent dans les bandes libres et que la garde les efface
+   * dès qu'elles approchent du texte — c'est la protection qui achète le
+   * contraste, exactement comme pour la nappe.
+   */
+  float haut = 0.5 - 0.5 * nrm.y;
+  vec3 chrome = mix(vec3(0.988, 0.996, 1.0), vec3(0.435, 0.498, 0.553), haut);
+
+  /* Le reflet serré, et le liseré de bord qui signe le métal poli. */
+  chrome += pow(smoothstep(0.35, 1.0, 1.0 - haut), 5.0) * 0.5;
+  chrome = mix(chrome, vec3(1.0), pente * 0.55);
+
+  couleur = mix(couleur, clamp(chrome, 0.0, 1.0), dedans);
 
   /*
    * ── La zone de texte est ÉPARGNÉE, par géométrie ──────────────────────────
@@ -203,8 +324,19 @@ export function Mercure({
        est complète sans le décor. Un fond est toujours un supplément. */
     if (!gl) return;
 
+    /*
+     * Les dérivées à l'écran (`fwidth`, `dFdx`) sont une EXTENSION en WebGL 1.
+     * On la demande ; si le pilote la refuse, le shader est compilé sans le
+     * `#define` et prend sa branche de repli. La directive `#extension` doit
+     * précéder tout autre jeton, d'où le préfixe plutôt qu'une insertion.
+     */
+    const derivees = gl.getExtension("OES_standard_derivatives");
+    const entete = derivees
+      ? "#extension GL_OES_standard_derivatives : enable\n#define DERIVEES 1\n"
+      : "";
+
     const vs = compiler(gl, gl.VERTEX_SHADER, VERTEX);
-    const fs = compiler(gl, gl.FRAGMENT_SHADER, FRAGMENT);
+    const fs = compiler(gl, gl.FRAGMENT_SHADER, entete + FRAGMENT);
     if (!vs || !fs) return;
 
     const prog = gl.createProgram();

@@ -551,6 +551,35 @@ parler de « missing semicolon » au milieu du GLSL. Aucun backtick dans ce fich
 arrêt sur image ne prouve rien) : nom 16,69:1, navigation 7,04:1, sous-titre
 7,04:1 — tous exactement au niveau du papier nu.
 
+#### Les gouttes qui fusionnent (28/09/2026)
+Ajoutées dans le MÊME shader, pas dans un calque de plus. Le skill
+`ui-ux-pro-max` est formel là-dessus (« Excessive Motion », sévérité HIGH :
+*animate 1-2 key elements per view maximum*), et le hero anime déjà la nappe,
+deux cartes 3D et les lettres du nom. Un canvas de plus coûte des images par
+seconde même quand il ne dessine pas — les deux erreurs déjà payées ici.
+
+Ce sont des **metaballs** : chaque goutte émet un champ en 1/d², on additionne
+et on prend la surface où la somme franchit 1. Quand deux gouttes approchent,
+leurs champs s'additionnent AVANT le seuil et la surface se referme sur les
+deux. La fusion n'est pas programmée, c'est une conséquence de l'addition.
+
+Trois réglages trouvés par l'échec, à ne pas défaire :
+- **Rayon 0,145 et pas 0,20.** À 0,20, le champ dépassait le seuil sur presque
+  tout l'écran : les six gouttes fusionnaient en une seule nappe blanche.
+  Le champ décroît en 1/d², donc doubler le rayon quadruple la portée.
+- **Deux bandes libres, en haut et en bas.** Première version au centre : les
+  trois quarts passaient derrière le portrait, qui est opaque.
+- **Écart franc du haut au bas (0,44 → 0,99).** Une bille pâle sur fond pâle
+  n'a pas de matière. Possible seulement parce que la garde efface les gouttes
+  près du texte.
+
+`fwidth`/`dFdx` donnent le bord et la normale, mais ce sont
+`OES_standard_derivatives`, PAS le socle WebGL 1 : l'extension est demandée et
+un `#ifdef` fournit une branche de repli par double échantillonnage.
+
+⚠ **Le piège du backtick s'est reproduit**, dans le commentaire qui le décrit.
+Un script vérifie maintenant qu'il n'y en a aucun dans le shader.
+
 ⚠ **Anomalie PRÉEXISTANTE trouvée en chemin, non corrigée** : la carte 3D du
 bas-gauche du hero traverse la bande du sous-titre. Mesuré en A/B dans le même
 navigateur : **5,69:1 avec la nappe masquée**, 6,28:1 avec. Le mercure améliore
